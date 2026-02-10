@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>My Inventory</title>
+
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+
+</head>
+<body>
+
+    <div class="login-box">
+
+        <!-- LOGO -->
+        <img 
+            src="https://www.kartindorubber.com/assets/img/logo/logo2.png" 
+            alt="Logo"
+            class="logo"
+        >
+
+        <h2>Welcome</h2>
+
+        {% if error %}
+        <div class="alert-error">
+        ⚠️ {{ error }}
+        </div>
+        {% endif %}
+
+
+        <form method="POST">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+
+        <div class="footer-text">
+            © 2026 Fery Azrian
+        </div>
+    </div>
+
+</body>
+</html>

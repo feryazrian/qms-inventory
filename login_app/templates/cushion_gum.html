@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Cushion Gum</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cg.css') }}">
+    <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+    >
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="header-inner">
+        <img src="https://www.kartindorubber.com/assets/img/logo/logo2.png" class="header-logo">
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+<form method="POST" action="/cushion-gum" autocomplete="off">
+
+    <!-- INFO HEADER -->
+    <div class="cg-info">
+        <div>
+            <label>Nama Operator</label>
+            <input type="text">
+        </div>
+        <div>
+            <label>No. Mesin</label>
+            <input type="text">
+        </div>
+        <div>
+            <label>Hari / Tanggal</label>
+            <input type="date" id="tanggal" name="tanggal_produksi" required>
+        </div>
+    </div>
+
+    <!-- A. HASIL PRODUKSI -->
+    <div class="content-box">
+    <div class="section-header">
+    <h3 class="section-title">A. Hasil Produksi Cushion Gum</h3>
+    <div class="section-actions">
+        <button
+            type="button"
+            class="add-row-btn"
+            onclick="tambahBaris()"
+        >
+            + Tambah Baris
+        </button>
+        <button type="submit" class="save-btn">Simpan</button>
+    </div>
+    </div>
+        <div class="table-wrapper">
+            <table class="production-table">
+                <colgroup>
+                    <col class="col-product">
+                    <col class="col-order">
+                    <col class="col-time">
+                    <col class="col-time">
+                    <col class="col-line">
+                    <col class="col-small">
+                    <col class="col-small">
+                    <col class="col-small">
+                    <col class="col-small">
+                    <col class="col-small">
+                    <col class="col-small">
+                    <col class="col-small">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th rowspan="2">Nama Produk</th>
+                        <th rowspan="2">Order<br>( roll )</th>
+                        <th colspan="2">Waktu</th>
+                        <th rowspan="2">Line</th>
+                        <th rowspan="2" class="bg-green">Pakai<br>( menit )</th>
+                        <th colspan="2" class="bg-orange">Target ( roll )</th>
+                        <th rowspan="2">Aktual<br>( roll )</th>
+                        <th rowspan="2"> Persentase<br>( % )</th>
+                        <th colspan="2">Berat</th>
+                    </tr>
+                    <tr>
+                        <th>Awal</th>
+                        <th>Akhir</th>
+                        <th class="bg-pink target-menit-cell">Menit</th>
+                        <th class="bg-orange">Total</th>
+                        <th>Per Roll</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for i in range(6) %}
+                    <tr oninput="hitungPakaiMenit(this)">
+                        <td>
+                            <select name="nama_produk[]" class="produk-select">
+                                <option value=""></option>
+                                {% for produk in master_produk %}
+                                <option value="{{ produk[1] }}">{{ produk[1] }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><input></td>
+
+                        <!-- WAKTU AWAL -->
+                        <td>
+                            <input type="time" class="awal" name="waktu_awal[]">
+                        </td>
+
+                        <!-- WAKTU AKHIR -->
+                        <td>
+                            <input type="time" class="akhir" name="waktu_akhir[]">
+                        </td>
+
+                        <td><input class="line-field" name="line[]" readonly></td>
+
+                        <!-- PAKAI (MENIT) -->
+                        <td class="bg-green">
+                            <input class="pakai" name="pakai_menit[]" readonly>
+                        </td>
+                        <!-- PER MENIT -->
+                        <td class="bg-pink">
+                            <select class="target-menit soft-select" name="target_per_menit[]" onchange="hitungTargetTotal(this)">
+                                <option value=""></option>
+                                <option value="1/8">0.5</option>
+                                <option value="CGP">0.166</option>
+                                <option value="CG1">0.30</option>
+                                <option value="CG2">0.53</option>
+                            </select>
+                        </td>
+                        <!-- TOTAL -->
+                        <td class="bg-orange"><input class="target-total" readonly></td>
+                        <!-- AKTUAL -->
+                        <td><input class="aktual" name="aktual_roll[]" oninput="hitungPersentase(this)" autocomplete="off"></td>
+                        <!-- PERSENTASE -->
+                        <td><input class="persentase" readonly></td>
+                        <!-- PER ROLL -->
+                        <td><input class="per-roll" readonly></td>
+                        <!-- TOTAL -->
+                        <td><input></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5"><strong>Total</strong></td>
+                        <td class="bg-green"></td>
+                        <td class="bg-pink"></td>
+                        <td class="bg-orange"><input class="grand-total" readonly></td>
+                        <td><input class="grand-aktual" readonly></td>
+                        <td><input class="grand-percent" readonly></td>
+                        <td colspan="2" class="kg-cell">Kg</td>
+                    </tr>
+                </tfoot>
+            </table>
+            <!-- TARGET ROLL PER MENIT -->
+    <div class="target-box">
+        <table class="target-table">
+        <colgroup>
+            <col style="width: 25%">
+            <col style="width: 25%">
+            <col style="width: 25%">
+            <col style="width: 25%">
+        </colgroup>
+
+    <thead>
+        <tr>
+            <th colspan="4">Target Roll Per Menit</th>
+        </tr>
+        <tr>
+            <th>1/8</th>
+            <th>CG Potong</th>
+            <th>Cushion Gum 1 line</th>
+            <th>Cushion Gum 2 line</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr>
+            <td>0,5</td>
+            <td>0,166</td>
+            <td>0,30 (10 kg)</td>
+            <td>0,53 (10 kg)</td>
+        </tr>
+    </tbody>    
+</table>
+</div>
+</form>
+
+<!-- B. PEMAKAIAN BAHAN PENOLONG -->
+<h3 class="section-title b-section" style="margin-top:32px">B. Pemakaian Bahan Penolong</h3>
+    <div class="table-wrapper">
+        <table class="production-table helper-table">
+<thead>
+    <!-- Judul utama -->
+    <tr>
+        <th colspan="13" class="helper-title">Plastik</th>
+    </tr>
+
+    <!-- Header utama (SATU BARIS) -->
+    <tr>
+        <th rowspan="2">Lebar x tebal (mm)</th>
+
+        <th rowspan="2">230 x 0,15<br>(Biru E)</th>
+        <th rowspan="2">210 x 0,15<br>(Hijau E)</th>
+        <th rowspan="2">190 x 0,15<br>(Kuning E)</th>
+        <th rowspan="2">630 x 0,13<br>(Biru P)</th>
+        <th rowspan="2">630 x 0,15<br>(Merah E)</th>
+        <th rowspan="2">270 x 0,15<br>(Merah E)</th>
+        <th rowspan="2">240 x 0,15<br>(Merah E)</th>
+
+        <th rowspan="2">Gum Cord</th>
+        <th rowspan="2"></th>
+
+        <th rowspan="2" class="bg-grey">Total Pemakaian Plastik</th>
+
+        <th colspan="2" class="bg-pink">Plastik Terbuang</th>
+    </tr>
+
+    <!-- Sub-header KHUSUS Plastik Terbuang -->
+    <tr>
+        <th class="bg-pink">Plastik Produksi</th>
+        <th class="bg-pink">CG Potong</th>
+    </tr>
+</thead>
+            <tbody>
+                <tr>
+                    <td><strong>Berat (Kg)</strong></td>
+
+                    <td><input></td>
+                    <td><input></td>
+                    <td><input></td>
+                    <td><input></td>
+                    <td><input></td>
+                    <td><input></td>
+                    <td><input></td>
+
+                    <td><input></td>
+                    <td><input></td>
+
+                    <td class="bg-grey"><input readonly></td>
+
+                    <td class="bg-pink"><input></td>
+                    <td class="bg-pink"><input></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+
+<!-- TABEL KOTAK -->
+<div class="table-wrapper" style="margin-top:16px">
+    <table class="production-table helper-table">
+        <thead>
+            <tr>
+                <th colspan="11" class="helper-title">Kotak</th>
+            </tr>
+            <tr>
+                <th>Tinggi</th>
+                <th>160</th>
+                <th>185</th>
+                <th>200</th>
+                <th>220</th>
+                <th>310</th>
+                <th>350</th>
+                <th>Gum Cord</th>
+                <th></th>
+                <th class="bg-grey">Total</th>
+                <th class="bg-pink">Terbuang</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Jumlah</strong></td>
+                <td><input></td>
+                <td><input></td>
+                <td><input></td>
+                <td><input></td>
+                <td><input></td>
+                <td><input></td>
+                <td><input></td>
+                <td><input></td>
+                <td class="bg-grey"><input></td>
+                <td class="bg-pink"><input></td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- TABEL TUNGKUL PARALON + LAKBAN -->
+<div class="table-wrapper" style="margin-top:16px">
+    <table class="production-table helper-table">
+        <thead>
+            <!-- JUDUL UTAMA -->
+            <tr>
+                <th colspan="7" class="helper-title">Tungkul Paralon</th>
+                <th rowspan="2" class="helper-title">Lakban</th>
+            </tr>
+
+            <!-- HEADER KOLOM -->
+            <tr>
+                <th>Panjang (mm)</th>
+                <th>165</th>
+                <th>195</th>
+                <th>210</th>
+                <th>240</th>
+                <th class="bg-grey">Total</th>
+                <th class="bg-pink">Terbuang</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td><strong>Jumlah</strong></td>
+                <td><input></td>
+                <td><input></td>
+                <td><input></td>
+                <td><input></td>
+                <td class="bg-grey"><input></td>
+                <td class="bg-pink"><input></td>
+                <td>Roll</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+    <!-- TABEL Gum Cord -->
+    <!-- HEADER -->
+    <div class="section-header" style="margin-top:24px">
+        <h3 class="section-title b-section">C. Hasil Produksi Gum Cord</h3>
+        <div class="section-actions">
+            <button type="submit" class="save-btn" form="gum-cord-form">Simpan</button>
+        </div>
+    </div>
+
+    <!-- TABEL -->
+    <div class="table-wrapper">
+        <form id="gum-cord-form" method="POST" action="/cushion-gum-cord">
+        <input type="hidden" name="tanggal_produksi" id="tanggal_c">
+        <table class="production-table helper-table">
+        <colgroup>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+        </colgroup>
+            <thead>
+                <tr>
+                    <th rowspan="2">Nama Produk</th>
+                    <th rowspan="2">Order<br>(Kotak)</th>
+                    <th colspan="2">Waktu</th>
+                    <th rowspan="2" class="bg-green">Pakai<br>(menit)</th>
+                    <th colspan="2">Target (kotak)</th>
+                    <th rowspan="2">Aktual<br>(kotak)</th>
+                    <th rowspan="2">Persentase<br>(%)</th>
+                    <th colspan="2">Berat</th>
+                </tr>
+                <tr>
+                    <th>Awal</th>
+                    <th>Akhir</th>
+                    <th class="bg-orange">Per menit</th>
+                    <th class="bg-orange">Total</th>
+                    <th>Per kotak</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr oninput="hitungPakaiMenitC(this)">
+                    <td><input name="nama_produk" value="Gum Cord" readonly></td>
+                    <td><input class="order-c" name="order_kotak"></td>
+                    <td><input type="time" class="awal-c" name="waktu_awal"></td>
+                    <td><input type="time" class="akhir-c" name="waktu_akhir"></td>
+                    <td class="bg-green">
+                        <input class="pakai-c" name="pakai_menit" readonly>
+                    </td>
+                    <td class="bg-pink">
+                        <input class="target-menit-c" name="target_per_menit" value="0.08" readonly>
+                    </td>
+                    <td class="bg-orange">
+                        <input class="target-total-c" name="target_total" readonly>
+                    </td>
+                    <td><input class="aktual-c" name="aktual_kotak" oninput="hitungPersentaseC(this)"></td>
+                    <td><input class="persentase-c" name="persentase" readonly></td>
+                    <td><input class="berat-per-kotak-c" name="berat_per_kotak" readonly></td>
+                    <td><input class="berat-total-c" name="berat_total" readonly></td>
+                </tr>
+            </tbody>
+        </table>
+        </form>
+    </div>
+
+    <!-- 
+    <a href="/home" class="back-link">← Kembali ke Dashboard</a>
+     -->
+</div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const today = new Date();
+
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+
+    const formatted = `${yyyy}-${mm}-${dd}`;
+    document.getElementById("tanggal").value = formatted;
+    const tanggalC = document.getElementById("tanggal_c");
+    if (tanggalC) {
+        tanggalC.value = formatted;
+    }
+});
+
+function initProdukSelect(scope) {
+    const $el = scope ? $(scope).find('.produk-select') : $('.produk-select');
+    $el.select2({
+        width: '100%',
+        placeholder: '',
+        allowClear: true
+    });
+}
+
+$(document).ready(function () {
+    initProdukSelect();
+});
+
+function setPerRollFromSelect(selectEl) {
+    const row = selectEl.closest('tr');
+    const perRollInput = row?.querySelector('.per-roll');
+    if (!perRollInput) return;
+
+    const selectedText = selectEl.options[selectEl.selectedIndex]?.text || "";
+    const text = selectedText.toLowerCase();
+
+    if (text.includes("cushion gum")) {
+        perRollInput.value = "10";
+    } else if (text.includes("sidewall 1/8b")) {
+        perRollInput.value = "7";
+    } else if (text.includes("sidewall 1/8mm")) {
+        perRollInput.value = "10";
+    } else if (text.includes("cg potong")) {
+        perRollInput.value = "10";
+    } else {
+        perRollInput.value = "";
+    }
+}
+
+$(document).on('change', '.produk-select', function () {
+    setPerRollFromSelect(this);
+});
+    
+function hitungPakaiMenit(row) {
+    const awal = row.querySelector('.awal').value;
+    const akhir = row.querySelector('.akhir').value;
+
+    if (!awal || !akhir) return;
+
+    const [ja, ma] = awal.split(':').map(Number);
+    const [jb, mb] = akhir.split(':').map(Number);
+
+    const totalAwal = ja * 60 + ma;
+    const totalAkhir = jb * 60 + mb;
+
+    const pakai = totalAkhir - totalAwal;
+
+    if (pakai < 0) {
+        alert("Waktu akhir harus lebih besar");
+        row.querySelector('.pakai').value = "";
+        return;
+    }
+
+    row.querySelector('.pakai').value = pakai;
+
+    // 🔥 PAKSA HITUNG ULANG TARGET
+    const selectTarget = row.querySelector('.target-menit');
+    if (selectTarget && selectTarget.value) {
+        hitungTargetTotal(selectTarget);
+    }
+}
+
+const targetMap = {
+    "1/8": 0.5,
+    "CGP": 0.166,
+    "CG1": 0.30,
+    "CG2": 0.53
+    };
+
+const lineMap = {
+    "CG1": "1",
+    "CG2": "2",
+    "1/8": "-",
+    "CGP": "-"
+};
+
+/* hitung total roll */
+function hitungTargetTotal(selectEl) {
+    const row = selectEl.closest('tr');
+
+    const pakaiInput = row.querySelector('.pakai');
+    const totalInput = row.querySelector('.target-total');
+    const lineInput = row.querySelector('.line-field');
+
+    const pakai = parseFloat(pakaiInput.value);
+    const kodeTarget = selectEl.value;
+
+    if (lineInput) {
+        lineInput.value = lineMap[kodeTarget] ?? "";
+    }
+
+    if (!pakai || !kodeTarget) {
+        totalInput.value = "";
+        return;
+    }
+
+    const targetPerMenit = targetMap[kodeTarget];
+    const total = pakai * targetPerMenit;
+
+    totalInput.value = total.toFixed(2);
+
+    hitungGrandTotal();
+}
+
+function hitungGrandTotal() {
+    let total = 0;
+
+    document.querySelectorAll('.target-total').forEach(input => {
+        const val = parseFloat(input.value);
+        if (!isNaN(val)) {
+            total += val;
+        }
+    });
+
+    const grandInput = document.querySelector('.grand-total');
+    if (grandInput) {
+        grandInput.value = total.toFixed(2);
+    }
+    hitungGrandPersentase();
+}
+
+function hitungTotalAktual() {
+    let total = 0;
+
+    document.querySelectorAll('.aktual').forEach(input => {
+        const val = parseFloat(input.value);
+        if (!isNaN(val)) {
+            total += val;
+        }
+    });
+
+    const totalAktualInput = document.querySelector('.grand-aktual');
+    if (totalAktualInput) {
+        totalAktualInput.value = total.toFixed(0);
+    }
+    hitungGrandPersentase();
+}
+
+document.addEventListener('input', function (e) {
+    if (e.target.classList.contains('aktual')) {
+        hitungTotalAktual();
+    }
+});
+
+function hitungGrandPersentase() {
+    const grandTarget = parseFloat(
+        document.querySelector('.grand-total')?.value
+    );
+
+    const grandAktual = parseFloat(
+        document.querySelector('.grand-aktual')?.value
+    );
+
+    const percentInput = document.querySelector('.grand-percent');
+
+    if (isNaN(grandTarget) || isNaN(grandAktual) || grandTarget === 0) {
+        percentInput.value = "";
+        return;
+    }
+
+    const persen = (grandAktual / grandTarget) * 100;
+    percentInput.value = persen.toFixed(2);
+}
+
+document.addEventListener('input', function (e) {
+    if (
+        e.target.classList.contains('aktual') ||
+        e.target.classList.contains('target-total')
+    ) {
+        hitungTotalAktual();       
+        hitungGrandPersentase(); 
+    }
+});
+
+document.addEventListener('input', function (e) {
+    if (e.target.classList.contains('order-c')) {
+        const row = e.target.closest('tr');
+        const perKotakInput = row?.querySelector('.berat-per-kotak-c');
+        const aktualInput = row?.querySelector('.aktual-c');
+        if (!perKotakInput) return;
+
+        if (e.target.value.trim() !== "") {
+            perKotakInput.value = "8";
+        } else {
+            perKotakInput.value = "";
+        }
+
+        if (aktualInput && aktualInput.value) {
+            hitungPersentaseC(aktualInput);
+        }
+    }
+});
+
+function hitungPersentase(inputAktual) {
+    const row = inputAktual.closest('tr');
+
+    const totalTargetInput = row.querySelector('.target-total');
+    const persentaseInput = row.querySelector('.persentase');
+
+    const aktual = parseFloat(inputAktual.value);
+    const totalTarget = parseFloat(
+        totalTargetInput.value.replace(',', '.')
+    );
+
+    if (isNaN(aktual) || isNaN(totalTarget) || totalTarget === 0) {
+        persentaseInput.value = "";
+        return;
+    }
+
+    const persen = (aktual / totalTarget) * 100;
+    persentaseInput.value = persen.toFixed(2);
+}
+
+function hitungPakaiMenitC(row) {
+    const awal = row.querySelector('.awal-c')?.value;
+    const akhir = row.querySelector('.akhir-c')?.value;
+    if (!awal || !akhir) return;
+
+    const [ja, ma] = awal.split(':').map(Number);
+    const [jb, mb] = akhir.split(':').map(Number);
+
+    const totalAwal = ja * 60 + ma;
+    const totalAkhir = jb * 60 + mb;
+
+    const pakai = totalAkhir - totalAwal;
+    const pakaiInput = row.querySelector('.pakai-c');
+    if (!pakaiInput) return;
+
+    if (pakai < 0) {
+        alert("Waktu akhir harus lebih besar");
+        pakaiInput.value = "";
+        return;
+    }
+
+    pakaiInput.value = pakai;
+
+    const targetMenitInput = row.querySelector('.target-menit-c');
+    const targetTotalInput = row.querySelector('.target-total-c');
+    if (!targetMenitInput || !targetTotalInput) return;
+
+    const targetPerMenit = parseFloat(targetMenitInput.value);
+    if (!isNaN(targetPerMenit)) {
+        const total = pakai * targetPerMenit;
+        targetTotalInput.value = total.toFixed(2);
+        const aktualInput = row.querySelector('.aktual-c');
+        if (aktualInput && aktualInput.value) {
+            hitungPersentaseC(aktualInput);
+        }
+    } else {
+        targetTotalInput.value = "";
+    }
+}
+
+function hitungPersentaseC(inputAktual) {
+    const row = inputAktual.closest('tr');
+    const totalTargetInput = row.querySelector('.target-total-c');
+    const persentaseInput = row.querySelector('.persentase-c');
+    const perKotakInput = row.querySelector('.berat-per-kotak-c');
+    const totalBeratInput = row.querySelector('.berat-total-c');
+
+    const aktual = parseFloat(inputAktual.value);
+    const totalTarget = parseFloat(
+        totalTargetInput.value.replace(',', '.')
+    );
+
+    if (isNaN(aktual) || isNaN(totalTarget) || totalTarget === 0) {
+        persentaseInput.value = "";
+        return;
+    }
+
+    if (Math.abs(aktual - totalTarget) < 0.01) {
+        persentaseInput.value = "100.00";
+    } else {
+        const persen = (aktual / totalTarget) * 100;
+        persentaseInput.value = persen.toFixed(2);
+    }
+
+    if (totalBeratInput && perKotakInput) {
+        const perKotak = parseFloat(perKotakInput.value);
+        if (!isNaN(aktual) && !isNaN(perKotak)) {
+            totalBeratInput.value = (aktual * perKotak).toFixed(0);
+        } else {
+            totalBeratInput.value = "";
+        }
+    }
+}
+
+function tambahBaris() {
+    const tbody = document.querySelector('.production-table tbody');
+    const row = document.createElement('tr');
+
+    row.innerHTML = `
+        <td>
+            <select name="nama_produk[]" class="produk-select">
+                <option value=""></option>
+                {% for produk in master_produk %}
+                <option value="{{ produk[1] }}">{{ produk[1] }}</option>
+                {% endfor %}
+            </select>
+        </td>
+        <td><input></td>
+
+        <td><input type="time" class="awal" name="waktu_awal[]"></td>
+        <td><input type="time" class="akhir" name="waktu_akhir[]"></td>
+
+        <td><input class="line-field" name="line[]" readonly></td>
+
+        <td class="bg-green">
+            <input class="pakai" name="pakai_menit[]" readonly>
+        </td>
+
+        <td class="bg-pink">
+            <select class="target-menit" name="target_per_menit[]" onchange="hitungTargetTotal(this)">
+                <option value=""></option>
+                <option value="1/8">0.5</option>
+                <option value="CGP">0.166</option>
+                <option value="CG1">0.30</option>
+                <option value="CG2">0.53</option>
+            </select>
+        </td>
+
+        <td class="bg-orange">
+            <input class="target-total" readonly>
+        </td>
+
+        <td><input class="aktual" name="aktual_roll[]" oninput="hitungPersentase(this)" autocomplete="off"></td>
+        <td><input class="persentase" readonly></td>
+        <td><input class="per-roll" readonly></td>
+        <td><input></td>
+    `;
+
+    row.setAttribute('oninput', 'hitungPakaiMenit(this)');
+    tbody.appendChild(row);
+    initProdukSelect(row);
+}
+</script>
+
+</body>
+</html>
+

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>My Inventory</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+
+</head>
+<body>
+
+    <!-- HEADER -->
+<div class="header">
+ <div class="header-inner">
+        <img 
+            src="https://www.kartindorubber.com/assets/img/logo/logo2.png"
+            alt="Kartindo Rubber"
+            class="header-logo"
+        >
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+</div>
+
+
+    <!-- CONTENT -->
+    <div class="container">
+        <h3>Selamat Datang</h3>
+        <p>Pilih menu untuk mulai bekerja.</p>
+
+        <div class="cards">
+            <div>
+                <a href="/cushion-gum" class="card">
+                <h3>Sasaran Mutu Cushion Gum & Gum Cord</h3>
+                <p>Pantau dan catat hasil produksi.</p>
+                </a>
+            </div>
+
+            <div class="card">
+                <h3>Sararan Mutu MSC</h3>
+                <p>Pantau dan catat hasil gilingan.</p>
+            </div>
+
+            <div class="card">
+                <h3>Stock Plastik</h3>
+                <p>Kelola stok plastik masuk & keluar.</p>
+            </div>
+
+            <div class="card">
+                <h3>Stock Master Batch</h3>
+                <p>Lihat laporan dan data historis.</p>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

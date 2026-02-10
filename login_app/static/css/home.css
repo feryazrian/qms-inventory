@@ -1,0 +1,110 @@
+/* ===== HOME / DASHBOARD ===== */
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #F5F6FA; /* abu profesional */
+}
+
+/* HEADER */
+.header {
+    width: 100%;
+    background: #FFFFFF;
+    border-bottom: 1px solid #E5E7EB;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 18px 40px;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-logo {
+    height: 36px;    
+    width: auto;
+    object-fit: contain;
+}
+
+.header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: #333;
+}
+
+.logout-btn {
+    color: #D72638;
+    border: 1.5px solid #D72638;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.25s;
+    background: white;
+}
+
+.logout-btn:hover {
+    background: #D72638;
+    color: white;
+}
+
+
+/* CONTAINER */
+.container {
+    max-width: 1200px;
+    border-top: 1px solid #E5E7EB;
+    margin: 0 auto;          /* INI YANG MEMBUAT RAPI */
+    padding: 40px;
+}
+
+/* GRID CARD */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 24px;
+    margin-top: 30px;
+}
+
+/* CARD */
+.card {
+    background: #FFFFFF;
+    cursor: pointer;
+    padding: 24px;
+    border-radius: 14px;
+    border: 1px solid #E5E7EB;
+    transition: 0.25s ease;
+}
+
+.cards .card:hover {
+    transform: translateY(-6px);
+    border-color: #D72638;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+}
+
+.card h3 {
+    margin-top: 0;
+    color: #D72638;
+}
+
+.card p {
+    font-size: 14px;
+    color: #555;
+}
+
+/* CARD LINK FIX */
+.cards a.card {
+    display: block;             
+    text-decoration: none;       
+    color: inherit;             
+}
+
+/* JAGA WARNA JUDUL */
+.cards a.card h3 {
+    text-decoration: none;
+}

@@ -1,0 +1,402 @@
+.cg-info {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.cg-info label {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.cg-info input {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.content-box {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 6px 15px rgba(0,0,0,0.08);
+    padding: 20px;
+}
+
+.production-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    table-layout: fixed;
+}
+
+.production-table th,
+.production-table td {
+    border: 1px solid #666;
+    padding: 5px;
+    text-align: center;
+}
+
+.production-table .col-product {
+    width: 200px;
+}
+
+.production-table .col-order {
+    width: 80px;
+}
+
+.production-table .col-time {
+    width: 80px;
+}
+
+.production-table .col-line {
+    width: 60px;
+}
+
+.production-table .col-small {
+    width: 72px;
+}
+
+.production-table td:first-child,
+.production-table th:first-child {
+    text-align: center;
+    padding-left: 0;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.production-table tfoot td:first-child {
+    text-align: left;
+    padding-left: 10px;
+}
+
+.production-table .col-line {
+    width: 60px;
+}
+
+.production-table input,
+.production-table select {
+    width: 100%;
+    border: none;
+    text-align: center;
+    outline: none;
+    font-size: 12px;
+    font-family: inherit;
+}
+
+.production-table .produk-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: none;
+}
+
+/* Select2: hilangkan kotak/border di tabel produksi */
+.production-table .select2-container--default .select2-selection--single {
+    border: none;
+    background: transparent;
+    border-radius: 0;
+    height: 100%;
+    min-height: 26px;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+.production-table .select2-container--default .select2-selection--single .select2-selection__rendered {
+    padding-left: 0;
+    padding-right: 0;
+    line-height: 26px;
+    font-size: 12px;
+    text-align: center;
+    color: #000;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.production-table .select2-container--default .select2-selection--single {
+    text-align: center;
+}
+
+.production-table .select2-container--default .select2-selection--single .select2-selection__arrow {
+    display: none;
+}
+
+.production-table .select2-container {
+    width: 100% !important;
+    display: block;
+}
+
+.production-table .select2-container--default .select2-selection__clear {
+    display: none;
+}
+
+.production-table tfoot input.grand-total,
+.production-table tfoot input.grand-aktual,
+.production-table tfoot input.grand-percent {
+    font-weight: 600;
+}
+
+.production-table thead th {
+    background: #f1f1f1;
+}
+
+.bg-green {
+    background: #cfe3b0;
+}
+
+.bg-green input {
+    width: 100%;
+    height: 100%;
+    background: transparent;   /* ⬅️ kunci utama */
+    border: none;              /* ⬅️ hilangkan kotak */
+    text-align: center;
+    font-weight: 400;
+    font-size: 12px;
+    outline: none;
+    padding: 6px 0;
+}
+
+/* ===================
+   KOLOM WARNA PINK
+====================== */
+.bg-pink {
+    background: #f4cccc;
+    font-weight: 600;
+}
+
+.bg-pink input,
+.bg-pink select {
+    background: transparent;
+    border: none;
+    outline: none;
+    box-shadow: none;
+
+    width: 100%;
+    height: 100%;
+
+    padding: 0;
+    margin: 0;
+
+    text-align: center;
+    font-size: 12px;
+
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.bg-orange {
+    background: #f6d7b8;
+}
+
+.bg-orange input {
+    width: 100%;
+    height: 100%;
+    background: transparent;   /* ⬅️ kunci utama */
+    border: none;              /* ⬅️ hilangkan kotak */
+    text-align: center;
+    font-weight: 400;
+    font-size: 12px;
+    outline: none;
+    padding: 6px 0;
+}
+
+/* === TARGET MENIT (DROPDOWN) === */
+.bg-orange select {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: transparent;
+
+    text-align: center;
+    font-weight: 500;
+    font-size: 12px;
+    color: #000;
+
+    /* HILANGKAN PANAH */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+
+    background-image: none;
+}
+.bg-orange select:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 20px;
+    text-decoration: none;
+    color: #D72638;
+    font-weight: 600;
+}
+
+/* TABEL TARGET ROLL PER MENIT */
+.target-table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed; /* PENTING */
+}
+
+.target-table th,
+.target-table td {
+    border: 1px solid #666;
+    padding: 8px;
+    text-align: center;
+}
+
+/* KHUSUS TABEL TARGET ROLL PER MENIT */
+.target-table thead tr:first-child th {
+    background: #e5e7eb; /* abu-abu netral */
+    color: #111;
+    font-weight: bold;
+}
+/* Baris judul kolom tetap kuning */
+.target-table thead tr:nth-child(2) th {
+    background: #f6ff80; /* kuning */
+    font-weight: bold;
+}
+
+.kg-cell {
+    text-align: right !important;
+    vertical-align: bottom !important;
+    padding-right: 10px;      /* jarak dari kanan */
+    padding-bottom: 6px;      /* jarak dari bawah */
+    font-weight: 600;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0px 0 5px;
+}
+
+.section-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.section-title {
+    margin: 10px 0 8px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+/* tombol */
+.add-row-btn {
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px dashed #aaa;
+    background: #f9f9f9;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.add-row-btn:hover {
+    background: #eee;
+}
+
+.save-btn {
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid #D72638;
+    background: #D72638;
+    color: #fff;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.save-btn:hover {
+    background: #b91f2f;
+    border-color: #b91f2f;
+}
+
+/* =========================
+   TABEL B – PEMAKAIAN BAHAN PENOLONG
+   Sejajar dengan Tabel A
+========================= */
+
+.helper-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    table-layout: fixed;   /* penting agar rapi */
+}
+
+/* pakai style yang sama dengan production-table */
+.helper-table th,
+.helper-table td {
+    border: 1px solid #666;
+    padding: 6px 4px;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* header utama "Plastik" */
+.helper-title {
+    background: #e6e6e6;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+/* kolom abu total */
+.helper-table .bg-grey {
+    background: #e0e0e0;
+    font-weight: 600;
+}
+
+/* kolom pink plastik terbuang */
+.helper-table .bg-pink {
+    background: #efc1c1;
+    font-weight: 600;
+}
+
+/* input seperti tabel A (tanpa kotak) */
+.helper-table input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    text-align: center;
+    outline: none;
+    font-size: 12px;
+}
+
+/* tinggi baris konsisten */
+.helper-table tbody tr {
+    height: 38px;
+}
+
+/* =========================
+   TABEL B – SUB TABEL (Kotak, Tungkul, Lakban)
+   Mengikuti Tabel A & Plastik
+========================= */
+
+/* semua helper table pakai style tabel A */
+
+.bg-grey {
+    background: #e0e0e0;
+    font-weight: 600;
+}
+
+.bg-pink {
+    background: #efc1c1;
+    font-weight: 600;
+}
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    margin-top: 8px;
+}
