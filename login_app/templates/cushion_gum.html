@@ -422,7 +422,43 @@ document.addEventListener("DOMContentLoaded", function () {
     if (tanggalC) {
         tanggalC.value = formatted;
     }
+
+    fitTablesToCard();
 });
+
+window.addEventListener("resize", fitTablesToCard);
+
+function fitTablesToCard() {
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    const wrappers = document.querySelectorAll(".table-wrapper");
+
+    wrappers.forEach((wrapper) => {
+        const table = wrapper.querySelector("table");
+        if (!table) return;
+
+        table.style.transform = "";
+        table.style.transformOrigin = "";
+        table.style.width = "";
+        table.style.minWidth = "";
+        wrapper.style.height = "";
+        wrapper.style.overflowX = "";
+
+        if (!isMobile) return;
+
+        table.style.width = "max-content";
+        table.style.minWidth = "max-content";
+
+        const wrapperWidth = wrapper.clientWidth || 1;
+        const tableWidth = table.scrollWidth || 1;
+        const scale = Math.min(1, wrapperWidth / tableWidth);
+
+        table.style.transformOrigin = "top left";
+        table.style.transform = `scale(${scale})`;
+        table.style.width = `${100 / scale}%`;
+        wrapper.style.overflowX = "hidden";
+        wrapper.style.height = `${Math.ceil(table.offsetHeight * scale)}px`;
+    });
+}
 
 function initProdukSelect(scope) {
     const $el = scope ? $(scope).find('.produk-select') : $('.produk-select');
@@ -435,6 +471,7 @@ function initProdukSelect(scope) {
 
 $(document).ready(function () {
     initProdukSelect();
+    fitTablesToCard();
 });
 
 function setPerRollFromSelect(selectEl) {
@@ -763,6 +800,7 @@ function tambahBaris() {
     row.setAttribute('oninput', 'hitungPakaiMenit(this)');
     tbody.appendChild(row);
     initProdukSelect(row);
+    fitTablesToCard();
 }
 </script>
 

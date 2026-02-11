@@ -402,15 +402,64 @@
 }
 
 @media (max-width: 768px) {
+    .container,
+    .content-box {
+        overflow: hidden;
+    }
 
     .table-wrapper {
         width: 100%;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        overflow-x: hidden;
     }
 
-    table {
-        min-width: 900px; /* agar tabel tidak hancur */
+    table,
+    .production-table,
+    .helper-table,
+    .target-table {
+        width: 100%;
+        min-width: 0;
+        table-layout: fixed;
     }
 
+    .production-table .col-product,
+    .production-table .col-order,
+    .production-table .col-time,
+    .production-table .col-line,
+    .production-table .col-small {
+        width: auto;
+    }
+
+    .production-table th,
+    .production-table td,
+    .helper-table th,
+    .helper-table td,
+    .target-table th,
+    .target-table td {
+        padding: 3px 2px;
+        font-size: 10px;
+        word-break: break-word;
+    }
+
+    .production-table input,
+    .production-table select,
+    .helper-table input {
+        font-size: 10px;
+        min-width: 0;
+    }
+
+    .section-header {
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .section-actions {
+        width: 100%;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .add-row-btn,
+    .save-btn {
+        max-width: 100%;
+    }
 }
