@@ -108,3 +108,55 @@ body {
 .cards a.card h3 {
     text-decoration: none;
 }
+
+@media (max-width: 768px) {
+    .header-inner {
+        padding: 14px 16px;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .header h2 {
+        font-size: 18px;
+    }
+
+    .container {
+        padding: 16px;
+    }
+
+    .cards {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        margin-top: 16px;
+    }
+
+    .card {
+        padding: 16px;
+    }
+
+    form {
+        width: 100%;
+    }
+
+    input,
+    select,
+    textarea,
+    button,
+    .btn,
+    .logout-btn {
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    .table-wrapper,
+    .table-container,
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 700px;
+    }
+}
