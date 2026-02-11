@@ -400,3 +400,17 @@
     overflow-x: auto;
     margin-top: 8px;
 }
+
+@media (max-width: 768px) {
+
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 900px; /* agar tabel tidak hancur */
+    }
+
+}
