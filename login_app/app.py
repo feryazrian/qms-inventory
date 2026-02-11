@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
+import os
 import psycopg2
 
 app = Flask(__name__)
@@ -34,6 +35,13 @@ LINE_MAP = {
 
 
 def get_db_conn():
+    return get_connection()
+
+
+def get_connection():
+    database_url = os.getenv("DATABASE_URL")
+    if database_url:
+        return psycopg2.connect(database_url, sslmode="require")
     return psycopg2.connect(**DB_CONFIG)
 
 
