@@ -2,6 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cushion Gum</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
@@ -42,9 +43,10 @@
 
     <!-- A. HASIL PRODUKSI -->
     <div class="content-box">
-    <div class="section-header">
-    <h3 class="section-title">A. Hasil Produksi Cushion Gum</h3>
+    <div class="section-header production-header">
+    <h3 class="section-title mobile-title-center"><span class="section-prefix">A.</span> Hasil Produksi Cushion Gum</h3>
     <div class="section-actions">
+        <button type="button" class="add-row-btn">Reset Form</button>
         <button
             type="button"
             class="add-row-btn"
@@ -55,7 +57,7 @@
         <button type="submit" class="save-btn">Simpan</button>
     </div>
     </div>
-        <div class="table-wrapper">
+        <div class="table-wrapper main-table-wrapper">
             <table class="production-table">
                 <colgroup>
                     <col class="col-product">
@@ -157,6 +159,7 @@
                     </tr>
                 </tfoot>
             </table>
+        </div>
             <!-- TARGET ROLL PER MENIT -->
     <div class="target-box">
         <table class="target-table">
@@ -192,12 +195,13 @@
 </form>
 
 <!-- B. PEMAKAIAN BAHAN PENOLONG -->
-<h3 class="section-title b-section" style="margin-top:32px">B. Pemakaian Bahan Penolong</h3>
-    <div class="table-wrapper">
+<h3 class="section-title b-section mobile-title-center" style="margin-top:32px"><span class="section-prefix">B.</span> Pemakaian Bahan Penolong</h3>
+    <div class="plastik-fixed-title">Plastik</div>
+    <div class="table-wrapper sync-main-width plastik-scroll-wrapper">
         <table class="production-table helper-table">
 <thead>
     <!-- Judul utama -->
-    <tr>
+    <tr class="plastik-title-row">
         <th colspan="13" class="helper-title">Plastik</th>
     </tr>
 
@@ -253,10 +257,11 @@
 
 
 <!-- TABEL KOTAK -->
-<div class="table-wrapper" style="margin-top:16px">
+<div class="kotak-fixed-title">Kotak</div>
+<div class="table-wrapper sync-main-width kotak-scroll-wrapper" style="margin-top:16px">
     <table class="production-table helper-table">
         <thead>
-            <tr>
+            <tr class="kotak-title-row">
                 <th colspan="11" class="helper-title">Kotak</th>
             </tr>
             <tr>
@@ -292,13 +297,14 @@
 </div>
 
 <!-- TABEL TUNGKUL PARALON + LAKBAN -->
-<div class="table-wrapper" style="margin-top:16px">
+<div class="tungkul-fixed-title">Tungkul Paralon</div>
+<div class="table-wrapper sync-main-width tungkul-scroll-wrapper" style="margin-top:16px">
     <table class="production-table helper-table">
         <thead>
             <!-- JUDUL UTAMA -->
             <tr>
-                <th colspan="7" class="helper-title">Tungkul Paralon</th>
-                <th rowspan="2" class="helper-title">Lakban</th>
+                <th colspan="7" class="helper-title tungkul-title-cell">Tungkul Paralon</th>
+                <th rowspan="2" class="helper-title lakban-desktop-head">Lakban</th>
             </tr>
 
             <!-- HEADER KOLOM -->
@@ -310,6 +316,7 @@
                 <th>240</th>
                 <th class="bg-grey">Total</th>
                 <th class="bg-pink">Terbuang</th>
+                <th class="helper-title lakban-mobile-head">Lakban</th>
             </tr>
         </thead>
 
@@ -330,15 +337,15 @@
 
     <!-- TABEL Gum Cord -->
     <!-- HEADER -->
-    <div class="section-header" style="margin-top:24px">
-        <h3 class="section-title b-section">C. Hasil Produksi Gum Cord</h3>
+    <div class="section-header gum-cord-header" style="margin-top:24px">
+        <h3 class="section-title b-section"><span class="section-prefix">C.</span> Hasil Produksi Gum Cord</h3>
         <div class="section-actions">
             <button type="submit" class="save-btn" form="gum-cord-form">Simpan</button>
         </div>
     </div>
 
     <!-- TABEL -->
-    <div class="table-wrapper">
+    <div class="table-wrapper sync-main-width">
         <form id="gum-cord-form" method="POST" action="/cushion-gum-cord">
         <input type="hidden" name="tanggal_produksi" id="tanggal_c">
         <table class="production-table helper-table">
@@ -431,6 +438,16 @@ window.addEventListener("resize", fitTablesToCard);
 function fitTablesToCard() {
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
     const wrappers = document.querySelectorAll(".table-wrapper");
+    const mainTable = document.querySelector(".content-box > .table-wrapper .production-table");
+    let mainTableBaseWidth = 0;
+
+    if (mainTable) {
+        mainTable.style.transform = "";
+        mainTable.style.transformOrigin = "";
+        mainTable.style.width = "max-content";
+        mainTable.style.minWidth = "max-content";
+        mainTableBaseWidth = mainTable.scrollWidth || 0;
+    }
 
     wrappers.forEach((wrapper) => {
         const table = wrapper.querySelector("table");
@@ -442,21 +459,22 @@ function fitTablesToCard() {
         table.style.minWidth = "";
         wrapper.style.height = "";
         wrapper.style.overflowX = "";
+        wrapper.style.overflowY = "";
+        wrapper.style.width = "";
+        wrapper.style.maxWidth = "";
 
         if (!isMobile) return;
 
         table.style.width = "max-content";
         table.style.minWidth = "max-content";
+        wrapper.style.overflowX = wrapper.classList.contains("main-table-wrapper") ? "scroll" : "auto";
+        wrapper.style.overflowY = "hidden";
+        wrapper.style.height = "auto";
 
-        const wrapperWidth = wrapper.clientWidth || 1;
-        const tableWidth = table.scrollWidth || 1;
-        const scale = Math.min(1, wrapperWidth / tableWidth);
-
-        table.style.transformOrigin = "top left";
-        table.style.transform = `scale(${scale})`;
-        table.style.width = `${100 / scale}%`;
-        wrapper.style.overflowX = "hidden";
-        wrapper.style.height = `${Math.ceil(table.offsetHeight * scale)}px`;
+        // Tabel yang ditandai: samakan lebar kontennya dengan tabel utama A.
+        if (wrapper.classList.contains("sync-main-width") && mainTableBaseWidth > 0) {
+            table.style.minWidth = `${mainTableBaseWidth}px`;
+        }
     });
 }
 
@@ -806,4 +824,3 @@ function tambahBaris() {
 
 </body>
 </html>
-

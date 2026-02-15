@@ -351,6 +351,19 @@
     font-size: 13px;
 }
 
+.plastik-fixed-title {
+    display: none;
+}
+
+.kotak-fixed-title,
+.tungkul-fixed-title {
+    display: none;
+}
+
+.lakban-mobile-head {
+    display: none;
+}
+
 /* kolom abu total */
 .helper-table .bg-grey {
     background: #e0e0e0;
@@ -401,32 +414,56 @@
     margin-top: 8px;
 }
 
+.main-table-wrapper {
+    scrollbar-width: thin;
+    scrollbar-color: #b0b0b0 #ececec;
+}
+
+.main-table-wrapper::-webkit-scrollbar {
+    height: 8px;
+}
+
+.main-table-wrapper::-webkit-scrollbar-track {
+    background: #ececec;
+}
+
+.main-table-wrapper::-webkit-scrollbar-thumb {
+    background: #b0b0b0;
+    border-radius: 8px;
+}
+
 @media (max-width: 768px) {
     .container,
     .content-box {
-        overflow: hidden;
+        overflow: visible;
+    }
+
+    .cg-info {
+        grid-template-columns: 1fr;
+        gap: 10px;
     }
 
     .table-wrapper {
         width: 100%;
-        overflow-x: hidden;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
     }
 
-    table,
-    .production-table,
-    .helper-table,
-    .target-table {
-        width: 100%;
-        min-width: 0;
+    .production-table {
+        min-width: 1120px;
         table-layout: fixed;
     }
 
-    .production-table .col-product,
-    .production-table .col-order,
-    .production-table .col-time,
-    .production-table .col-line,
-    .production-table .col-small {
-        width: auto;
+    .helper-table {
+        min-width: 1120px;
+        table-layout: fixed;
+    }
+
+    .target-table {
+        min-width: 0;
+        width: 100%;
+        table-layout: fixed;
     }
 
     .production-table th,
@@ -435,21 +472,91 @@
     .helper-table td,
     .target-table th,
     .target-table td {
-        padding: 3px 2px;
-        font-size: 10px;
+        padding: 4px 3px;
+        font-size: 11px;
         word-break: break-word;
+        overflow: hidden;
     }
 
     .production-table input,
     .production-table select,
     .helper-table input {
-        font-size: 10px;
+        font-size: 11px;
         min-width: 0;
     }
 
     .section-header {
         gap: 8px;
         flex-wrap: wrap;
+    }
+
+    .section-title {
+        font-size: 20px;
+    }
+
+    .section-prefix {
+        display: none;
+    }
+
+    .mobile-title-center {
+        text-align: center;
+    }
+
+    .plastik-fixed-title {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        text-align: center;
+        font-weight: 700;
+        font-size: 13px;
+        background: #e6e6e6;
+        border: 1px solid #666;
+        border-bottom: none;
+        padding: 6px 8px;
+        margin-top: 8px;
+    }
+
+    .plastik-scroll-wrapper {
+        margin-top: 0;
+    }
+
+    .plastik-scroll-wrapper .plastik-title-row {
+        display: none;
+    }
+
+    .kotak-fixed-title,
+    .tungkul-fixed-title {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        text-align: center;
+        font-weight: 700;
+        font-size: 13px;
+        background: #e6e6e6;
+        border: 1px solid #666;
+        border-bottom: none;
+        padding: 6px 8px;
+        margin-top: 16px;
+    }
+
+    .kotak-scroll-wrapper {
+        margin-top: 0 !important;
+    }
+
+    .kotak-scroll-wrapper .kotak-title-row {
+        display: none;
+    }
+
+    .tungkul-scroll-wrapper {
+        margin-top: 0 !important;
+    }
+
+    .tungkul-scroll-wrapper thead tr:first-child {
+        display: none;
+    }
+
+    .tungkul-scroll-wrapper .lakban-mobile-head {
+        display: table-cell;
     }
 
     .section-actions {
@@ -461,5 +568,54 @@
     .add-row-btn,
     .save-btn {
         max-width: 100%;
+    }
+
+    .gum-cord-header {
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .gum-cord-header .section-title {
+        margin: 0;
+        font-size: clamp(16px, 4.6vw, 20px);
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .gum-cord-header .section-actions {
+        width: auto;
+        flex-wrap: nowrap;
+        justify-content: flex-end;
+    }
+
+    .gum-cord-header .save-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+
+    .production-header .section-actions {
+        width: 100%;
+        flex-wrap: nowrap;
+        justify-content: center;
+        gap: 6px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .production-header .mobile-title-center {
+        flex: 0 0 100%;
+        margin: 0;
+        text-align: center;
+    }
+
+    .production-header .section-actions .add-row-btn,
+    .production-header .section-actions .save-btn {
+        flex: 0 0 auto;
+        padding: 6px 10px;
+        font-size: 12px;
     }
 }

@@ -124,6 +124,10 @@ body {
         padding: 16px;
     }
 
+    .logout-btn {
+        padding: 5px 12px;
+    }
+
     .cards {
         grid-template-columns: 1fr;
         gap: 14px;
