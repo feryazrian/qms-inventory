@@ -46,7 +46,7 @@
     <div class="section-header production-header">
     <h3 class="section-title mobile-title-center"><span class="section-prefix">A.</span> Hasil Produksi Cushion Gum</h3>
     <div class="section-actions">
-        <button type="button" class="add-row-btn">Reset Form</button>
+        <button type="button" class="add-row-btn" onclick="confirmResetAB()">Reset Form</button>
         <button
             type="button"
             class="add-row-btn"
@@ -58,7 +58,7 @@
     </div>
     </div>
         <div class="table-wrapper main-table-wrapper">
-            <table class="production-table">
+            <table class="production-table table-a-reset">
                 <colgroup>
                     <col class="col-product">
                     <col class="col-order">
@@ -198,7 +198,7 @@
 <h3 class="section-title b-section mobile-title-center" style="margin-top:32px"><span class="section-prefix">B.</span> Pemakaian Bahan Penolong</h3>
     <div class="plastik-fixed-title">Plastik</div>
     <div class="table-wrapper sync-main-width plastik-scroll-wrapper">
-        <table class="production-table helper-table">
+        <table class="production-table helper-table ab-reset-table">
 <thead>
     <!-- Judul utama -->
     <tr class="plastik-title-row">
@@ -259,7 +259,7 @@
 <!-- TABEL KOTAK -->
 <div class="kotak-fixed-title">Kotak</div>
 <div class="table-wrapper sync-main-width kotak-scroll-wrapper" style="margin-top:16px">
-    <table class="production-table helper-table">
+    <table class="production-table helper-table ab-reset-table">
         <thead>
             <tr class="kotak-title-row">
                 <th colspan="11" class="helper-title">Kotak</th>
@@ -299,7 +299,7 @@
 <!-- TABEL TUNGKUL PARALON + LAKBAN -->
 <div class="tungkul-fixed-title">Tungkul Paralon</div>
 <div class="table-wrapper sync-main-width tungkul-scroll-wrapper" style="margin-top:16px">
-    <table class="production-table helper-table">
+    <table class="production-table helper-table ab-reset-table">
         <thead>
             <!-- JUDUL UTAMA -->
             <tr>
@@ -434,6 +434,8 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 window.addEventListener("resize", fitTablesToCard);
+
+const INITIAL_A_ROWS = 6;
 
 function fitTablesToCard() {
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
@@ -818,6 +820,55 @@ function tambahBaris() {
     row.setAttribute('oninput', 'hitungPakaiMenit(this)');
     tbody.appendChild(row);
     initProdukSelect(row);
+    fitTablesToCard();
+}
+
+function confirmResetAB() {
+    const isConfirmed = confirm("Yakin ingin menghapus semua input?");
+    if (!isConfirmed) return;
+    resetFormAB();
+}
+
+function resetFormAB() {
+    const aTable = document.querySelector('.table-a-reset');
+    if (!aTable) return;
+
+    // A: kembalikan jumlah baris ke default awal (6).
+    const aTbody = aTable.querySelector('tbody');
+    if (aTbody) {
+        while (aTbody.rows.length > INITIAL_A_ROWS) {
+            aTbody.deleteRow(-1);
+        }
+    }
+
+    // A: bersihkan semua field pada baris tabel A.
+    const aRows = aTable.querySelectorAll('tbody tr');
+    aRows.forEach((row) => {
+        row.querySelectorAll('input').forEach((input) => {
+            input.value = '';
+        });
+
+        row.querySelectorAll('select').forEach((select) => {
+            if (window.jQuery && $(select).hasClass('select2-hidden-accessible')) {
+                $(select).val(null).trigger('change');
+            } else {
+                select.value = '';
+            }
+        });
+    });
+
+    // A: bersihkan total/footer.
+    aTable.querySelectorAll('tfoot input').forEach((input) => {
+        input.value = '';
+    });
+
+    // B: bersihkan semua input/select di tabel B saja.
+    document.querySelectorAll('.ab-reset-table').forEach((table) => {
+        table.querySelectorAll('input, select').forEach((field) => {
+            field.value = '';
+        });
+    });
+
     fitTablesToCard();
 }
 </script>
