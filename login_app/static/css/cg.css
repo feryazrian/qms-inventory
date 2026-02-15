@@ -360,9 +360,32 @@
     display: none;
 }
 
+.lakban-mobile-input {
+    display: table-cell;
+}
+
 .lakban-mobile-head {
     display: none;
 }
+
+.tungkul-scroll-wrapper td.lakban-mobile-input {
+    border-right: none;
+}
+
+.tungkul-scroll-wrapper td.lakban-unit-cell {
+    border-left: none;
+}
+
+/* Desktop: kecilkan area Lakban (input + Roll) sedikit */
+.tungkul-scroll-wrapper th:last-child,
+.tungkul-scroll-wrapper td:last-child {
+    width: 70px;
+}
+
+.tungkul-scroll-wrapper .lakban-mobile-input {
+    width: 50px;
+}
+
 
 /* kolom abu total */
 .helper-table .bg-grey {
@@ -485,6 +508,17 @@
         min-width: 0;
     }
 
+    .helper-table th:first-child,
+    .helper-table td:first-child {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .production-table tbody td:first-child {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
     .section-header {
         gap: 8px;
         flex-wrap: wrap;
@@ -559,6 +593,16 @@
         display: table-cell;
     }
 
+    .tungkul-scroll-wrapper .lakban-mobile-input {
+        display: table-cell;
+        width: 30px;
+    }
+
+    .tungkul-scroll-wrapper th:last-child,
+    .tungkul-scroll-wrapper td:last-child {
+        width: 40px;
+    }
+
     .section-actions {
         width: 100%;
         justify-content: flex-end;
@@ -617,5 +661,11 @@
         flex: 0 0 auto;
         padding: 6px 10px;
         font-size: 12px;
+    }
+
+    .auto-total-kotak,
+    .auto-total-tungkul {
+        pointer-events: none;
+        caret-color: transparent;
     }
 }
