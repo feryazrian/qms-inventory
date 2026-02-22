@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/laporan.css') }}">
+</head>
+<body>
+<div class="header">
+    <div class="header-inner">
+        <a href="/home" aria-label="Ke halaman Home">
+            <img
+                src="https://www.kartindorubber.com/assets/img/logo/logo2.png"
+                alt="Kartindo Rubber"
+                class="header-logo"
+            >
+        </a>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="laporan-tabs-wrap">
+        <div class="laporan-tabs" role="tablist" aria-label="Tab Laporan">
+            <button type="button" class="laporan-tab {% if active_tab == 'cushion-gum' %}is-active{% endif %}" role="tab" aria-selected="{% if active_tab == 'cushion-gum' %}true{% else %}false{% endif %}" data-tab-target="tab-cushion-gum">
+                Cushion Gum
+            </button>
+            <button type="button" class="laporan-tab {% if active_tab == 'gum-cord' %}is-active{% endif %}" role="tab" aria-selected="{% if active_tab == 'gum-cord' %}true{% else %}false{% endif %}" data-tab-target="tab-gum-cord">
+                Gum Cord
+            </button>
+            <button type="button" class="laporan-tab {% if active_tab == 'msc' %}is-active{% endif %}" role="tab" aria-selected="{% if active_tab == 'msc' %}true{% else %}false{% endif %}" data-tab-target="tab-msc">
+                MSC
+            </button>
+        </div>
+    </div>
+
+    <section id="tab-cushion-gum" class="laporan-panel {% if active_tab == 'cushion-gum' %}is-active{% endif %}" role="tabpanel" {% if active_tab != 'cushion-gum' %}hidden{% endif %}>
+        <div class="laporan-table-wrap">
+            <table class="laporan-table">
+                <thead>
+                    <tr>
+                        <th>Tanggal Produksi</th>
+                        <th>Total Target</th>
+                        <th>Aktual (Roll)</th>
+                        <th>Persentase</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if laporan_cushion_gum %}
+                        {% for row in laporan_cushion_gum %}
+                        <tr>
+                            <td>{{ row[1] }}</td>
+                            <td>{{ row[2] if row[2] is not none else '' }}</td>
+                            <td>{{ row[3] if row[3] is not none else '' }}</td>
+                            <td>{{ row[4] if row[4] is not none else '' }}</td>
+                            <td>
+                                <div class="aksi-wrap">
+                                    <button type="button" class="aksi-btn aksi-read cg-read-btn" data-batch-uid="{{ row[5] or '' }}">Read</button>
+                                    <button type="button" class="aksi-btn aksi-edit cg-edit-btn" data-batch-uid="{{ row[5] or '' }}">Edit</button>
+                                    <form method="POST" action="{{ url_for('laporan_delete') }}" onsubmit="return confirm('Yakin hapus data ini?');">
+                                        <input type="hidden" name="id" value="{{ row[0] }}">
+                                        <input type="hidden" name="sumber" value="cushion-gum">
+                                        <button type="submit" class="aksi-btn aksi-delete">Delete</button>
+                                    </form>
+                                    <button type="button" class="aksi-btn aksi-cetak">Cetak</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="laporan-empty">Belum ada data laporan Cushion Gum.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <section id="tab-gum-cord" class="laporan-panel {% if active_tab == 'gum-cord' %}is-active{% endif %}" role="tabpanel" {% if active_tab != 'gum-cord' %}hidden{% endif %}>
+        <div class="laporan-table-wrap">
+            <table class="laporan-table">
+                <thead>
+                    <tr>
+                        <th>Tanggal Produksi</th>
+                        <th>Total Target</th>
+                        <th>Aktual (Kotak)</th>
+                        <th>Persentase</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if laporan_gum_cord %}
+                        {% for row in laporan_gum_cord %}
+                        <tr>
+                            <td>{{ row[1] }}</td>
+                            <td>{{ row[2] if row[2] is not none else '' }}</td>
+                            <td>{{ row[3] if row[3] is not none else '' }}</td>
+                            <td>{{ row[4] if row[4] is not none else '' }}</td>
+                            <td>
+                                <div class="aksi-wrap">
+                                    <button type="button" class="aksi-btn aksi-read">Read</button>
+                                    <button type="button" class="aksi-btn aksi-edit">Edit</button>
+                                    <form method="POST" action="{{ url_for('laporan_delete') }}" onsubmit="return confirm('Yakin hapus data ini?');">
+                                        <input type="hidden" name="id" value="{{ row[0] }}">
+                                        <input type="hidden" name="sumber" value="gum-cord">
+                                        <button type="submit" class="aksi-btn aksi-delete">Delete</button>
+                                    </form>
+                                    <button type="button" class="aksi-btn aksi-cetak">Cetak</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="laporan-empty">Belum ada data laporan Gum Cord.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <section id="tab-msc" class="laporan-panel {% if active_tab == 'msc' %}is-active{% endif %}" role="tabpanel" {% if active_tab != 'msc' %}hidden{% endif %}>
+        <div class="laporan-table-wrap">
+            <table class="laporan-table">
+                <thead>
+                    <tr>
+                        <th>Tanggal Produksi</th>
+                        <th>Total Menit</th>
+                        <th>Total Target</th>
+                        <th>Aktual (Batch)</th>
+                        <th>Persentase</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if laporan_msc %}
+                        {% for row in laporan_msc %}
+                        <tr>
+                            <td>{{ row[1] }}</td>
+                            <td>{{ row[2] if row[2] is not none else '' }}</td>
+                            <td>{{ row[3] if row[3] is not none else '' }}</td>
+                            <td>{{ row[4] if row[4] is not none else '' }}</td>
+                            <td>{{ row[5] if row[5] is not none else '' }}</td>
+                            <td>
+                                <div class="aksi-wrap">
+                                    <button
+                                        type="button"
+                                        class="aksi-btn aksi-read msc-read-btn"
+                                        data-batch-uid="{{ row[6] or '' }}"
+                                    >
+                                        Read
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="aksi-btn aksi-edit msc-edit-btn"
+                                        data-batch-uid="{{ row[6] or '' }}"
+                                    >
+                                        Edit
+                                    </button>
+                                    <form method="POST" action="{{ url_for('laporan_delete') }}" onsubmit="return confirm('Yakin hapus data ini?');">
+                                        <input type="hidden" name="id" value="{{ row[0] }}">
+                                        <input type="hidden" name="sumber" value="msc">
+                                        <button type="submit" class="aksi-btn aksi-delete">Delete</button>
+                                    </form>
+                                    <button type="button" class="aksi-btn aksi-cetak">Cetak</button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="laporan-empty">Belum ada data laporan MSC.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+<div id="cg-modal" class="cg-modal" hidden>
+    <div class="cg-modal-backdrop" data-close-cg="1"></div>
+    <div class="cg-modal-card" role="dialog" aria-modal="true" aria-labelledby="cg-modal-title">
+        <div class="cg-modal-head">
+            <h3 id="cg-modal-title">Detail Produksi Cushion Gum</h3>
+            <button type="button" class="cg-modal-close" data-close-cg="1">Tutup</button>
+        </div>
+        <div class="cg-modal-meta">
+            <div>
+                <label>Nama Operator</label>
+                <input type="text" id="cg-modal-nama-operator">
+            </div>
+            <div>
+                <label>No. Mesin</label>
+                <input type="text" id="cg-modal-no-mesin">
+            </div>
+            <div>
+                <label>Hari / Tanggal</label>
+                <input type="date" id="cg-modal-tanggal">
+            </div>
+        </div>
+        <div class="cg-modal-table-wrap">
+            <table class="cg-modal-prod-table">
+                <colgroup>
+                    <col class="cg-col-product">
+                    <col class="cg-col-order">
+                    <col class="cg-col-time">
+                    <col class="cg-col-time">
+                    <col class="cg-col-line">
+                    <col class="cg-col-small">
+                    <col class="cg-col-small">
+                    <col class="cg-col-small">
+                    <col class="cg-col-small">
+                    <col class="cg-col-small">
+                    <col class="cg-col-small">
+                    <col class="cg-col-small">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th rowspan="2">Nama Produk</th>
+                        <th rowspan="2">Order<br>( roll )</th>
+                        <th colspan="2">Waktu</th>
+                        <th rowspan="2">Line</th>
+                        <th rowspan="2">Pakai<br>( menit )</th>
+                        <th colspan="2">Target ( roll )</th>
+                        <th rowspan="2">Aktual<br>( roll )</th>
+                        <th rowspan="2">Persentase<br>( % )</th>
+                        <th colspan="2">Berat</th>
+                    </tr>
+                    <tr>
+                        <th>Awal</th>
+                        <th>Akhir</th>
+                        <th>Menit</th>
+                        <th>Total</th>
+                        <th>Per Roll</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="cg-modal-body"></tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="5"><strong>Total</strong></td>
+                        <td class="bg-green"></td>
+                        <td class="bg-pink"></td>
+                        <td class="bg-orange"><input id="cg-modal-grand-target" type="number" step="0.01" readonly></td>
+                        <td><input id="cg-modal-grand-aktual" type="number" step="1" readonly></td>
+                        <td><input id="cg-modal-grand-persen" type="number" step="0.01" readonly></td>
+                        <td colspan="2" class="kg-cell"><span class="kg-label">Kg</span></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="cg-modal-actions">
+            <button type="button" class="aksi-btn aksi-edit" id="cg-modal-update-btn" hidden>Update</button>
+        </div>
+    </div>
+</div>
+
+<div id="msc-modal" class="msc-modal" hidden>
+    <div class="msc-modal-backdrop" data-close-modal="1"></div>
+    <div class="msc-modal-card" role="dialog" aria-modal="true" aria-labelledby="msc-modal-title">
+        <div class="msc-modal-head">
+            <h3 id="msc-modal-title">Detail Produksi MSC</h3>
+            <button type="button" class="msc-modal-close" data-close-modal="1">Tutup</button>
+        </div>
+        <div class="msc-modal-meta">
+            <div>
+                <label>Nama Operator</label>
+                <input type="text" id="msc-modal-nama-operator">
+            </div>
+            <div>
+                <label>No. Mesin</label>
+                <input type="text" id="msc-modal-no-mesin">
+            </div>
+            <div>
+                <label>Regu</label>
+                <input type="text" id="msc-modal-regu">
+            </div>
+            <div>
+                <label>Tanggal</label>
+                <input type="date" id="msc-modal-tanggal">
+            </div>
+        </div>
+        <div class="msc-modal-table-wrap">
+            <table class="msc-modal-prod-table">
+                <colgroup>
+                    <col class="col-no">
+                    <col class="col-bahan">
+                    <col class="col-jam">
+                    <col class="col-jam">
+                    <col class="col-jam-wide">
+                    <col class="col-target-small">
+                    <col class="col-target-total">
+                    <col class="col-aktual">
+                    <col class="col-persen">
+                    <col class="col-obat">
+                    <col class="col-obat">
+                    <col class="col-keterangan">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th colspan="12" class="section-title-cell">Hasil Produksi</th>
+                    </tr>
+                    <tr class="h-main">
+                        <th rowspan="2">No</th>
+                        <th rowspan="2">Nama Bahan</th>
+                        <th colspan="3">Jam</th>
+                        <th colspan="2">Target<br>( Batch )</th>
+                        <th rowspan="2">Aktual<br>( Batch )</th>
+                        <th rowspan="2">Persentase<br>( % )</th>
+                        <th colspan="2">Obat<br>( Bungkus )</th>
+                        <th rowspan="2">Keterangan</th>
+                    </tr>
+                    <tr class="h-main">
+                        <th>Awal</th>
+                        <th>Akhir</th>
+                        <th>Pakai<br>( menit )</th>
+                        <th>Per<br>menit</th>
+                        <th>Total</th>
+                        <th>Timbang</th>
+                        <th>Sisa</th>
+                    </tr>
+                </thead>
+                <tbody id="msc-modal-body"></tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="2" class="total-label">Total</td>
+                        <td colspan="2" class="total-label">Menit</td>
+                        <td><input type="number" step="1" id="msc-modal-grand-pakai" readonly data-fixed="1"></td>
+                        <td></td>
+                        <td class="bg-green"><input type="number" step="0.001" id="msc-modal-grand-target" readonly data-fixed="1"></td>
+                        <td class="bg-orange"><input type="number" step="0.001" id="msc-modal-grand-aktual" readonly data-fixed="1"></td>
+                        <td class="bg-blue"><input type="number" step="0.01" id="msc-modal-grand-persentase" readonly data-fixed="1"></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="msc-modal-actions">
+            <button type="button" class="aksi-btn aksi-edit" id="msc-modal-update-btn" hidden>Update</button>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const tabs = document.querySelectorAll(".laporan-tab");
+    const panels = document.querySelectorAll(".laporan-panel");
+
+    tabs.forEach((tab) => {
+        tab.addEventListener("click", function () {
+            const targetId = tab.dataset.tabTarget;
+            if (!targetId) return;
+
+            tabs.forEach((t) => {
+                t.classList.remove("is-active");
+                t.setAttribute("aria-selected", "false");
+            });
+            panels.forEach((p) => {
+                p.classList.remove("is-active");
+                p.hidden = true;
+            });
+
+            tab.classList.add("is-active");
+            tab.setAttribute("aria-selected", "true");
+            const targetPanel = document.getElementById(targetId);
+            if (targetPanel) {
+                targetPanel.classList.add("is-active");
+                targetPanel.hidden = false;
+            }
+        });
+    });
+
+    const cgModal = document.getElementById("cg-modal");
+    const cgModalBody = document.getElementById("cg-modal-body");
+    const cgUpdateBtn = document.getElementById("cg-modal-update-btn");
+    const cgNamaOperator = document.getElementById("cg-modal-nama-operator");
+    const cgNoMesin = document.getElementById("cg-modal-no-mesin");
+    const cgTanggal = document.getElementById("cg-modal-tanggal");
+    const cgGrandTarget = document.getElementById("cg-modal-grand-target");
+    const cgGrandAktual = document.getElementById("cg-modal-grand-aktual");
+    const cgGrandPersen = document.getElementById("cg-modal-grand-persen");
+    let activeCgBatchUid = "";
+
+    function setCgModalEditable(editable) {
+        [cgNamaOperator, cgNoMesin, cgTanggal].forEach((el) => {
+            el.readOnly = !editable;
+            el.disabled = !editable;
+        });
+        cgModalBody.querySelectorAll("input[data-field]").forEach((el) => {
+            el.readOnly = !editable;
+            el.disabled = !editable;
+        });
+        cgModalBody.querySelectorAll("input[data-fixed='1']").forEach((el) => {
+            el.readOnly = true;
+            el.disabled = false;
+        });
+        cgUpdateBtn.hidden = !editable;
+    }
+
+    function buildCgRow(index, row) {
+        return `
+            <tr>
+                <td><input type="text" data-field="nama_produk" value="${row.nama_produk ?? ""}"></td>
+                <td><input type="text" data-fixed="1" value=""></td>
+                <td><input type="time" data-field="waktu_awal" value="${row.waktu_awal ?? ""}"></td>
+                <td><input type="time" data-field="waktu_akhir" value="${row.waktu_akhir ?? ""}"></td>
+                <td><input type="number" step="1" data-field="line" value="${row.line ?? ""}"></td>
+                <td class="bg-green"><input type="number" step="1" data-field="pakai_menit" value="${row.pakai_menit ?? ""}"></td>
+                <td class="bg-pink"><input type="number" step="0.001" data-field="target_per_menit" value="${row.target_per_menit ?? ""}"></td>
+                <td class="bg-orange"><input type="number" step="0.01" data-field="target_total" value="${row.target_total ?? ""}"></td>
+                <td><input type="number" step="1" data-field="aktual_roll" value="${row.aktual_roll ?? ""}"></td>
+                <td><input type="number" step="0.01" data-field="persentase" value="${row.persentase ?? ""}"></td>
+                <td><input type="text" data-fixed="1" value=""></td>
+                <td><input type="text" data-fixed="1" value=""></td>
+            </tr>
+        `;
+    }
+
+    function openCgModal() {
+        cgModal.hidden = false;
+        document.body.classList.add("modal-open");
+    }
+
+    function closeCgModal() {
+        cgModal.hidden = true;
+        document.body.classList.remove("modal-open");
+        activeCgBatchUid = "";
+    }
+
+    async function loadCushionBatch(batchUid, mode) {
+        if (!batchUid) {
+            alert("Batch UID tidak tersedia.");
+            return;
+        }
+        try {
+            const res = await fetch(`/laporan/cushion-gum/read/${encodeURIComponent(batchUid)}`);
+            const json = await res.json();
+            if (!res.ok || !json.ok) {
+                throw new Error(json.message || "Gagal mengambil data Cushion Gum.");
+            }
+            const data = json.data;
+            activeCgBatchUid = batchUid;
+            cgNamaOperator.value = data.nama_operator || "";
+            cgNoMesin.value = data.no_mesin || "";
+            cgTanggal.value = data.tanggal_produksi || "";
+            cgGrandTarget.value = data.total_target ?? "";
+            cgGrandAktual.value = data.total_aktual ?? "";
+            cgGrandPersen.value = data.total_persentase ?? "";
+            cgModalBody.innerHTML = (data.rows || []).map((row, idx) => buildCgRow(idx, row)).join("");
+            setCgModalEditable(mode === "edit");
+            openCgModal();
+        } catch (err) {
+            alert(err.message || "Gagal membuka data Cushion Gum.");
+        }
+    }
+
+    function collectCgRows() {
+        const rows = [];
+        cgModalBody.querySelectorAll("tr").forEach((tr) => {
+            const row = {};
+            tr.querySelectorAll("input[data-field]").forEach((input) => {
+                row[input.dataset.field] = input.value;
+            });
+            rows.push(row);
+        });
+        return rows;
+    }
+
+    async function submitCgUpdate() {
+        if (!activeCgBatchUid) return;
+        const payload = {
+            header: {
+                nama_operator: cgNamaOperator.value,
+                no_mesin: cgNoMesin.value,
+                tanggal_produksi: cgTanggal.value,
+            },
+            rows: collectCgRows(),
+        };
+        try {
+            const res = await fetch(`/laporan/cushion-gum/update/${encodeURIComponent(activeCgBatchUid)}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            const json = await res.json();
+            if (!res.ok || !json.ok) {
+                throw new Error(json.message || "Gagal update data Cushion Gum.");
+            }
+            alert("Data Cushion Gum berhasil diupdate.");
+            window.location.href = "/laporan?tab=cushion-gum";
+        } catch (err) {
+            alert(err.message || "Gagal update data Cushion Gum.");
+        }
+    }
+
+    document.querySelectorAll(".cg-read-btn").forEach((btn) => {
+        btn.addEventListener("click", () => loadCushionBatch(btn.dataset.batchUid, "read"));
+    });
+    document.querySelectorAll(".cg-edit-btn").forEach((btn) => {
+        btn.addEventListener("click", () => loadCushionBatch(btn.dataset.batchUid, "edit"));
+    });
+    document.querySelectorAll("[data-close-cg='1']").forEach((el) => {
+        el.addEventListener("click", closeCgModal);
+    });
+    cgUpdateBtn.addEventListener("click", submitCgUpdate);
+
+    cgModalBody.addEventListener("click", (event) => {
+        const timeInput = event.target.closest("input[type='time']");
+        if (!timeInput || timeInput.disabled) return;
+        if (typeof timeInput.showPicker === "function") {
+            timeInput.showPicker();
+        }
+    });
+
+    cgModalBody.addEventListener("focusin", (event) => {
+        const timeInput = event.target.closest("input[type='time']");
+        if (!timeInput || timeInput.disabled) return;
+        if (typeof timeInput.showPicker === "function") {
+            timeInput.showPicker();
+        }
+    });
+
+    const mscModal = document.getElementById("msc-modal");
+    const mscModalBody = document.getElementById("msc-modal-body");
+    const mscUpdateBtn = document.getElementById("msc-modal-update-btn");
+    const mscNamaOperator = document.getElementById("msc-modal-nama-operator");
+    const mscNoMesin = document.getElementById("msc-modal-no-mesin");
+    const mscRegu = document.getElementById("msc-modal-regu");
+    const mscTanggal = document.getElementById("msc-modal-tanggal");
+    const mscGrandPakai = document.getElementById("msc-modal-grand-pakai");
+    const mscGrandTarget = document.getElementById("msc-modal-grand-target");
+    const mscGrandAktual = document.getElementById("msc-modal-grand-aktual");
+    const mscGrandPersentase = document.getElementById("msc-modal-grand-persentase");
+    let activeBatchUid = "";
+    let modalMode = "read";
+
+    function setModalEditable(editable) {
+        [mscNamaOperator, mscNoMesin, mscRegu, mscTanggal].forEach((el) => {
+            el.readOnly = !editable;
+            el.disabled = !editable;
+        });
+        mscModalBody.querySelectorAll("input").forEach((el) => {
+            el.readOnly = !editable;
+            el.disabled = !editable;
+        });
+        document.querySelectorAll(".msc-modal-prod-table input[data-fixed='1']").forEach((el) => {
+            el.readOnly = true;
+            el.disabled = false;
+        });
+        mscUpdateBtn.hidden = !editable;
+    }
+
+    function buildMscRow(index, row) {
+        return `
+            <tr>
+                <td class="num-cell">${index + 1}</td>
+                <td><input type="text" data-field="nama_bahan" value="${row.nama_bahan ?? ""}"></td>
+                <td><input type="time" data-field="jam_awal" value="${row.jam_awal ?? ""}"></td>
+                <td><input type="time" data-field="jam_akhir" value="${row.jam_akhir ?? ""}"></td>
+                <td><input type="number" step="1" data-field="pakai_menit" value="${row.pakai_menit ?? ""}"></td>
+                <td><input type="number" step="0.001" data-field="target_per_menit" value="${row.target_per_menit ?? ""}"></td>
+                <td><input type="number" step="0.001" data-field="target_total" value="${row.target_total ?? ""}"></td>
+                <td><input type="number" step="0.001" data-field="aktual_batch" value="${row.aktual_batch ?? ""}"></td>
+                <td><input type="number" step="0.01" data-field="persentase" value="${row.persentase ?? ""}"></td>
+                <td><input type="number" step="0.01" data-field="obat_timbang" value="${row.obat_timbang ?? ""}"></td>
+                <td><input type="number" step="0.01" data-field="obat_sisa" value="${row.obat_sisa ?? ""}"></td>
+                <td><input type="text" data-field="keterangan" value="${row.keterangan ?? ""}"></td>
+            </tr>
+        `;
+    }
+
+    function openModal() {
+        mscModal.hidden = false;
+        document.body.classList.add("modal-open");
+    }
+
+    function closeModal() {
+        mscModal.hidden = true;
+        document.body.classList.remove("modal-open");
+        activeBatchUid = "";
+    }
+
+    async function loadMscBatch(batchUid, mode) {
+        if (!batchUid) {
+            alert("Batch UID tidak tersedia.");
+            return;
+        }
+        try {
+            const res = await fetch(`/laporan/msc/read/${encodeURIComponent(batchUid)}`);
+            const json = await res.json();
+            if (!res.ok || !json.ok) {
+                throw new Error(json.message || "Gagal mengambil data.");
+            }
+
+            activeBatchUid = batchUid;
+            modalMode = mode;
+            const data = json.data;
+            mscNamaOperator.value = data.nama_operator || "";
+            mscNoMesin.value = data.no_mesin || "";
+            mscRegu.value = data.regu || "";
+            mscTanggal.value = data.tanggal_produksi || "";
+            mscGrandPakai.value = data.total_pakai_menit ?? "";
+            mscGrandTarget.value = data.total_target ?? "";
+            mscGrandAktual.value = data.total_aktual ?? "";
+            mscGrandPersentase.value = data.total_persentase ?? "";
+
+            mscModalBody.innerHTML = (data.rows || []).map((row, idx) => buildMscRow(idx, row)).join("");
+            setModalEditable(mode === "edit");
+            openModal();
+        } catch (err) {
+            alert(err.message || "Gagal membuka data MSC.");
+        }
+    }
+
+    function collectMscRows() {
+        const rows = [];
+        mscModalBody.querySelectorAll("tr").forEach((tr) => {
+            const obj = {};
+            tr.querySelectorAll("input[data-field]").forEach((input) => {
+                obj[input.dataset.field] = input.value;
+            });
+            rows.push(obj);
+        });
+        return rows;
+    }
+
+    async function submitMscUpdate() {
+        if (!activeBatchUid) return;
+        const payload = {
+            header: {
+                nama_operator: mscNamaOperator.value,
+                no_mesin: mscNoMesin.value,
+                regu: mscRegu.value,
+                tanggal_produksi: mscTanggal.value,
+            },
+            rows: collectMscRows(),
+        };
+
+        try {
+            const res = await fetch(`/laporan/msc/update/${encodeURIComponent(activeBatchUid)}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+            const json = await res.json();
+            if (!res.ok || !json.ok) {
+                throw new Error(json.message || "Gagal update data MSC.");
+            }
+            alert("Data MSC berhasil diupdate.");
+            window.location.href = "/laporan?tab=msc";
+        } catch (err) {
+            alert(err.message || "Gagal update data MSC.");
+        }
+    }
+
+    document.querySelectorAll(".msc-read-btn").forEach((btn) => {
+        btn.addEventListener("click", () => loadMscBatch(btn.dataset.batchUid, "read"));
+    });
+    document.querySelectorAll(".msc-edit-btn").forEach((btn) => {
+        btn.addEventListener("click", () => loadMscBatch(btn.dataset.batchUid, "edit"));
+    });
+    document.querySelectorAll("[data-close-modal='1']").forEach((el) => {
+        el.addEventListener("click", closeModal);
+    });
+    mscUpdateBtn.addEventListener("click", submitMscUpdate);
+
+    mscModalBody.addEventListener("click", (event) => {
+        const timeInput = event.target.closest("input[type='time']");
+        if (!timeInput || timeInput.disabled) return;
+        if (typeof timeInput.showPicker === "function") {
+            timeInput.showPicker();
+        }
+    });
+
+    mscModalBody.addEventListener("focusin", (event) => {
+        const timeInput = event.target.closest("input[type='time']");
+        if (!timeInput || timeInput.disabled) return;
+        if (typeof timeInput.showPicker === "function") {
+            timeInput.showPicker();
+        }
+    });
+});
+</script>
+</body>
+</html>

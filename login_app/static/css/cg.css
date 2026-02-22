@@ -264,11 +264,26 @@
 }
 
 .kg-cell {
-    text-align: right !important;
-    vertical-align: bottom !important;
-    padding-right: 10px;      /* jarak dari kanan */
-    padding-bottom: 6px;      /* jarak dari bawah */
+    vertical-align: middle !important;
+    padding: 0 8px !important;
     font-weight: 600;
+}
+
+.kg-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.kg-input-wrap .kg-input {
+    flex: 1;
+    text-align: right;
+    padding-right: 6px;
+    font-weight: 700;
+}
+
+.kg-input-wrap .kg-label {
+    white-space: nowrap;
 }
 
 .section-header {
@@ -667,5 +682,9 @@
     .auto-total-tungkul {
         pointer-events: none;
         caret-color: transparent;
+    }
+
+    .kg-input-wrap .kg-input {
+        font-weight: 700;
     }
 }

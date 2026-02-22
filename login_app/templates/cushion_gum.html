@@ -17,7 +17,9 @@
 <!-- HEADER -->
 <div class="header">
     <div class="header-inner">
-        <img src="https://www.kartindorubber.com/assets/img/logo/logo2.png" class="header-logo">
+        <a href="/home" aria-label="Ke halaman Home">
+            <img src="https://www.kartindorubber.com/assets/img/logo/logo2.png" class="header-logo">
+        </a>
         <a href="/logout" class="logout-btn">Logout</a>
     </div>
 </div>
@@ -29,11 +31,11 @@
     <div class="cg-info">
         <div>
             <label>Nama Operator</label>
-            <input type="text">
+            <input type="text" name="nama_operator">
         </div>
         <div>
             <label>No. Mesin</label>
-            <input type="text">
+            <input type="text" name="no_mesin">
         </div>
         <div>
             <label>Hari / Tanggal</label>
@@ -155,7 +157,12 @@
                         <td class="bg-orange"><input class="grand-total" readonly></td>
                         <td><input class="grand-aktual" readonly></td>
                         <td><input class="grand-percent" readonly></td>
-                        <td colspan="2" class="kg-cell">Kg</td>
+                        <td colspan="2" class="kg-cell">
+                            <div class="kg-input-wrap">
+                                <input class="kg-input" name="berat_kg_total">
+                                <span class="kg-label">Kg</span>
+                            </div>
+                        </td>
                     </tr>
                 </tfoot>
             </table>

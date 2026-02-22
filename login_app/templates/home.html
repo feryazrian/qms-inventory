@@ -12,11 +12,13 @@
     <!-- HEADER -->
 <div class="header">
  <div class="header-inner">
-        <img 
-            src="https://www.kartindorubber.com/assets/img/logo/logo2.png"
-            alt="Kartindo Rubber"
-            class="header-logo"
-        >
+        <a href="/home" aria-label="Ke halaman Home">
+            <img 
+                src="https://www.kartindorubber.com/assets/img/logo/logo2.png"
+                alt="Kartindo Rubber"
+                class="header-logo"
+            >
+        </a>
         <a href="/logout" class="logout-btn">Logout</a>
     </div>
 </div>
@@ -24,21 +26,32 @@
 
     <!-- CONTENT -->
     <div class="container">
-        <h3>Selamat Datang</h3>
-        <p>Pilih menu untuk mulai bekerja.</p>
-
-        <div class="cards">
-            <div>
-                <a href="/cushion-gum" class="card">
-                <h3>Sasaran Mutu Cushion Gum & Gum Cord</h3>
-                <p>Pantau dan catat hasil produksi.</p>
+        <div class="hero-row">
+            <div class="hero-copy">
+                <h3>Selamat Datang</h3>
+                <p>Pilih menu untuk mulai bekerja.</p>
+            </div>
+            <div class="top-actions">
+                <a href="/laporan" class="report-card">
+                    <span class="report-head">
+                        <span class="report-icon" aria-hidden="true">[#]</span>
+                        <span class="report-title">Laporan</span>
+                    </span>
+                    <span class="report-subtitle">Lihat ringkasan & histori</span>
                 </a>
             </div>
+        </div>
 
-            <div class="card">
-                <h3>Sararan Mutu MSC</h3>
+        <div class="cards">
+            <a href="/cushion-gum" class="card">
+                <h3>Sasaran Mutu Cushion Gum & Gum Cord</h3>
+                <p>Pantau dan catat hasil produksi.</p>
+            </a>
+
+            <a href="/msc" class="card">
+                <h3>Sasaran Mutu MSC</h3>
                 <p>Pantau dan catat hasil gilingan.</p>
-            </div>
+            </a>
 
             <div class="card">
                 <h3>Stock Plastik</h3>

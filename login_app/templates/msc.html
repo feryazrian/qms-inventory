@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sasaran Mutu MSC</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/msc.css') }}">
+</head>
+<body class="msc-screen">
+<div class="header">
+    <div class="header-inner">
+        <a href="/home" aria-label="Ke halaman Home">
+            <img src="https://www.kartindorubber.com/assets/img/logo/logo2.png" class="header-logo" alt="Kartindo Rubber">
+        </a>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="table-wrap">
+        <form method="POST" action="/msc" autocomplete="off" class="msc-form">
+            <div class="msc-info">
+                <div>
+                    <label for="nama_operator">Nama Operator</label>
+                    <input id="nama_operator" type="text" name="nama_operator">
+                </div>
+                <div>
+                    <label for="no_mesin">No. Mesin</label>
+                    <input id="no_mesin" type="text" name="no_mesin">
+                </div>
+                <div>
+                    <label for="regu">Regu</label>
+                    <input id="regu" type="text" name="regu">
+                </div>
+                <div>
+                    <label for="tanggal">Tanggal</label>
+                    <input id="tanggal" type="date" name="tanggal_produksi">
+                </div>
+            </div>
+
+            <div class="msc-page">
+            <div class="section-header msc-section-header">
+                <h3 class="section-title"><span class="section-prefix">Laporan Produksi Harian MSC</span></h3>
+                <div class="section-actions">
+                    <button type="button" id="reset-msc-btn" class="add-row-btn">Reset Form</button>
+                    <button type="button" id="add-msc-row-btn" class="add-row-btn">+ Tambah Baris</button>
+                    <button type="submit" class="save-btn">Simpan</button>
+                </div>
+            </div>
+            <div class="mobile-production-title">Hasil Produksi</div>
+            <div class="mobile-table-scroll">
+            <table class="msc-table production-table">
+                <colgroup>
+                    <col class="col-no">
+                    <col class="col-bahan">
+                    <col class="col-jam">
+                    <col class="col-jam">
+                    <col class="col-jam-wide">
+                    <col class="col-target-small">
+                    <col class="col-target-total">
+                    <col class="col-aktual">
+                    <col class="col-persen">
+                    <col class="col-obat">
+                    <col class="col-obat">
+                    <col class="col-keterangan">
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th colspan="12" class="section-title-cell">Hasil Produksi</th>
+                    </tr>
+                    <tr class="h-main">
+                        <th rowspan="2">No</th>
+                        <th rowspan="2">Nama Bahan</th>
+                        <th colspan="3">Jam</th>
+                        <th colspan="2">Target<br>( Batch )</th>
+                        <th rowspan="2">Aktual<br>( Batch )</th>
+                        <th rowspan="2">Persentase<br>( % )</th>
+                        <th colspan="2">Obat<br>( Bungkus )</th>
+                        <th rowspan="2">Keterangan</th>
+                    </tr>
+                    <tr class="h-main">
+                        <th>Awal</th>
+                        <th>Akhir</th>
+                        <th>Pakai<br>( menit )</th>
+                        <th>Per<br>menit</th>
+                        <th>Total</th>
+                        <th>Timbang</th>
+                        <th>Sisa</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in range(1, 8) %}
+                    <tr>
+                        <td class="num-cell">{{ i }}</td>
+                        <td>
+                            <select name="nama_bahan[]">
+                                <option value=""></option>
+                                {% for bahan in master_bahan_msc %}
+                                <option value="{{ bahan }}">{{ bahan }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><input type="time" class="awal-msc" name="jam_awal[]"></td>
+                        <td><input type="time" class="akhir-msc" name="jam_akhir[]"></td>
+                        <td><input type="number" step="1" class="pakai-msc" name="pakai_menit[]" readonly></td>
+                        <td>
+                            <select class="per-menit-msc" name="target_per_menit[]">
+                                <option value=""></option>
+                                <option value="0.14">0.14</option>
+                                <option value="0.23">0.23</option>
+                                <option value="0.11">0.11</option>
+                                <option value="0.15">0.15</option>
+                            </select>
+                        </td>
+                        <td><input type="number" step="0.001" class="target-total-msc" name="target_total[]" readonly></td>
+                        <td><input type="number" step="0.001" class="aktual-msc" name="aktual_batch[]"></td>
+                        <td><input type="number" step="0.01" class="persentase-msc" name="persentase[]" readonly></td>
+                        <td><input type="number" step="0.01" name="obat_timbang[]"></td>
+                        <td><input type="number" step="0.01" name="obat_sisa[]"></td>
+                        <td><input type="text" class="left-input" name="keterangan[]"></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="total-row">
+                        <td colspan="2" class="total-label">Total</td>
+                        <td colspan="2" class="total-label">Menit</td>
+                        <td><input type="number" step="1" class="grand-pakai-msc" readonly></td>
+                        <td></td>
+                        <td class="bg-green"><input type="number" step="0.001" class="grand-target-msc" readonly></td>
+                        <td class="bg-orange"><input type="number" step="0.001" class="grand-aktual-msc" readonly></td>
+                        <td class="bg-blue"><input type="number" step="0.01" class="grand-persentase-msc" readonly></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+            </div>
+
+            <div class="mobile-target-title">Target Per Menit ( Batch )</div>
+            <div class="mobile-table-scroll">
+            <table class="msc-table target-table">
+                <thead>
+                    <tr>
+                        <th colspan="10" class="target-title">Target Per Menit ( Batch )</th>
+                    </tr>
+                    <tr>
+                        <th>Gum Cord</th>
+                        <th>Cushion Gum</th>
+                        <th>1/8 MM</th>
+                        <th>1/8 Biasa</th>
+                        <th>DW</th>
+                        <th>65</th>
+                        <th>HQ 70</th>
+                        <th>SJ 800<br>( MB )</th>
+                        <th>SJ 800<br>( Belerang )</th>
+                        <th>AH Lembek</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>0.14</td>
+                        <td>0.23</td>
+                        <td>0.11</td>
+                        <td>0.15</td>
+                        <td>0.042</td>
+                        <td>0.042</td>
+                        <td>0.04</td>
+                        <td>0.026</td>
+                        <td>0.07</td>
+                        <td>0.02</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+let initialTbodyMSC = "";
+
+function setTanggalHariIniMSC(force = false) {
+    const tanggalInput = document.getElementById("tanggal");
+    if (!tanggalInput) return;
+    if (!force && tanggalInput.value) return;
+
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, "0");
+    const dd = String(today.getDate()).padStart(2, "0");
+    tanggalInput.value = `${yyyy}-${mm}-${dd}`;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const tbody = document.querySelector(".production-table tbody");
+    if (tbody) {
+        initialTbodyMSC = tbody.innerHTML;
+    }
+    setTanggalHariIniMSC();
+});
+
+const bahanOptionsMSC = `
+    <option value=""></option>
+    {% for bahan in master_bahan_msc %}
+    <option value="{{ bahan }}">{{ bahan }}</option>
+    {% endfor %}
+`;
+
+function buatBarisMSC(no) {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td class="num-cell">${no}</td>
+        <td>
+            <select name="nama_bahan[]">
+                ${bahanOptionsMSC}
+            </select>
+        </td>
+        <td><input type="time" class="awal-msc" name="jam_awal[]"></td>
+        <td><input type="time" class="akhir-msc" name="jam_akhir[]"></td>
+        <td><input type="number" step="1" class="pakai-msc" name="pakai_menit[]" readonly></td>
+        <td>
+            <select class="per-menit-msc" name="target_per_menit[]">
+                <option value=""></option>
+                <option value="0.14">0.14</option>
+                <option value="0.23">0.23</option>
+                <option value="0.11">0.11</option>
+                <option value="0.15">0.15</option>
+            </select>
+        </td>
+        <td><input type="number" step="0.001" class="target-total-msc" name="target_total[]" readonly></td>
+        <td><input type="number" step="0.001" class="aktual-msc" name="aktual_batch[]"></td>
+        <td><input type="number" step="0.01" class="persentase-msc" name="persentase[]" readonly></td>
+        <td><input type="number" step="0.01" name="obat_timbang[]"></td>
+        <td><input type="number" step="0.01" name="obat_sisa[]"></td>
+        <td><input type="text" class="left-input" name="keterangan[]"></td>
+    `;
+    return row;
+}
+
+function tambahBarisMSC() {
+    const tbody = document.querySelector(".production-table tbody");
+    if (!tbody) return;
+    const nextNo = tbody.querySelectorAll("tr").length + 1;
+    tbody.appendChild(buatBarisMSC(nextNo));
+}
+
+function resetFormMSC() {
+    const tbody = document.querySelector(".production-table tbody");
+    if (tbody && initialTbodyMSC) {
+        tbody.innerHTML = initialTbodyMSC;
+    }
+    const form = document.querySelector(".msc-form");
+    if (form) {
+        form.reset();
+    }
+    setTanggalHariIniMSC(true);
+    hitungTotalFooterMSC();
+}
+
+function confirmResetMSC() {
+    const isConfirmed = confirm("Yakin ingin menghapus semua input?");
+    if (!isConfirmed) return;
+    resetFormMSC();
+}
+
+function hitungPakaiMenitMSC(row) {
+    const awal = row.querySelector(".awal-msc")?.value;
+    const akhir = row.querySelector(".akhir-msc")?.value;
+    const pakaiInput = row.querySelector(".pakai-msc");
+    if (!pakaiInput) return;
+
+    if (!awal || !akhir) {
+        pakaiInput.value = "";
+        return;
+    }
+
+    const [jamAwal, menitAwal] = awal.split(":").map(Number);
+    const [jamAkhir, menitAkhir] = akhir.split(":").map(Number);
+    const totalAwal = (jamAwal * 60) + menitAwal;
+    const totalAkhir = (jamAkhir * 60) + menitAkhir;
+    const selisih = totalAkhir - totalAwal;
+
+    if (selisih < 0) {
+        pakaiInput.value = "";
+        hitungTargetTotalMSC(row);
+        return;
+    }
+
+    pakaiInput.value = selisih;
+    hitungTargetTotalMSC(row);
+}
+
+function hitungTargetTotalMSC(row) {
+    const pakai = parseFloat(row.querySelector(".pakai-msc")?.value);
+    const perMenit = parseFloat(row.querySelector(".per-menit-msc")?.value);
+    const totalInput = row.querySelector(".target-total-msc");
+    if (!totalInput) return;
+
+    if (isNaN(pakai) || isNaN(perMenit)) {
+        totalInput.value = "";
+        hitungPersentaseMSC(row);
+        return;
+    }
+
+    const total = pakai * perMenit;
+    totalInput.value = total.toFixed(3).replace(/\.?0+$/, "");
+    hitungPersentaseMSC(row);
+}
+
+function hitungPersentaseMSC(row) {
+    const aktual = parseFloat(row.querySelector(".aktual-msc")?.value);
+    const total = parseFloat(row.querySelector(".target-total-msc")?.value);
+    const persentaseInput = row.querySelector(".persentase-msc");
+    if (!persentaseInput) return;
+
+    if (isNaN(aktual) || isNaN(total) || total === 0) {
+        persentaseInput.value = "";
+        return;
+    }
+
+    const persen = (aktual / total) * 100;
+    persentaseInput.value = persen.toFixed(1);
+}
+
+function hitungTotalFooterMSC() {
+    let totalPakai = 0;
+    let totalTarget = 0;
+    let totalAktual = 0;
+
+    document.querySelectorAll(".production-table tbody tr").forEach((row) => {
+        const pakai = parseFloat(row.querySelector(".pakai-msc")?.value);
+        const target = parseFloat(row.querySelector(".target-total-msc")?.value);
+        const aktual = parseFloat(row.querySelector(".aktual-msc")?.value);
+
+        if (!isNaN(pakai)) totalPakai += pakai;
+        if (!isNaN(target)) totalTarget += target;
+        if (!isNaN(aktual)) totalAktual += aktual;
+    });
+
+    const totalPakaiInput = document.querySelector(".grand-pakai-msc");
+    const totalTargetInput = document.querySelector(".grand-target-msc");
+    const totalAktualInput = document.querySelector(".grand-aktual-msc");
+    const totalPersentaseInput = document.querySelector(".grand-persentase-msc");
+
+    if (totalPakaiInput) {
+        totalPakaiInput.value = totalPakai ? totalPakai.toFixed(0) : "";
+    }
+    if (totalTargetInput) {
+        totalTargetInput.value = totalTarget ? totalTarget.toFixed(3).replace(/\.?0+$/, "") : "";
+    }
+    if (totalAktualInput) {
+        totalAktualInput.value = totalAktual ? totalAktual.toFixed(3).replace(/\.?0+$/, "") : "";
+    }
+    if (totalPersentaseInput) {
+        if (totalTarget > 0) {
+            const grandPersentase = (totalAktual / totalTarget) * 100;
+            const grandPersentaseTrunc = Math.floor(grandPersentase * 100) / 100;
+            totalPersentaseInput.value = grandPersentaseTrunc.toFixed(2);
+        } else {
+            totalPersentaseInput.value = "";
+        }
+    }
+}
+
+document.addEventListener("input", function (event) {
+    if (
+        event.target.classList.contains("awal-msc") ||
+        event.target.classList.contains("akhir-msc") ||
+        event.target.classList.contains("per-menit-msc") ||
+        event.target.classList.contains("aktual-msc")
+    ) {
+        const row = event.target.closest("tr");
+        if (row) {
+            if (event.target.classList.contains("per-menit-msc")) {
+                hitungTargetTotalMSC(row);
+            } else if (event.target.classList.contains("aktual-msc")) {
+                hitungPersentaseMSC(row);
+            } else {
+                hitungPakaiMenitMSC(row);
+            }
+            hitungTotalFooterMSC();
+        }
+    }
+});
+
+document.addEventListener("change", function (event) {
+    if (
+        event.target.classList.contains("awal-msc") ||
+        event.target.classList.contains("akhir-msc") ||
+        event.target.classList.contains("per-menit-msc") ||
+        event.target.classList.contains("aktual-msc")
+    ) {
+        const row = event.target.closest("tr");
+        if (row) {
+            if (event.target.classList.contains("per-menit-msc")) {
+                hitungTargetTotalMSC(row);
+            } else if (event.target.classList.contains("aktual-msc")) {
+                hitungPersentaseMSC(row);
+            } else {
+                hitungPakaiMenitMSC(row);
+            }
+            hitungTotalFooterMSC();
+        }
+    }
+});
+
+document.addEventListener("DOMContentLoaded", function () {
+    const addBtn = document.getElementById("add-msc-row-btn");
+    if (addBtn) {
+        addBtn.addEventListener("click", function () {
+            tambahBarisMSC();
+        });
+    }
+
+    const resetBtn = document.getElementById("reset-msc-btn");
+    if (resetBtn) {
+        resetBtn.addEventListener("click", function () {
+            confirmResetMSC();
+        });
+    }
+
+    document.querySelectorAll(".production-table tbody tr").forEach((row) => {
+        hitungPakaiMenitMSC(row);
+        hitungTargetTotalMSC(row);
+        hitungPersentaseMSC(row);
+    });
+    hitungTotalFooterMSC();
+});
+</script>
+</body>
+</html>
+
