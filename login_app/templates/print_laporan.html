@@ -102,7 +102,7 @@
             <tbody>
                 {% for row in page.rows %}
                 <tr>
-                    <td class="left product-name-cell">{{ row.nama_produk }}</td>
+                    <td class="center product-name-cell">{{ row.nama_produk }}</td>
                     <td class="center">{{ row.order_roll }}</td>
                     <td class="center">{{ row.waktu_awal }}</td>
                     <td class="center">{{ row.waktu_akhir }}</td>
@@ -281,16 +281,14 @@
                 <th>240</th>
                 <th></th>
                 <th class="helper-grey">Total</th>
-                <th class="helper-pink tungkul-terbuang-cell">Terbuang</th>
-                <th class="tungkul-after-terbuang"></th>
+                <th colspan="2" class="helper-pink tungkul-terbuang-cell">Terbuang</th>
                 <th colspan="4" rowspan="2" class="lakban-roll-cell">Roll</th>
             </tr>
             <tr>
                 <th colspan="2">Jumlah</th>
                 <td></td><td></td><td></td><td></td><td></td>
                 <td class="helper-grey"></td>
-                <td class="helper-pink tungkul-terbuang-cell"></td>
-                <td class="tungkul-after-terbuang"></td>
+                <td colspan="2" class="helper-pink tungkul-terbuang-cell"></td>
             </tr>
         </table>
 
@@ -299,50 +297,70 @@
             <colgroup>
                 <col style="width: 9.5%;">
                 <col style="width: 7.2%;">
-                <col style="width: 7.2%;">
-                <col style="width: 7.2%;">
-                <col style="width: 7.2%;">
-                <col style="width: 7.2%;">
-                <col style="width: 7.2%;">
-                <col style="width: 7.2%;">
-                <col style="width: 3%;">
-                <col style="width: 3%;">
-                <col style="width: 6%;">
-                <col style="width: 7.1%;">
-                <col style="width: 6.3%;">
-                <col style="width: 6.3%;">
+                <col style="width: 8.33%;">
+                <col style="width: 8.33%;">
+                <col style="width: 8.33%;">
+                <col style="width: 8.33%;">
+                <col style="width: 8.33%;">
+                <col style="width: 8.33%;">
+                <col style="width: 8.33%;">
+                <col style="width: 8.33%;">
+                <col style="width: 8.33%;">
+                <col style="width: 8.33%;">
             </colgroup>
             <tr>
                 <th rowspan="2" colspan="2">Nama Produk</th>
                 <th rowspan="2">Order<br>( Kotak )</th>
-                <th colspan="3">Waktu</th>
+                <th colspan="2">Waktu</th>
                 <th rowspan="2">Pakai<br>( mnt )</th>
                 <th colspan="2">Target ( kotak )</th>
-                <th rowspan="2" colspan="2">Aktual<br>( kotak )</th>
+                <th rowspan="2">Aktual<br>( kotak )</th>
                 <th rowspan="2">Persentase<br>( % )</th>
                 <th colspan="2">Berat</th>
             </tr>
             <tr>
                 <th>Awal</th>
-                <th colspan="2">Akhir</th>
+                <th>Akhir</th>
                 <th>Per menit</th>
                 <th>Total</th>
                 <th>Per kotak</th>
                 <th>total</th>
             </tr>
             <tr>
-                <td class="left" colspan="2">Gum Cord</td>
+                <td class="center gum-cord-normal" colspan="2">Gum Cord</td>
                 <td></td>
                 <td></td>
-                <td colspan="2"></td>
+                <td></td>
                 <td class="bg-green"></td>
-                <td class="bg-pink">0.08</td>
+                <td class="bg-pink gum-cord-normal">0.08</td>
                 <td class="bg-orange"></td>
-                <td colspan="2"></td>
+                <td></td>
+                <td></td>
                 <td></td>
                 <td></td>
             </tr>
         </table>
+
+        <table class="approval-table">
+            <colgroup>
+                <col style="width: 16.67%;">
+                <col style="width: 16.66%;">
+                <col style="width: 33.33%;">
+                <col style="width: 33.34%;">
+            </colgroup>
+            <tr>
+                <th colspan="2">Dilaporkan<br>( Operator )</th>
+                <th>Diperiksa<br>( K. Shift )</th>
+                <th>Disetujui<br>( Supervisor )</th>
+            </tr>
+            <tr>
+                <td class="approval-sign-cell"><span>( Operator Calendering )</span></td>
+                <td class="approval-sign-cell"><span>( Operator Gumcord )</span></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+        <div class="approval-company">PT. Sumatera Kartindo</div>
         {% endif %}
 
         <div class="keterangan">

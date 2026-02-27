@@ -296,7 +296,11 @@ td {
 }
 
 .helper-tungkul .tungkul-terbuang-cell {
-    border-right: none;
+    border-right: 0.8px solid #1f1f1f;
+    text-align: center;
+    vertical-align: middle;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .helper-tungkul .tungkul-after-terbuang {
@@ -353,6 +357,52 @@ td {
 .gum-cord-print-table td.left {
     text-align: left;
     padding-left: 6px;
+}
+
+.gum-cord-print-table td.gum-cord-normal {
+    font-weight: 400;
+}
+
+.approval-table {
+    margin-top: 12px;
+}
+
+.approval-table th,
+.approval-table td {
+    text-align: center;
+    vertical-align: middle;
+    border: 0.8px solid #1f1f1f;
+    font-size: 12px;
+    line-height: 1.15;
+    padding: 4px 6px;
+}
+
+.approval-table th {
+    background: #efe2d4;
+    font-weight: 400;
+    height: 34px;
+}
+
+.approval-table td {
+    height: 56px;
+}
+
+.approval-table .approval-sign-cell {
+    vertical-align: bottom;
+}
+
+.approval-table .approval-sign-cell span {
+    display: block;
+    font-size: 10px;
+    font-style: italic;
+    line-height: 1;
+}
+
+.approval-company {
+    margin-top: 8px;
+    text-align: center;
+    font-size: 10px;
+    line-height: 1;
 }
 
 .plastik-head-main th,
