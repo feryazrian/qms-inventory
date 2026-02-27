@@ -35,7 +35,7 @@
         </div>
         <div>
             <label>No. Mesin</label>
-            <input type="text" name="no_mesin">
+            <input type="text" id="no-mesin" name="no_mesin">
         </div>
         <div>
             <label>Hari / Tanggal</label>
@@ -108,7 +108,7 @@
                                 {% endfor %}
                             </select>
                         </td>
-                        <td><input></td>
+                        <td><input type="number" step="1" name="order_roll[]"></td>
 
                         <!-- WAKTU AWAL -->
                         <td>
@@ -132,8 +132,8 @@
                                 <option value=""></option>
                                 <option value="1/8">0.5</option>
                                 <option value="CGP">0.166</option>
-                                <option value="CG1">0.30</option>
-                                <option value="CG2">0.53</option>
+                                <option value="CG1">0.37</option>
+                                <option value="CG2">0.60</option>
                             </select>
                         </td>
                         <!-- TOTAL -->
@@ -143,9 +143,9 @@
                         <!-- PERSENTASE -->
                         <td><input class="persentase" readonly></td>
                         <!-- PER ROLL -->
-                        <td><input class="per-roll" readonly></td>
+                        <td><input class="per-roll" name="per_roll[]" readonly></td>
                         <!-- TOTAL -->
-                        <td><input></td>
+                        <td><input class="berat-total-a" name="berat_total[]" readonly></td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -159,7 +159,7 @@
                         <td><input class="grand-percent" readonly></td>
                         <td colspan="2" class="kg-cell">
                             <div class="kg-input-wrap">
-                                <input class="kg-input" name="berat_kg_total">
+                                <input class="kg-input" name="berat_kg_total" readonly>
                                 <span class="kg-label">Kg</span>
                             </div>
                         </td>
@@ -193,8 +193,8 @@
         <tr>
             <td>0,5</td>
             <td>0,166</td>
-            <td>0,30 (10 kg)</td>
-            <td>0,53 (10 kg)</td>
+            <td>0,37 (10 kg)</td>
+            <td>0,60 (10 kg)</td>
         </tr>
     </tbody>    
 </table>
@@ -438,12 +438,221 @@ document.addEventListener("DOMContentLoaded", function () {
         tanggalC.value = formatted;
     }
 
+    const noMesinInput = document.getElementById("no-mesin");
+    if (noMesinInput) {
+        noMesinInput.addEventListener("focus", function () {
+            if (!noMesinInput.value.trim()) {
+                noMesinInput.value = "CG-0";
+                noMesinInput.setSelectionRange(noMesinInput.value.length, noMesinInput.value.length);
+            }
+        });
+    }
+
+    applyDraftStateFromUrl();
+    restoreCushionDraft();
     fitTablesToCard();
+
+    const formA = document.querySelector('form[action="/cushion-gum"]');
+    if (formA) {
+        formA.addEventListener("submit", function () {
+            saveCushionDraft();
+        });
+    }
+
+    const formC = document.getElementById("gum-cord-form");
+    if (formC) {
+        formC.addEventListener("submit", function () {
+            saveCushionDraft();
+        });
+    }
+
+    const debouncedSave = debounce(saveCushionDraft, 300);
+    document.addEventListener("input", function (event) {
+        if (event.target.closest(".container")) {
+            debouncedSave();
+        }
+    });
+    document.addEventListener("change", function (event) {
+        if (event.target.closest(".container")) {
+            debouncedSave();
+        }
+    });
 });
 
 window.addEventListener("resize", fitTablesToCard);
 
 const INITIAL_A_ROWS = 6;
+const CUSHION_DRAFT_KEY = "cushion-gum:draft:v1";
+
+function debounce(fn, waitMs) {
+    let timer = null;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), waitMs);
+    };
+}
+
+function getDraftRoot() {
+    return document.querySelector(".container");
+}
+
+function getFieldPath(field, root) {
+    const path = [];
+    let node = field;
+    while (node && node !== root) {
+        const parent = node.parentElement;
+        if (!parent) return null;
+        path.unshift(Array.prototype.indexOf.call(parent.children, node));
+        node = parent;
+    }
+    return path;
+}
+
+function getFieldByPath(root, path) {
+    let node = root;
+    for (const index of path) {
+        if (!node || !node.children || index < 0 || index >= node.children.length) {
+            return null;
+        }
+        node = node.children[index];
+    }
+    return node;
+}
+
+function getDraftFields() {
+    const root = getDraftRoot();
+    if (!root) return [];
+
+    return Array.from(root.querySelectorAll("input, select, textarea")).filter((el) => {
+        const type = (el.type || "").toLowerCase();
+        return !["button", "submit", "reset", "file"].includes(type);
+    });
+}
+
+function saveCushionDraft() {
+    const root = getDraftRoot();
+    if (!root) return;
+
+    const aRowCount = document.querySelectorAll(".table-a-reset tbody tr").length;
+    const fields = getDraftFields().map((field) => ({
+        path: getFieldPath(field, root),
+        value: field.value,
+        checked: !!field.checked,
+    })).filter((item) => Array.isArray(item.path));
+
+    const payload = {
+        aRowCount,
+        fields,
+        savedAt: Date.now(),
+    };
+
+    try {
+        localStorage.setItem(CUSHION_DRAFT_KEY, JSON.stringify(payload));
+    } catch (err) {
+        console.warn("Gagal menyimpan draft Cushion Gum:", err);
+    }
+}
+
+function clearCushionDraft() {
+    try {
+        localStorage.removeItem(CUSHION_DRAFT_KEY);
+    } catch (err) {
+        console.warn("Gagal menghapus draft Cushion Gum:", err);
+    }
+}
+
+function restoreCushionDraft() {
+    let raw = null;
+    try {
+        raw = localStorage.getItem(CUSHION_DRAFT_KEY);
+    } catch (err) {
+        console.warn("Gagal membaca draft Cushion Gum:", err);
+        return;
+    }
+
+    if (!raw) return;
+
+    let payload = null;
+    try {
+        payload = JSON.parse(raw);
+    } catch {
+        clearCushionDraft();
+        return;
+    }
+
+    if (!payload || !Array.isArray(payload.fields)) return;
+
+    const targetRows = Number(payload.aRowCount || 0);
+    if (targetRows > 0) {
+        const tbody = document.querySelector(".table-a-reset tbody");
+        if (tbody) {
+            while (tbody.rows.length < targetRows) {
+                tambahBaris();
+            }
+        }
+    }
+
+    const root = getDraftRoot();
+    if (!root) return;
+
+    payload.fields.forEach((item) => {
+        const field = getFieldByPath(root, item.path || []);
+        if (!field) return;
+
+        const type = (field.type || "").toLowerCase();
+        if (type === "checkbox" || type === "radio") {
+            field.checked = !!item.checked;
+        } else {
+            field.value = item.value ?? "";
+        }
+
+        if (window.jQuery && field.tagName === "SELECT" && $(field).hasClass("select2-hidden-accessible")) {
+            $(field).trigger("change");
+        }
+    });
+
+    recalculateAfterDraftRestore();
+}
+
+function recalculateAfterDraftRestore() {
+    document.querySelectorAll('.production-table tbody tr').forEach((row) => {
+        if (row.querySelector('.awal') && row.querySelector('.akhir')) {
+            hitungPakaiMenit(row);
+            const targetSelect = row.querySelector('.target-menit');
+            if (targetSelect && targetSelect.value) {
+                hitungTargetTotal(targetSelect);
+            }
+            const aktual = row.querySelector('.aktual');
+            if (aktual && aktual.value) {
+                hitungPersentase(aktual);
+            }
+        }
+
+        if (row.querySelector('.awal-c') && row.querySelector('.akhir-c')) {
+            hitungPakaiMenitC(row);
+            const aktualC = row.querySelector('.aktual-c');
+            if (aktualC && aktualC.value) {
+                hitungPersentaseC(aktualC);
+            }
+        }
+    });
+
+    hitungGrandTotal();
+    hitungTotalAktual();
+    hitungGrandBeratA();
+}
+
+function applyDraftStateFromUrl() {
+    const url = new URL(window.location.href);
+    const isSaved = url.searchParams.get("saved") === "1";
+
+    if (isSaved) {
+        clearCushionDraft();
+        url.searchParams.delete("saved");
+        const nextUrl = `${url.pathname}${url.searchParams.toString() ? `?${url.searchParams.toString()}` : ""}${url.hash || ""}`;
+        window.history.replaceState({}, "", nextUrl);
+    }
+}
 
 function fitTablesToCard() {
     const isMobile = window.matchMedia("(max-width: 768px)").matches;
@@ -517,10 +726,12 @@ function setPerRollFromSelect(selectEl) {
     } else if (text.includes("sidewall 1/8mm")) {
         perRollInput.value = "10";
     } else if (text.includes("cg potong")) {
-        perRollInput.value = "10";
+        perRollInput.value = "25";
     } else {
         perRollInput.value = "";
     }
+
+    hitungTotalBeratA(row);
 }
 
 $(document).on('change', '.produk-select', function () {
@@ -559,8 +770,8 @@ function hitungPakaiMenit(row) {
 const targetMap = {
     "1/8": 0.5,
     "CGP": 0.166,
-    "CG1": 0.30,
-    "CG2": 0.53
+    "CG1": 0.37,
+    "CG2": 0.60
     };
 
 const lineMap = {
@@ -610,7 +821,7 @@ function hitungGrandTotal() {
 
     const grandInput = document.querySelector('.grand-total');
     if (grandInput) {
-        grandInput.value = total.toFixed(2);
+        grandInput.value = total ? total.toFixed(2) : "";
     }
     hitungGrandPersentase();
 }
@@ -627,7 +838,7 @@ function hitungTotalAktual() {
 
     const totalAktualInput = document.querySelector('.grand-aktual');
     if (totalAktualInput) {
-        totalAktualInput.value = total.toFixed(0);
+        totalAktualInput.value = total ? total.toFixed(0) : "";
     }
     hitungGrandPersentase();
 }
@@ -689,6 +900,7 @@ document.addEventListener('input', function (e) {
 
 function hitungPersentase(inputAktual) {
     const row = inputAktual.closest('tr');
+    hitungTotalBeratA(row);
 
     const totalTargetInput = row.querySelector('.target-total');
     const persentaseInput = row.querySelector('.persentase');
@@ -705,6 +917,43 @@ function hitungPersentase(inputAktual) {
 
     const persen = (aktual / totalTarget) * 100;
     persentaseInput.value = persen.toFixed(2);
+}
+
+function hitungTotalBeratA(row) {
+    if (!row) return;
+
+    const aktualInput = row.querySelector('.aktual');
+    const perRollInput = row.querySelector('.per-roll');
+    const totalBeratInput = row.querySelector('.berat-total-a');
+    if (!aktualInput || !perRollInput || !totalBeratInput) return;
+
+    const aktual = parseFloat(aktualInput.value);
+    const perRoll = parseFloat(perRollInput.value);
+
+    if (isNaN(aktual) || isNaN(perRoll)) {
+        totalBeratInput.value = "";
+        hitungGrandBeratA();
+        return;
+    }
+
+    totalBeratInput.value = (aktual * perRoll).toFixed(0);
+    hitungGrandBeratA();
+}
+
+function hitungGrandBeratA() {
+    let total = 0;
+
+    document.querySelectorAll('.berat-total-a').forEach((input) => {
+        const val = parseFloat(input.value);
+        if (!isNaN(val)) {
+            total += val;
+        }
+    });
+
+    const grandBeratInput = document.querySelector('.kg-input');
+    if (!grandBeratInput) return;
+
+    grandBeratInput.value = total ? total.toFixed(0) : "";
 }
 
 function hitungPakaiMenitC(row) {
@@ -794,7 +1043,7 @@ function tambahBaris() {
                 {% endfor %}
             </select>
         </td>
-        <td><input></td>
+        <td><input type="number" step="1" name="order_roll[]"></td>
 
         <td><input type="time" class="awal" name="waktu_awal[]"></td>
         <td><input type="time" class="akhir" name="waktu_akhir[]"></td>
@@ -810,8 +1059,8 @@ function tambahBaris() {
                 <option value=""></option>
                 <option value="1/8">0.5</option>
                 <option value="CGP">0.166</option>
-                <option value="CG1">0.30</option>
-                <option value="CG2">0.53</option>
+                <option value="CG1">0.37</option>
+                <option value="CG2">0.60</option>
             </select>
         </td>
 
@@ -821,14 +1070,15 @@ function tambahBaris() {
 
         <td><input class="aktual" name="aktual_roll[]" oninput="hitungPersentase(this)" autocomplete="off"></td>
         <td><input class="persentase" readonly></td>
-        <td><input class="per-roll" readonly></td>
-        <td><input></td>
+        <td><input class="per-roll" name="per_roll[]" readonly></td>
+        <td><input class="berat-total-a" name="berat_total[]" readonly></td>
     `;
 
     row.setAttribute('oninput', 'hitungPakaiMenit(this)');
     tbody.appendChild(row);
     initProdukSelect(row);
     fitTablesToCard();
+    saveCushionDraft();
 }
 
 function confirmResetAB() {
@@ -877,9 +1127,15 @@ function resetFormAB() {
         });
     });
 
+    clearCushionDraft();
     fitTablesToCard();
 }
 </script>
 
 </body>
 </html>
+
+
+
+
+

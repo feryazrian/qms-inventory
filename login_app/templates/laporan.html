@@ -45,6 +45,7 @@
                         <th>Total Target</th>
                         <th>Aktual (Roll)</th>
                         <th>Persentase</th>
+                        <th>Berat Total</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -56,23 +57,24 @@
                             <td>{{ row[2] if row[2] is not none else '' }}</td>
                             <td>{{ row[3] if row[3] is not none else '' }}</td>
                             <td>{{ row[4] if row[4] is not none else '' }}</td>
+                            <td>{{ ('{}'.format(row[5])).rstrip('0').rstrip('.') if row[5] is not none else '' }}</td>
                             <td>
                                 <div class="aksi-wrap">
-                                    <button type="button" class="aksi-btn aksi-read cg-read-btn" data-batch-uid="{{ row[5] or '' }}">Read</button>
-                                    <button type="button" class="aksi-btn aksi-edit cg-edit-btn" data-batch-uid="{{ row[5] or '' }}">Edit</button>
+                                    <button type="button" class="aksi-btn aksi-read cg-read-btn" data-batch-uid="{{ row[6] or '' }}">Read</button>
+                                    <button type="button" class="aksi-btn aksi-edit cg-edit-btn" data-batch-uid="{{ row[6] or '' }}">Edit</button>
                                     <form method="POST" action="{{ url_for('laporan_delete') }}" onsubmit="return confirm('Yakin hapus data ini?');">
                                         <input type="hidden" name="id" value="{{ row[0] }}">
                                         <input type="hidden" name="sumber" value="cushion-gum">
                                         <button type="submit" class="aksi-btn aksi-delete">Delete</button>
                                     </form>
-                                    <button type="button" class="aksi-btn aksi-cetak">Cetak</button>
+                                    <button type="button" class="aksi-btn aksi-cetak cg-cetak-btn" data-batch-uid="{{ row[6] or '' }}">Cetak</button>
                                 </div>
                             </td>
                         </tr>
                         {% endfor %}
                     {% else %}
                         <tr>
-                            <td colspan="5" class="laporan-empty">Belum ada data laporan Cushion Gum.</td>
+                            <td colspan="6" class="laporan-empty">Belum ada data laporan Cushion Gum.</td>
                         </tr>
                     {% endif %}
                 </tbody>
@@ -248,7 +250,12 @@
                         <td class="bg-orange"><input id="cg-modal-grand-target" type="number" step="0.01" readonly></td>
                         <td><input id="cg-modal-grand-aktual" type="number" step="1" readonly></td>
                         <td><input id="cg-modal-grand-persen" type="number" step="0.01" readonly></td>
-                        <td colspan="2" class="kg-cell"><span class="kg-label">Kg</span></td>
+                        <td colspan="2" class="kg-cell">
+                            <div class="kg-wrap">
+                                <input id="cg-modal-grand-berat" type="number" step="0.01" readonly data-fixed="1">
+                                <span class="kg-label">Kg</span>
+                            </div>
+                        </td>
                     </tr>
                 </tfoot>
             </table>
@@ -384,6 +391,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const cgGrandTarget = document.getElementById("cg-modal-grand-target");
     const cgGrandAktual = document.getElementById("cg-modal-grand-aktual");
     const cgGrandPersen = document.getElementById("cg-modal-grand-persen");
+    const cgGrandBerat = document.getElementById("cg-modal-grand-berat");
     let activeCgBatchUid = "";
 
     function setCgModalEditable(editable) {
@@ -406,7 +414,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return `
             <tr>
                 <td><input type="text" data-field="nama_produk" value="${row.nama_produk ?? ""}"></td>
-                <td><input type="text" data-fixed="1" value=""></td>
+                <td><input type="number" step="1" data-field="order_roll" value="${row.order_roll ?? ""}"></td>
                 <td><input type="time" data-field="waktu_awal" value="${row.waktu_awal ?? ""}"></td>
                 <td><input type="time" data-field="waktu_akhir" value="${row.waktu_akhir ?? ""}"></td>
                 <td><input type="number" step="1" data-field="line" value="${row.line ?? ""}"></td>
@@ -415,8 +423,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td class="bg-orange"><input type="number" step="0.01" data-field="target_total" value="${row.target_total ?? ""}"></td>
                 <td><input type="number" step="1" data-field="aktual_roll" value="${row.aktual_roll ?? ""}"></td>
                 <td><input type="number" step="0.01" data-field="persentase" value="${row.persentase ?? ""}"></td>
-                <td><input type="text" data-fixed="1" value=""></td>
-                <td><input type="text" data-fixed="1" value=""></td>
+                <td><input type="number" step="0.01" data-field="per_roll" data-fixed="1" value="${row.per_roll ?? ""}"></td>
+                <td><input type="number" step="0.01" data-field="berat_total" data-fixed="1" value="${row.berat_total ?? ""}"></td>
             </tr>
         `;
     }
@@ -451,6 +459,7 @@ document.addEventListener("DOMContentLoaded", function () {
             cgGrandTarget.value = data.total_target ?? "";
             cgGrandAktual.value = data.total_aktual ?? "";
             cgGrandPersen.value = data.total_persentase ?? "";
+            cgGrandBerat.value = data.berat_kg_total ?? "";
             cgModalBody.innerHTML = (data.rows || []).map((row, idx) => buildCgRow(idx, row)).join("");
             setCgModalEditable(mode === "edit");
             openCgModal();
@@ -478,6 +487,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 nama_operator: cgNamaOperator.value,
                 no_mesin: cgNoMesin.value,
                 tanggal_produksi: cgTanggal.value,
+                berat_kg_total: cgGrandBerat.value,
             },
             rows: collectCgRows(),
         };
@@ -503,6 +513,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
     document.querySelectorAll(".cg-edit-btn").forEach((btn) => {
         btn.addEventListener("click", () => loadCushionBatch(btn.dataset.batchUid, "edit"));
+    });
+    document.querySelectorAll(".cg-cetak-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const batchUid = btn.dataset.batchUid || "";
+            if (!batchUid) {
+                alert("Batch UID tidak tersedia.");
+                return;
+            }
+            window.open(`/laporan/cushion-gum/cetak/${encodeURIComponent(batchUid)}`, "_blank");
+        });
     });
     document.querySelectorAll("[data-close-cg='1']").forEach((el) => {
         el.addEventListener("click", closeCgModal);

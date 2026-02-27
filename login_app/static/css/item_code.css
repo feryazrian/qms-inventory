@@ -1,0 +1,262 @@
+.page-head {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.page-head h2 {
+    margin: 0;
+}
+
+.page-head p {
+    margin: 8px 0 0 0;
+    color: #556070;
+}
+
+.back-link {
+    text-decoration: none;
+    color: #1f4b99;
+    font-weight: 600;
+}
+
+.label-bold {
+    font-weight: 700;
+}
+
+.alert {
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 14px;
+    font-size: 14px;
+}
+
+.alert.success {
+    background: #e7f7ee;
+    border: 1px solid #8dd3a9;
+    color: #21653a;
+}
+
+.alert.error {
+    background: #fdecec;
+    border: 1px solid #f0a7a7;
+    color: #8a1f1f;
+}
+
+.form-card,
+.table-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 14px;
+}
+
+.field-row {
+    display: grid;
+    grid-template-columns: 1fr 160px;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.field-grow,
+.field-check {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-grow input,
+.field-check select {
+    height: 38px;
+    border: 1px solid #cfd4dd;
+    border-radius: 8px;
+    padding: 0 10px;
+}
+
+.save-btn {
+    height: 38px;
+    border: 0;
+    border-radius: 8px;
+    background: #d72638;
+    color: #fff;
+    font-weight: 700;
+    padding: 0 14px;
+    cursor: pointer;
+}
+
+.table-card h3 {
+    margin: 0 0 10px 0;
+}
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 520px;
+    table-layout: fixed;
+}
+
+th,
+td {
+    border: 1px solid #e5e7eb;
+    padding: 10px;
+    text-align: left;
+    font-size: 14px;
+    vertical-align: middle;
+}
+
+th {
+    background: #f7f8fb;
+}
+
+th:nth-child(1),
+td:nth-child(1) {
+    width: 70px;
+}
+
+th:nth-child(3),
+td:nth-child(3) {
+    width: 130px;
+}
+
+th:nth-child(4),
+td:nth-child(4) {
+    width: 170px;
+    white-space: nowrap;
+}
+
+.badge {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.badge.active {
+    background: #e7f7ee;
+    color: #21653a;
+}
+
+.badge.inactive {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.empty-cell {
+    text-align: center;
+    color: #666;
+}
+
+td input[type="text"],
+td input[type="number"],
+td select {
+    width: 100%;
+    height: 34px;
+    border: 1px solid #cfd4dd;
+    border-radius: 8px;
+    padding: 0 8px;
+    box-sizing: border-box;
+}
+
+.action-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.action-group form {
+    margin: 0;
+}
+
+.btn-edit,
+.btn-delete {
+    height: 34px;
+    border: 0;
+    border-radius: 8px;
+    padding: 0 10px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-edit {
+    background: #1f6feb;
+    color: #fff;
+}
+
+.btn-delete {
+    background: #d72638;
+    color: #fff;
+}
+
+.modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.modal-backdrop[hidden] {
+    display: none !important;
+}
+
+.modal-card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    padding: 16px;
+}
+
+.modal-card h3 {
+    margin: 0 0 12px 0;
+}
+
+.modal-card label {
+    display: block;
+    margin: 8px 0 4px;
+    font-weight: 600;
+}
+
+.modal-card input,
+.modal-card select {
+    width: 100%;
+    height: 36px;
+    border: 1px solid #cfd4dd;
+    border-radius: 8px;
+    padding: 0 10px;
+    box-sizing: border-box;
+}
+
+.modal-actions {
+    margin-top: 14px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.btn-cancel {
+    height: 34px;
+    border: 1px solid #cfd4dd;
+    border-radius: 8px;
+    padding: 0 10px;
+    background: #fff;
+    cursor: pointer;
+}
+
+@media (max-width: 768px) {
+    .field-row {
+        grid-template-columns: 1fr;
+    }
+}

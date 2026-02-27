@@ -182,6 +182,156 @@
 </div>
 <script>
 let initialTbodyMSC = "";
+const MSC_DRAFT_KEY = "msc:draft:v1";
+
+function debounce(fn, waitMs) {
+    let timer = null;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), waitMs);
+    };
+}
+
+function getMscDraftRoot() {
+    return document.querySelector(".msc-form");
+}
+
+function getMscFieldPath(field, root) {
+    const path = [];
+    let node = field;
+    while (node && node !== root) {
+        const parent = node.parentElement;
+        if (!parent) return null;
+        path.unshift(Array.prototype.indexOf.call(parent.children, node));
+        node = parent;
+    }
+    return path;
+}
+
+function getMscFieldByPath(root, path) {
+    let node = root;
+    for (const index of path) {
+        if (!node || !node.children || index < 0 || index >= node.children.length) {
+            return null;
+        }
+        node = node.children[index];
+    }
+    return node;
+}
+
+function getMscDraftFields() {
+    const root = getMscDraftRoot();
+    if (!root) return [];
+
+    return Array.from(root.querySelectorAll("input, select, textarea")).filter((el) => {
+        const type = (el.type || "").toLowerCase();
+        return !["button", "submit", "reset", "file"].includes(type);
+    });
+}
+
+function saveMscDraft() {
+    const root = getMscDraftRoot();
+    if (!root) return;
+
+    const rowCount = document.querySelectorAll(".production-table tbody tr").length;
+    const fields = getMscDraftFields()
+        .map((field) => ({
+            path: getMscFieldPath(field, root),
+            value: field.value,
+            checked: !!field.checked,
+        }))
+        .filter((item) => Array.isArray(item.path));
+
+    const payload = {
+        rowCount,
+        fields,
+        savedAt: Date.now(),
+    };
+
+    try {
+        localStorage.setItem(MSC_DRAFT_KEY, JSON.stringify(payload));
+    } catch (err) {
+        console.warn("Gagal menyimpan draft MSC:", err);
+    }
+}
+
+function clearMscDraft() {
+    try {
+        localStorage.removeItem(MSC_DRAFT_KEY);
+    } catch (err) {
+        console.warn("Gagal menghapus draft MSC:", err);
+    }
+}
+
+function restoreMscDraft() {
+    let raw = null;
+    try {
+        raw = localStorage.getItem(MSC_DRAFT_KEY);
+    } catch (err) {
+        console.warn("Gagal membaca draft MSC:", err);
+        return;
+    }
+
+    if (!raw) return;
+
+    let payload = null;
+    try {
+        payload = JSON.parse(raw);
+    } catch {
+        clearMscDraft();
+        return;
+    }
+
+    if (!payload || !Array.isArray(payload.fields)) return;
+
+    const targetRows = Number(payload.rowCount || 0);
+    if (targetRows > 0) {
+        const tbody = document.querySelector(".production-table tbody");
+        if (tbody) {
+            while (tbody.rows.length < targetRows) {
+                tambahBarisMSC();
+            }
+        }
+    }
+
+    const root = getMscDraftRoot();
+    if (!root) return;
+
+    payload.fields.forEach((item) => {
+        const field = getMscFieldByPath(root, item.path || []);
+        if (!field) return;
+
+        const type = (field.type || "").toLowerCase();
+        if (type === "checkbox" || type === "radio") {
+            field.checked = !!item.checked;
+        } else {
+            field.value = item.value ?? "";
+        }
+    });
+
+    recalculateMscAfterRestore();
+}
+
+function recalculateMscAfterRestore() {
+    document.querySelectorAll(".production-table tbody tr").forEach((row) => {
+        hitungPakaiMenitMSC(row);
+        hitungTargetTotalMSC(row);
+        hitungPersentaseMSC(row);
+    });
+    hitungTotalFooterMSC();
+}
+
+function applyMscDraftStateFromUrl() {
+    const url = new URL(window.location.href);
+    const isSaved = url.searchParams.get("saved") === "1";
+
+    if (isSaved) {
+        clearMscDraft();
+        url.searchParams.delete("saved");
+        const nextUrl = `${url.pathname}${url.searchParams.toString() ? `?${url.searchParams.toString()}` : ""}${url.hash || ""}`;
+        window.history.replaceState({}, "", nextUrl);
+    }
+}
 
 function setTanggalHariIniMSC(force = false) {
     const tanggalInput = document.getElementById("tanggal");
@@ -200,6 +350,9 @@ document.addEventListener("DOMContentLoaded", function () {
     if (tbody) {
         initialTbodyMSC = tbody.innerHTML;
     }
+
+    applyMscDraftStateFromUrl();
+    restoreMscDraft();
     setTanggalHariIniMSC();
 });
 
@@ -246,6 +399,7 @@ function tambahBarisMSC() {
     if (!tbody) return;
     const nextNo = tbody.querySelectorAll("tr").length + 1;
     tbody.appendChild(buatBarisMSC(nextNo));
+    saveMscDraft();
 }
 
 function resetFormMSC() {
@@ -259,6 +413,7 @@ function resetFormMSC() {
     }
     setTanggalHariIniMSC(true);
     hitungTotalFooterMSC();
+    clearMscDraft();
 }
 
 function confirmResetMSC() {
@@ -423,6 +578,31 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    const form = document.querySelector(".msc-form");
+    if (form) {
+        form.addEventListener("submit", function () {
+            saveMscDraft();
+        });
+
+        const debouncedSave = debounce(saveMscDraft, 300);
+        form.addEventListener("input", function () {
+            debouncedSave();
+        });
+        form.addEventListener("change", function () {
+            debouncedSave();
+        });
+    }
+
+    const noMesinInput = document.getElementById("no_mesin");
+    if (noMesinInput) {
+        noMesinInput.addEventListener("focus", function () {
+            if (!noMesinInput.value.trim()) {
+                noMesinInput.value = "GL-0";
+                noMesinInput.setSelectionRange(noMesinInput.value.length, noMesinInput.value.length);
+            }
+        });
+    }
+
     document.querySelectorAll(".production-table tbody tr").forEach((row) => {
         hitungPakaiMenitMSC(row);
         hitungTargetTotalMSC(row);
@@ -433,4 +613,5 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 </body>
 </html>
+
 

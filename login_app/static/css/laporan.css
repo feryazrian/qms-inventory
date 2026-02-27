@@ -671,6 +671,10 @@ body.modal-open {
     font-weight: 700;
 }
 
+.cg-modal-prod-table tfoot input {
+    font-weight: 700 !important;
+}
+
 .cg-modal-prod-table tfoot td strong {
     font-size: 13px;
     font-weight: 700;
@@ -681,6 +685,23 @@ body.modal-open {
 .cg-modal-prod-table .kg-cell {
     text-align: right;
     padding-right: 10px;
+}
+
+.cg-modal-prod-table .kg-cell .kg-wrap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    width: 100%;
+}
+
+.cg-modal-prod-table .kg-cell #cg-modal-grand-berat {
+    width: 80px;
+    min-width: 80px;
+    height: 28px;
+    line-height: 28px;
+    text-align: right !important;
+    text-align-last: right !important;
 }
 
 .cg-modal-prod-table .kg-label {

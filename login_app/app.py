@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, jsonify, send_file
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
+from io import BytesIO
 import os
 import psycopg2
 
@@ -22,8 +23,8 @@ DB_CONFIG = {
 TARGET_MAP = {
     "1/8": Decimal("0.5"),
     "CGP": Decimal("0.166"),
-    "CG1": Decimal("0.30"),
-    "CG2": Decimal("0.53"),
+    "CG1": Decimal("0.37"),
+    "CG2": Decimal("0.60"),
 }
 
 LINE_MAP = {
@@ -32,6 +33,30 @@ LINE_MAP = {
     "1/8": None,
     "CGP": None,
 }
+
+CG_PDF_TEMPLATE_PATH = os.getenv(
+    "CG_PDF_TEMPLATE_PATH",
+    os.path.join(
+        os.path.expanduser("~"),
+        "Downloads",
+        "SK-PROSBY-FM-01 ( Laporan Produksi Harian CG dan Pemakaian Bahan Penolong ).pdf",
+    ),
+)
+
+
+def infer_per_roll_from_product(nama_produk):
+    text = (nama_produk or "").strip().lower()
+    if not text:
+        return None
+    if "cushion gum" in text:
+        return Decimal("10")
+    if "sidewall 1/8b" in text:
+        return Decimal("7")
+    if "sidewall 1/8mm" in text:
+        return Decimal("10")
+    if "cg potong" in text:
+        return Decimal("25")
+    return None
 
 
 def get_db_conn():
@@ -56,6 +81,24 @@ def fetch_master_produk():
             FROM master_produk
             WHERE aktif = TRUE
             ORDER BY nama_produk
+            """
+        )
+        return cur.fetchall()
+    finally:
+        if conn:
+            conn.close()
+
+
+def fetch_master_produk_all():
+    conn = None
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT id, nama_produk, aktif
+            FROM master_produk
+            ORDER BY aktif DESC, nama_produk ASC
             """
         )
         return cur.fetchall()
@@ -98,6 +141,7 @@ def fetch_laporan_cushion_gum():
                 total_target,
                 total_aktual,
                 total_persentase,
+                berat_kg_total,
                 batch_uid
             FROM grand_total
             ORDER BY tanggal_produksi DESC, id DESC
@@ -172,6 +216,24 @@ def ensure_cushion_batch_columns(conn):
     )
     cur.execute(
         """
+        ALTER TABLE production_cushion_gum
+        ADD COLUMN IF NOT EXISTS order_roll INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE production_cushion_gum
+        ADD COLUMN IF NOT EXISTS per_roll NUMERIC(12, 2)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE production_cushion_gum
+        ADD COLUMN IF NOT EXISTS berat_total NUMERIC(12, 2)
+        """
+    )
+    cur.execute(
+        """
         ALTER TABLE grand_total
         ADD COLUMN IF NOT EXISTS batch_uid VARCHAR(50)
         """
@@ -186,6 +248,12 @@ def ensure_cushion_batch_columns(conn):
         """
         ALTER TABLE grand_total
         ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE grand_total
+        ADD COLUMN IF NOT EXISTS berat_kg_total NUMERIC(12, 2)
         """
     )
 
@@ -500,7 +568,8 @@ def fetch_cushion_batch(batch_uid):
                 no_mesin,
                 total_target,
                 total_aktual,
-                total_persentase
+                total_persentase,
+                berat_kg_total
             FROM grand_total
             WHERE batch_uid = %s
             ORDER BY id DESC
@@ -516,6 +585,7 @@ def fetch_cushion_batch(batch_uid):
             """
             SELECT
                 nama_produk,
+                order_roll,
                 waktu_awal,
                 waktu_akhir,
                 line,
@@ -523,7 +593,9 @@ def fetch_cushion_batch(batch_uid):
                 target_per_menit,
                 target_total,
                 aktual_roll,
-                persentase
+                persentase,
+                per_roll,
+                berat_total
             FROM production_cushion_gum
             WHERE batch_uid = %s
             ORDER BY tanggal_produksi, waktu_awal, waktu_akhir, nama_produk
@@ -559,17 +631,21 @@ def laporan_cushion_read(batch_uid):
                 "total_target": float(header[4]) if header[4] is not None else None,
                 "total_aktual": float(header[5]) if header[5] is not None else None,
                 "total_persentase": float(header[6]) if header[6] is not None else None,
+                "berat_kg_total": float(header[7]) if header[7] is not None else None,
                 "rows": [
                     {
                         "nama_produk": row[0] or "",
-                        "waktu_awal": row[1].strftime("%H:%M") if row[1] else "",
-                        "waktu_akhir": row[2].strftime("%H:%M") if row[2] else "",
-                        "line": row[3],
-                        "pakai_menit": row[4],
-                        "target_per_menit": float(row[5]) if row[5] is not None else None,
-                        "target_total": float(row[6]) if row[6] is not None else None,
-                        "aktual_roll": row[7],
-                        "persentase": float(row[8]) if row[8] is not None else None,
+                        "order_roll": row[1],
+                        "waktu_awal": row[2].strftime("%H:%M") if row[2] else "",
+                        "waktu_akhir": row[3].strftime("%H:%M") if row[3] else "",
+                        "line": row[4],
+                        "pakai_menit": row[5],
+                        "target_per_menit": float(row[6]) if row[6] is not None else None,
+                        "target_total": float(row[7]) if row[7] is not None else None,
+                        "aktual_roll": row[8],
+                        "persentase": float(row[9]) if row[9] is not None else None,
+                        "per_roll": float(row[10]) if row[10] is not None else None,
+                        "berat_total": float(row[11]) if row[11] is not None else None,
                     }
                     for row in details
                 ],
@@ -596,14 +672,17 @@ def laporan_cushion_update(batch_uid):
 
     nama_operator = (header.get("nama_operator") or "").strip() or None
     no_mesin = (header.get("no_mesin") or "").strip() or None
+    berat_kg_total = parse_decimal(str(header.get("berat_kg_total") or ""))
 
     parsed_rows = []
     total_target = Decimal("0")
     total_aktual = 0
+    computed_berat_kg_total = Decimal("0")
 
     for row in rows:
         row = row or {}
         nama_produk = (row.get("nama_produk") or "").strip() or None
+        order_roll = parse_int(str(row.get("order_roll") or ""))
         waktu_awal = (row.get("waktu_awal") or "").strip() or None
         waktu_akhir = (row.get("waktu_akhir") or "").strip() or None
         line_val = parse_int(str(row.get("line") or ""))
@@ -612,10 +691,13 @@ def laporan_cushion_update(batch_uid):
         target_total = parse_decimal(str(row.get("target_total") or ""))
         aktual_roll = parse_int(str(row.get("aktual_roll") or ""))
         persentase = parse_decimal(str(row.get("persentase") or ""))
+        per_roll = parse_decimal(str(row.get("per_roll") or ""))
+        berat_total = parse_decimal(str(row.get("berat_total") or ""))
 
         if not any(
             [
                 nama_produk,
+                order_roll is not None,
                 waktu_awal,
                 waktu_akhir,
                 line_val is not None,
@@ -645,14 +727,20 @@ def laporan_cushion_update(batch_uid):
             persentase = ((Decimal(aktual_roll) / target_total) * Decimal("100")).quantize(
                 Decimal("0.01")
             )
+        if per_roll is None:
+            per_roll = infer_per_roll_from_product(nama_produk)
+        if berat_total is None and aktual_roll is not None and per_roll is not None:
+            berat_total = (Decimal(aktual_roll) * per_roll).quantize(Decimal("0.01"))
 
         total_target += target_total or Decimal("0")
         total_aktual += aktual_roll or 0
+        computed_berat_kg_total += berat_total or Decimal("0")
 
         parsed_rows.append(
             (
                 tanggal_produksi,
                 nama_produk,
+                order_roll,
                 waktu_awal,
                 waktu_akhir,
                 line_val,
@@ -661,6 +749,8 @@ def laporan_cushion_update(batch_uid):
                 target_total,
                 aktual_roll,
                 persentase,
+                per_roll,
+                berat_total,
                 batch_uid,
             )
         )
@@ -673,6 +763,8 @@ def laporan_cushion_update(batch_uid):
         total_persentase = ((Decimal(total_aktual) / total_target) * Decimal("100")).quantize(
             Decimal("0.01")
         )
+    if berat_kg_total is None:
+        berat_kg_total = computed_berat_kg_total or None
 
     conn = None
     try:
@@ -688,7 +780,8 @@ def laporan_cushion_update(batch_uid):
                 no_mesin = %s,
                 total_target = %s,
                 total_aktual = %s,
-                total_persentase = %s
+                total_persentase = %s,
+                berat_kg_total = %s
             WHERE batch_uid = %s
             """,
             (
@@ -698,6 +791,7 @@ def laporan_cushion_update(batch_uid):
                 total_target,
                 total_aktual,
                 total_persentase,
+                berat_kg_total,
                 batch_uid,
             ),
         )
@@ -707,6 +801,7 @@ def laporan_cushion_update(batch_uid):
             INSERT INTO production_cushion_gum (
                 tanggal_produksi,
                 nama_produk,
+                order_roll,
                 waktu_awal,
                 waktu_akhir,
                 line,
@@ -715,9 +810,11 @@ def laporan_cushion_update(batch_uid):
                 target_total,
                 aktual_roll,
                 persentase,
+                per_roll,
+                berat_total,
                 batch_uid
             ) VALUES (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
             """,
             parsed_rows,
@@ -910,6 +1007,193 @@ def parse_decimal(value):
         return None
 
 
+def format_number_display(value):
+    if value is None:
+        return ""
+    try:
+        if isinstance(value, Decimal):
+            text = format(value, "f")
+        else:
+            text = format(Decimal(str(value)), "f")
+    except (InvalidOperation, ValueError, TypeError):
+        text = str(value)
+    if "." in text:
+        text = text.rstrip("0").rstrip(".")
+    return text
+
+
+def format_product_name_for_print(nama_produk):
+    text = (nama_produk or "").strip()
+    if not text:
+        return ""
+
+    # Khusus produk Cushion Gum: paksa baris 1 "CUSHION GUM", detail ukuran di baris 2.
+    lowered = text.lower()
+    if lowered.startswith("cushion gum "):
+        return f"CUSHION GUM\n{text[12:].strip()}"
+    if lowered == "cushion gum":
+        return "CUSHION GUM"
+
+    return text
+
+
+def build_cushion_pdf_from_template(batch_data):
+    try:
+        from pypdf import PdfReader, PdfWriter
+        from reportlab.pdfgen import canvas
+        from reportlab.pdfbase import pdfmetrics
+    except Exception as exc:
+        raise RuntimeError(
+            "Library PDF belum terpasang. Jalankan: pip install reportlab pypdf"
+        ) from exc
+
+    if not os.path.exists(CG_PDF_TEMPLATE_PATH):
+        raise FileNotFoundError(
+            f"Template PDF tidak ditemukan di path: {CG_PDF_TEMPLATE_PATH}"
+        )
+
+    header = batch_data.get("header") or ()
+    rows = batch_data.get("details") or []
+
+    template_reader = PdfReader(CG_PDF_TEMPLATE_PATH)
+    if not template_reader.pages:
+        raise RuntimeError("Template PDF kosong.")
+
+    template_page = template_reader.pages[0]
+    page_width = float(template_page.mediabox.width)
+    page_height = float(template_page.mediabox.height)
+
+    max_rows_per_page = 21
+    row_chunks = [
+        rows[i : i + max_rows_per_page] for i in range(0, len(rows), max_rows_per_page)
+    ] or [[]]
+
+    writer = PdfWriter()
+
+    def fit_text(text, font_name, font_size, max_width):
+        value = "" if text is None else str(text)
+        if max_width <= 0:
+            return ""
+        if pdfmetrics.stringWidth(value, font_name, font_size) <= max_width:
+            return value
+        ellipsis = "..."
+        while value:
+            candidate = value[:-1].rstrip()
+            trial = f"{candidate}{ellipsis}"
+            if pdfmetrics.stringWidth(trial, font_name, font_size) <= max_width:
+                return trial
+            value = candidate
+        return ellipsis
+
+    for page_index, chunk in enumerate(row_chunks):
+        overlay_buffer = BytesIO()
+        c = canvas.Canvas(overlay_buffer, pagesize=(page_width, page_height))
+
+        c.setFont("Helvetica", 9)
+        tanggal = header[1].strftime("%d-%m-%Y") if len(header) > 1 and header[1] else ""
+        c.drawString(95, page_height - 105, (header[2] or "") if len(header) > 2 else "")
+        c.drawString(360, page_height - 105, (header[3] or "") if len(header) > 3 else "")
+        c.drawString(505, page_height - 105, tanggal)
+
+        # Fine-tuned against SK-PROSBY-FM-01 template grid so text sits inside row cells.
+        y = page_height - 188
+        row_height = 28
+        font_name = "Helvetica"
+        font_size = 8
+        pad_x = 4
+        x_cols = {
+            "nama_produk": (18, 107, "left"),
+            "order_roll": (107, 148, "right"),
+            "waktu_awal": (148, 198, "center"),
+            "waktu_akhir": (198, 249, "center"),
+            "line": (249, 292, "center"),
+            "pakai_menit": (292, 336, "right"),
+            "target_per_menit": (336, 380, "right"),
+            "target_total": (380, 424, "right"),
+            "aktual_roll": (424, 468, "right"),
+            "persentase": (468, 512, "right"),
+            "per_roll": (512, 556, "right"),
+            "berat_total": (556, 600, "right"),
+        }
+
+        c.setFont(font_name, font_size)
+
+        def draw_cell(col_key, y_pos, text):
+            x0, x1, align = x_cols[col_key]
+            max_w = max((x1 - x0) - (pad_x * 2), 1)
+            clean_text = fit_text(text, font_name, font_size, max_w)
+            if align == "left":
+                c.drawString(x0 + pad_x, y_pos, clean_text)
+            elif align == "center":
+                c.drawCentredString((x0 + x1) / 2, y_pos, clean_text)
+            else:
+                c.drawRightString(x1 - pad_x, y_pos, clean_text)
+
+        for row in chunk:
+            nama_produk = (row[0] or "") if len(row) > 0 else ""
+            order_roll = row[1] if len(row) > 1 else None
+            waktu_awal = row[2].strftime("%H:%M") if len(row) > 2 and row[2] else ""
+            waktu_akhir = row[3].strftime("%H:%M") if len(row) > 3 and row[3] else ""
+            line = row[4] if len(row) > 4 else None
+            pakai_menit = row[5] if len(row) > 5 else None
+            target_per_menit = row[6] if len(row) > 6 else None
+            target_total = row[7] if len(row) > 7 else None
+            aktual_roll = row[8] if len(row) > 8 else None
+            persentase = row[9] if len(row) > 9 else None
+            per_roll = row[10] if len(row) > 10 else None
+            berat_total = row[11] if len(row) > 11 else None
+
+            draw_cell("nama_produk", y, nama_produk)
+            draw_cell("order_roll", y, format_number_display(order_roll))
+            draw_cell("waktu_awal", y, waktu_awal)
+            draw_cell("waktu_akhir", y, waktu_akhir)
+            draw_cell("line", y, format_number_display(line))
+            draw_cell("pakai_menit", y, format_number_display(pakai_menit))
+            draw_cell("target_per_menit", y, format_number_display(target_per_menit))
+            draw_cell("target_total", y, format_number_display(target_total))
+            draw_cell("aktual_roll", y, format_number_display(aktual_roll))
+            draw_cell("persentase", y, format_number_display(persentase))
+            draw_cell("per_roll", y, format_number_display(per_roll))
+            draw_cell("berat_total", y, format_number_display(berat_total))
+            y -= row_height
+
+        is_last_page = page_index == (len(row_chunks) - 1)
+        if is_last_page:
+            total_target = header[4] if len(header) > 4 else None
+            total_aktual = header[5] if len(header) > 5 else None
+            total_persen = header[6] if len(header) > 6 else None
+            total_berat = header[7] if len(header) > 7 else None
+
+            total_y = 90
+            c.setFont("Helvetica-Bold", 8)
+            c.drawRightString(
+                x_cols["target_total"][1] - pad_x, total_y, format_number_display(total_target)
+            )
+            c.drawRightString(
+                x_cols["aktual_roll"][1] - pad_x, total_y, format_number_display(total_aktual)
+            )
+            c.drawRightString(
+                x_cols["persentase"][1] - pad_x, total_y, format_number_display(total_persen)
+            )
+            c.drawRightString(
+                x_cols["berat_total"][1] - pad_x, total_y, format_number_display(total_berat)
+            )
+
+        c.save()
+        overlay_buffer.seek(0)
+
+        overlay_pdf = PdfReader(overlay_buffer)
+        page_template_reader = PdfReader(CG_PDF_TEMPLATE_PATH)
+        page = page_template_reader.pages[0]
+        page.merge_page(overlay_pdf.pages[0])
+        writer.add_page(page)
+
+    output = BytesIO()
+    writer.write(output)
+    output.seek(0)
+    return output
+
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -947,6 +1231,126 @@ def home():
     return render_template("home.html", user=session["user"])
 
 
+@app.route("/item-code", methods=["GET", "POST"])
+def item_code():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    notice = ""
+    error = ""
+
+    if request.method == "POST":
+        action = (request.form.get("action") or "add").strip().lower()
+        conn = None
+        try:
+            conn = get_db_conn()
+            cur = conn.cursor()
+
+            if action == "delete":
+                id_produk = parse_int(request.form.get("id_produk"))
+                if id_produk is None:
+                    error = "ID produk tidak valid."
+                else:
+                    cur.execute("DELETE FROM master_produk WHERE id = %s", (id_produk,))
+                    notice = "Produk berhasil dihapus."
+
+            elif action == "edit":
+                id_asal = parse_int(request.form.get("id_asal"))
+                id_baru = parse_int(request.form.get("id_produk"))
+                nama_produk = (request.form.get("nama_produk") or "").strip()
+                aktif = (request.form.get("aktif") or "").strip() == "1"
+
+                if id_asal is None or id_baru is None:
+                    error = "ID produk tidak valid."
+                elif not nama_produk:
+                    error = "Nama produk wajib diisi."
+                else:
+                    cur.execute(
+                        """
+                        SELECT id
+                        FROM master_produk
+                        WHERE LOWER(TRIM(nama_produk)) = LOWER(TRIM(%s))
+                          AND id <> %s
+                        LIMIT 1
+                        """,
+                        (nama_produk, id_asal),
+                    )
+                    duplicate_name = cur.fetchone()
+                    if duplicate_name:
+                        error = "Nama produk sudah dipakai produk lain."
+                    else:
+                        cur.execute(
+                            """
+                            UPDATE master_produk
+                            SET id = %s, nama_produk = %s, aktif = %s
+                            WHERE id = %s
+                            """,
+                            (id_baru, nama_produk, aktif, id_asal),
+                        )
+                        notice = "Produk berhasil diperbarui."
+
+            else:
+                nama_produk = (request.form.get("nama_produk") or "").strip()
+                aktif = (request.form.get("aktif") or "").strip() == "1"
+                if not nama_produk:
+                    error = "Nama produk wajib diisi."
+                else:
+                    cur.execute(
+                        """
+                        SELECT id, aktif
+                        FROM master_produk
+                        WHERE LOWER(TRIM(nama_produk)) = LOWER(TRIM(%s))
+                        LIMIT 1
+                        """,
+                        (nama_produk,),
+                    )
+                    existing = cur.fetchone()
+                    if existing:
+                        cur.execute(
+                            """
+                            UPDATE master_produk
+                            SET nama_produk = %s, aktif = %s
+                            WHERE id = %s
+                            """,
+                            (nama_produk, aktif, existing[0]),
+                        )
+                        notice = "Produk sudah ada. Data diperbarui."
+                    else:
+                        cur.execute(
+                            """
+                            INSERT INTO master_produk (nama_produk, aktif)
+                            VALUES (%s, %s)
+                            """,
+                            (nama_produk, aktif),
+                        )
+                        notice = "Produk baru berhasil ditambahkan."
+
+            if not error:
+                conn.commit()
+                return redirect(url_for("item_code", notice=notice))
+            conn.rollback()
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            error = f"Gagal menyimpan produk: {e}"
+        finally:
+            if conn:
+                conn.close()
+
+    notice_from_query = (request.args.get("notice") or "").strip()
+    if notice_from_query:
+        notice = notice_from_query
+
+    products = fetch_master_produk_all()
+    return render_template(
+        "item_code.html",
+        products=products,
+        notice=notice,
+        error=error,
+        user=session["user"],
+    )
+
+
 @app.route("/laporan")
 def laporan():
     if "user" not in session:
@@ -966,6 +1370,107 @@ def laporan():
         laporan_cushion_gum=laporan_cushion_gum,
         laporan_gum_cord=laporan_gum_cord,
         laporan_msc=laporan_msc,
+    )
+
+
+@app.route("/laporan/cushion-gum/cetak/<batch_uid>", methods=["GET"])
+def laporan_cushion_cetak(batch_uid):
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    result = fetch_cushion_batch(batch_uid)
+    if not result:
+        return "Data batch Cushion Gum tidak ditemukan.", 404
+
+    header = result.get("header") or ()
+    details = result.get("details") or []
+
+    tanggal = ""
+    hari_tanggal = ""
+    if len(header) > 1 and header[1]:
+        tanggal_obj = header[1]
+        tanggal = tanggal_obj.strftime("%d-%m-%Y")
+        hari_map = [
+            "Senin",
+            "Selasa",
+            "Rabu",
+            "Kamis",
+            "Jumat",
+            "Sabtu",
+            "Minggu",
+        ]
+        hari_tanggal = f"{hari_map[tanggal_obj.weekday()]} / {tanggal}"
+
+    def empty_row():
+        return {
+            "nama_produk": "",
+            "order_roll": "",
+            "waktu_awal": "",
+            "waktu_akhir": "",
+            "line": "",
+            "pakai_menit": "",
+            "target_per_menit": "",
+            "target_total": "",
+            "aktual_roll": "",
+            "persentase": "",
+            "per_roll": "",
+            "berat_total": "",
+        }
+
+    rows = []
+    for row in details:
+        rows.append(
+            {
+                "nama_produk": format_product_name_for_print((row[0] or "") if len(row) > 0 else ""),
+                "order_roll": format_number_display(row[1] if len(row) > 1 else None),
+                "waktu_awal": row[2].strftime("%H:%M") if len(row) > 2 and row[2] else "",
+                "waktu_akhir": row[3].strftime("%H:%M") if len(row) > 3 and row[3] else "",
+                "line": format_number_display(row[4] if len(row) > 4 else None),
+                "pakai_menit": format_number_display(row[5] if len(row) > 5 else None),
+                "target_per_menit": format_number_display(row[6] if len(row) > 6 else None),
+                "target_total": format_number_display(row[7] if len(row) > 7 else None),
+                "aktual_roll": format_number_display(row[8] if len(row) > 8 else None),
+                "persentase": format_number_display(row[9] if len(row) > 9 else None),
+                "per_roll": format_number_display(row[10] if len(row) > 10 else None),
+                "berat_total": format_number_display(row[11] if len(row) > 11 else None),
+            }
+        )
+
+    total_target = format_number_display(header[4] if len(header) > 4 else None)
+    total_aktual = format_number_display(header[5] if len(header) > 5 else None)
+    total_persen = format_number_display(header[6] if len(header) > 6 else None)
+    total_berat = format_number_display(header[7] if len(header) > 7 else None)
+
+    rows_per_page = 13
+    row_chunks = [
+        rows[i : i + rows_per_page] for i in range(0, len(rows), rows_per_page)
+    ] or [[]]
+
+    pages = []
+    total_pages = len(row_chunks)
+    for index, chunk in enumerate(row_chunks):
+        page_rows = list(chunk)
+        if len(page_rows) < rows_per_page:
+            page_rows.extend([empty_row() for _ in range(rows_per_page - len(page_rows))])
+        pages.append(
+            {
+                "rows": page_rows,
+                "is_last": index == (total_pages - 1),
+            }
+        )
+
+    return render_template(
+        "print_laporan.html",
+        batch_uid=batch_uid,
+        nama_operator=(header[2] or "") if len(header) > 2 else "",
+        no_mesin=(header[3] or "") if len(header) > 3 else "",
+        tanggal=tanggal,
+        hari_tanggal=hari_tanggal,
+        pages=pages,
+        total_target=total_target,
+        total_aktual=total_aktual,
+        total_persen=total_persen,
+        total_berat=total_berat,
     )
 
 @app.route("/laporan/delete", methods=["POST"])
@@ -1081,21 +1586,28 @@ def cushion_gum():
         )
 
         nama_produk_list = request.form.getlist("nama_produk[]")
+        order_roll_list = request.form.getlist("order_roll[]")
         waktu_awal_list = request.form.getlist("waktu_awal[]")
         waktu_akhir_list = request.form.getlist("waktu_akhir[]")
         line_list = request.form.getlist("line[]")
         pakai_menit_list = request.form.getlist("pakai_menit[]")
         target_per_menit_list = request.form.getlist("target_per_menit[]")
         aktual_roll_list = request.form.getlist("aktual_roll[]")
+        per_roll_list = request.form.getlist("per_roll[]")
+        berat_total_list = request.form.getlist("berat_total[]")
+        berat_kg_total = parse_decimal(request.form.get("berat_kg_total"))
 
         max_len = max(
             len(nama_produk_list),
+            len(order_roll_list),
             len(waktu_awal_list),
             len(waktu_akhir_list),
             len(line_list),
             len(pakai_menit_list),
             len(target_per_menit_list),
             len(aktual_roll_list),
+            len(per_roll_list),
+            len(berat_total_list),
         )
 
         batch_uid = None
@@ -1104,6 +1616,7 @@ def cushion_gum():
             nama_produk = (
                 nama_produk_list[i].strip() if i < len(nama_produk_list) else ""
             )
+            order_roll = parse_int(order_roll_list[i]) if i < len(order_roll_list) else None
             waktu_awal = waktu_awal_list[i] if i < len(waktu_awal_list) else ""
             waktu_akhir = waktu_akhir_list[i] if i < len(waktu_akhir_list) else ""
             line_val = parse_int(line_list[i]) if i < len(line_list) else None
@@ -1116,15 +1629,20 @@ def cushion_gum():
             aktual_roll = (
                 parse_int(aktual_roll_list[i]) if i < len(aktual_roll_list) else None
             )
+            per_roll = parse_decimal(per_roll_list[i]) if i < len(per_roll_list) else None
+            berat_total = parse_decimal(berat_total_list[i]) if i < len(berat_total_list) else None
 
             if not any(
                 [
                     nama_produk,
+                    order_roll is not None,
                     waktu_awal,
                     waktu_akhir,
                     target_code,
                     aktual_roll is not None,
                     pakai_menit is not None,
+                    per_roll is not None,
+                    berat_total is not None,
                 ]
             ):
                 continue
@@ -1154,11 +1672,16 @@ def cushion_gum():
                 persentase = (
                     (Decimal(aktual_roll) / target_total) * Decimal("100")
                 ).quantize(Decimal("0.01"))
+            if per_roll is None:
+                per_roll = infer_per_roll_from_product(nama_produk)
+            if berat_total is None and aktual_roll is not None and per_roll is not None:
+                berat_total = (Decimal(aktual_roll) * per_roll).quantize(Decimal("0.01"))
 
             rows.append(
                 (
                     tanggal_produksi,
                     nama_produk or None,
+                    order_roll,
                     waktu_awal or None,
                     waktu_akhir or None,
                     line_val,
@@ -1167,6 +1690,8 @@ def cushion_gum():
                     target_total,
                     aktual_roll,
                     persentase,
+                    per_roll,
+                    berat_total,
                     None,
                 )
             )
@@ -1184,6 +1709,7 @@ def cushion_gum():
                     INSERT INTO production_cushion_gum (
                         tanggal_produksi,
                         nama_produk,
+                        order_roll,
                         waktu_awal,
                         waktu_akhir,
                         line,
@@ -1192,9 +1718,11 @@ def cushion_gum():
                         target_total,
                         aktual_roll,
                         persentase,
+                        per_roll,
+                        berat_total,
                         batch_uid
                     ) VALUES (
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                     )
                 """
                 cur.executemany(insert_sql, rows)
@@ -1202,11 +1730,16 @@ def cushion_gum():
             # Grand total disamakan dengan total yang sedang tersaji di form saat simpan,
             # bukan akumulasi semua simpan di tanggal yang sama.
             total_target = sum(
-                (row[7] if row[7] is not None else Decimal("0")) for row in rows
+                (row[8] if row[8] is not None else Decimal("0")) for row in rows
             )
             total_aktual = sum(
-                (row[8] if row[8] is not None else 0) for row in rows
+                (row[9] if row[9] is not None else 0) for row in rows
             )
+            if berat_kg_total is None:
+                total_berat = sum(
+                    (row[12] if row[12] is not None else Decimal("0")) for row in rows
+                )
+                berat_kg_total = total_berat if total_berat != 0 else None
 
             total_persentase = None
             if total_target != 0:
@@ -1222,9 +1755,10 @@ def cushion_gum():
                     total_target,
                     total_aktual,
                     total_persentase,
+                    berat_kg_total,
                     batch_uid
                 ) VALUES (
-                    %s, %s, %s, %s, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s, %s, %s
                 )
             """
             cur.execute(
@@ -1236,6 +1770,7 @@ def cushion_gum():
                     total_target,
                     total_aktual,
                     total_persentase,
+                    berat_kg_total,
                     batch_uid,
                 ),
             )
@@ -1249,7 +1784,7 @@ def cushion_gum():
             if conn:
                 conn.close()
 
-        return redirect(url_for("cushion_gum"))
+        return redirect(url_for("cushion_gum", saved="1"))
 
     master_produk = fetch_master_produk()
     return render_template("cushion_gum.html", master_produk=master_produk)
@@ -1323,7 +1858,7 @@ def cushion_gum_cord():
         if conn:
             conn.close()
 
-    return redirect(url_for("cushion_gum"))
+    return redirect(url_for("cushion_gum", saved="1"))
 
 @app.route("/msc", methods=["GET", "POST"])
 def msc():
@@ -1519,7 +2054,7 @@ def msc():
                 if conn:
                     conn.close()
 
-        return redirect(url_for("msc"))
+        return redirect(url_for("msc", saved="1"))
 
     master_bahan_msc = fetch_master_bahan_msc()
     return render_template("msc.html", master_bahan_msc=master_bahan_msc)
@@ -1532,4 +2067,5 @@ def logout():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
 

@@ -1,0 +1,450 @@
+@page {
+    size: 215.9mm 330.2mm;
+    margin: 6mm;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f3f3f3;
+    font-family: "Times New Roman", serif;
+    color: #000;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+.print-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 10px;
+    background: #1f2937;
+}
+
+.print-toolbar button {
+    border: 0;
+    background: #ffffff;
+    color: #111;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.sheet {
+    width: 204mm;
+    min-height: 318mm;
+    margin: 12px auto;
+    background: #fff;
+    border: 1.4px solid #1f1f1f;
+    padding: 6mm;
+}
+
+table {
+    border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+    border: 1.2px solid #1f1f1f;
+}
+
+th,
+td {
+    border: 0.8px solid #1f1f1f;
+    font-size: 11px;
+    line-height: 1.2;
+    padding: 3px 5px;
+    vertical-align: middle;
+}
+
+.center {
+    text-align: center;
+}
+
+.right {
+    text-align: right;
+}
+
+.left {
+    text-align: left;
+}
+
+.meta-table td {
+    font-size: 11px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.head-logo {
+    width: 100%;
+    height: 56px;
+    object-fit: contain;
+}
+
+.title-cell {
+    font-size: 15px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.1px;
+    line-height: 1.22;
+    padding: 6px 10px;
+}
+
+.doc-cell-top {
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+    padding: 6px 4px;
+}
+
+.doc-cell-bottom {
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.15;
+    padding: 5px 4px;
+}
+
+.info td {
+    height: 32px;
+    font-size: 10px;
+    padding: 6px 8px;
+    border-left: none;
+    border-right: none;
+}
+
+.info td:first-child {
+    border-left: 0.8px solid #1f1f1f;
+}
+
+.info td:last-child {
+    border-right: 0.8px solid #1f1f1f;
+}
+
+.section-title {
+    margin: 10px 0 5px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    padding-left: 6px;
+}
+
+.main th,
+.main td {
+    height: 24px;
+}
+
+.main .h {
+    font-size: 8px;
+    font-weight: 700;
+}
+
+.main .hs {
+    font-size: 8px;
+    font-weight: 700;
+}
+
+.main td {
+    font-size: 10px;
+}
+
+.col-product {
+    width: 18%;
+}
+
+.col-order {
+    width: 7%;
+}
+
+.col-time {
+    width: 7.5%;
+}
+
+.col-line {
+    width: 6%;
+}
+
+.col-small {
+    width: 6.5%;
+}
+
+.bg-green {
+    background: #c8d8a4;
+}
+
+.bg-pink {
+    background: #ead7d8;
+}
+
+.bg-orange {
+    background: #ecc7a6;
+}
+
+.total-row td {
+    height: 28px;
+    font-size: 10px;
+}
+
+.total-label-cell {
+    padding-right: 8px;
+}
+
+.main tbody td.left {
+    padding-left: 6px;
+}
+
+.product-name-cell {
+    white-space: pre-line;
+}
+
+.keterangan {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #111;
+    display: none;
+}
+
+.target-roll-table {
+    margin-top: 0;
+}
+
+.target-roll-table th,
+.target-roll-table td {
+    height: 24px;
+    font-size: 10px;
+    text-align: center;
+}
+
+.target-roll-title {
+    font-size: 11px;
+    font-weight: 400;
+    background: #ececec;
+}
+
+.target-roll-table tr:nth-child(2) th {
+    background: #e8ef78;
+    font-weight: 400;
+}
+
+.target-roll-head {
+    line-height: 1.2;
+    white-space: normal;
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+
+.section-b {
+    margin-top: 16px;
+    font-size: 11px;
+    padding-left: 0;
+}
+
+.helper-table {
+    margin-top: 2px;
+}
+
+.helper-table th,
+.helper-table td {
+    height: 22px;
+    font-size: 8.5px;
+    text-align: center;
+    font-weight: 600;
+    line-height: 1.15;
+    padding: 2px 3px;
+}
+
+.helper-main-title {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 0;
+    background: #e2e2e2;
+}
+
+.helper-grey {
+    background: #d7d7d7;
+}
+
+.helper-pink {
+    background: #e0b8bb;
+}
+
+.plastik-head-main .plastik-terbuang-head {
+    background: #d7d7d7;
+}
+
+.helper-sub {
+    margin-top: 10px;
+}
+
+.helper-sub .helper-main-title {
+    font-size: 11px;
+    line-height: 1.1;
+}
+
+.helper-kotak tr:not(:first-child) > th:first-child {
+    text-align: left;
+    padding-left: 10px;
+}
+
+.helper-tungkul tr:not(:first-child) > th:first-child {
+    text-align: left;
+    padding-left: 10px;
+}
+
+.helper-tungkul .tungkul-terbuang-cell {
+    border-right: none;
+}
+
+.helper-tungkul .tungkul-after-terbuang {
+    border-left: none;
+    background: #e0b8bb;
+}
+
+.helper-tungkul .lakban-roll-main,
+.helper-tungkul .lakban-roll-tail {
+    border-left: 0.8px solid #1f1f1f;
+    border-right: 0.8px solid #1f1f1f;
+    border-top: 0.8px solid #1f1f1f;
+    border-bottom: 0.8px solid #1f1f1f;
+}
+
+.helper-tungkul .lakban-roll-tail {
+    text-align: right;
+    vertical-align: middle;
+    padding-top: 0;
+    padding-right: 12px;
+}
+
+.helper-tungkul .lakban-roll-cell {
+    border-left: 0.8px solid #1f1f1f;
+    border-right: 0.8px solid #1f1f1f;
+    border-top: 0.8px solid #1f1f1f;
+    border-bottom: 0.8px solid #1f1f1f;
+    text-align: right;
+    vertical-align: middle;
+    padding-top: 0;
+    padding-right: 12px;
+}
+
+.section-c {
+    margin-top: 12px;
+    font-size: 11px;
+    padding-left: 0;
+}
+
+.gum-cord-print-table {
+    margin-top: 2px;
+}
+
+.gum-cord-print-table th,
+.gum-cord-print-table td {
+    height: 24px;
+    font-size: 8.5px;
+    text-align: center;
+    font-weight: 600;
+    line-height: 1.15;
+    padding: 2px 3px;
+}
+
+.gum-cord-print-table td.left {
+    text-align: left;
+    padding-left: 6px;
+}
+
+.plastik-head-main th,
+.plastik-head-sub th {
+    vertical-align: middle;
+}
+
+.helper-plastik th {
+    word-break: normal;
+    overflow-wrap: normal;
+    line-height: 1.05;
+    font-size: 8px;
+}
+
+.helper-plastik .helper-main-title {
+    font-size: 11px;
+    line-height: 1.1;
+}
+
+.helper-plastik .plastik-head-main th {
+    height: 20px;
+}
+
+.helper-plastik .gum-cord-head {
+    white-space: nowrap;
+    background: #fff;
+}
+
+.helper-plastik .nowrap {
+    white-space: nowrap;
+}
+
+.helper-plastik .block-line {
+    display: block;
+    line-height: 1.1;
+}
+
+.helper-plastik .plastik-terbuang-sub {
+    padding-left: 3px;
+    padding-right: 3px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+    font-size: 7.5px;
+    line-height: 1.05;
+}
+
+.helper-plastik .plastik-terbuang-sub .keep-line {
+    white-space: nowrap;
+}
+
+.helper-plastik .plastik-rework-cell {
+    font-size: 6.8px;
+    line-height: 1.02;
+    padding-left: 1px;
+    padding-right: 1px;
+}
+
+.helper-plastik .plastik-head-sub th {
+    height: 18px;
+}
+
+.helper-plastik th,
+.helper-plastik td {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+
+.sheet-break {
+    page-break-after: always;
+    break-after: page;
+}
+
+@media print {
+    body {
+        background: #fff;
+    }
+
+    .print-toolbar {
+        display: none;
+    }
+
+    .sheet {
+        width: 100%;
+        margin: 0;
+        border: 0;
+        padding: 0;
+        min-height: auto;
+    }
+
+    .keterangan {
+        display: none;
+    }
+}

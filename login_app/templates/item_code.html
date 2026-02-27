@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item Code Produk</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/item_code.css') }}">
+</head>
+<body>
+<div class="header">
+    <div class="header-inner">
+        <a href="/home" aria-label="Ke halaman Home">
+            <img src="https://www.kartindorubber.com/assets/img/logo/logo2.png" alt="Kartindo Rubber" class="header-logo">
+        </a>
+        <a href="/logout" class="logout-btn">Logout</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="page-head">
+        <a href="/home" class="back-link">Kembali</a>
+    </div>
+
+    {% if notice %}
+    <div class="alert success">{{ notice }}</div>
+    {% endif %}
+    {% if error %}
+    <div class="alert error">{{ error }}</div>
+    {% endif %}
+
+    <div class="form-card">
+        <form method="POST" action="/item-code" autocomplete="off">
+            <div class="field-row">
+                <div class="field-grow">
+                    <label for="nama_produk" class="label-bold">Input Nama Produk Baru</label>
+                    <input id="nama_produk" type="text" name="nama_produk" placeholder="Contoh: CUSHION GUM 180 mm x 1.2 mm B" required>
+                </div>
+                <div class="field-check">
+                    <label for="aktif">Status</label>
+                    <select id="aktif" name="aktif">
+                        <option value="1" selected>Aktif</option>
+                        <option value="0">Nonaktif</option>
+                    </select>
+                </div>
+            </div>
+            <button type="submit" class="save-btn">Simpan Produk</button>
+        </form>
+    </div>
+
+    <div class="table-card">
+        <h3>Daftar Master Produk</h3>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nama Produk</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in products %}
+                    <tr>
+                        <td>{{ row[0] }}</td>
+                        <td>{{ row[1] }}</td>
+                        <td>
+                            {% if row[2] %}
+                            <span class="badge active">Aktif</span>
+                            {% else %}
+                            <span class="badge inactive">Nonaktif</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="action-group">
+                                <button
+                                    type="button"
+                                    class="btn-edit"
+                                    data-id="{{ row[0] }}"
+                                    data-nama="{{ row[1] }}"
+                                    data-aktif="{% if row[2] %}1{% else %}0{% endif %}"
+                                    onclick="openEditProduct(this)"
+                                >Edit</button>
+                                <form method="POST" action="/item-code" onsubmit="return confirm('Hapus produk ini?');">
+                                    <input type="hidden" name="id_produk" value="{{ row[0] }}">
+                                    <button type="submit" name="action" value="delete" class="btn-delete">Hapus</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="4" class="empty-cell">Belum ada data produk.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<div id="edit-modal" class="modal-backdrop" hidden>
+    <div class="modal-card">
+        <h3>Edit Produk</h3>
+        <form method="POST" action="/item-code">
+            <input type="hidden" name="action" value="edit">
+            <input type="hidden" name="id_asal" id="modal-id-asal">
+
+            <label for="modal-id-produk">ID Produk</label>
+            <input id="modal-id-produk" type="number" name="id_produk" required>
+
+            <label for="modal-nama-produk">Nama Produk</label>
+            <input id="modal-nama-produk" type="text" name="nama_produk" required>
+
+            <label for="modal-aktif">Status</label>
+            <select id="modal-aktif" name="aktif">
+                <option value="1">Aktif</option>
+                <option value="0">Nonaktif</option>
+            </select>
+
+            <div class="modal-actions">
+                <button type="button" class="btn-cancel" onclick="closeEditModal()">Batal</button>
+                <button type="submit" class="btn-edit">Simpan</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+function openEditProduct(buttonEl) {
+    const id = buttonEl.getAttribute("data-id") || "";
+    const nama = buttonEl.getAttribute("data-nama") || "";
+    const aktif = buttonEl.getAttribute("data-aktif") || "1";
+    const modal = document.getElementById("edit-modal");
+
+    document.getElementById("modal-id-asal").value = id;
+    document.getElementById("modal-id-produk").value = id;
+    document.getElementById("modal-nama-produk").value = nama;
+    document.getElementById("modal-aktif").value = aktif;
+
+    modal.hidden = false;
+}
+
+function closeEditModal() {
+    const modal = document.getElementById("edit-modal");
+    modal.hidden = true;
+}
+
+document.getElementById("edit-modal").addEventListener("click", function (e) {
+    if (e.target.id === "edit-modal") {
+        closeEditModal();
+    }
+});
+</script>
+</body>
+</html>

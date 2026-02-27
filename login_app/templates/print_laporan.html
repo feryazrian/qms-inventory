@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Produksi Cushion Gum - {{ batch_uid }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
+</head>
+<body>
+    <div class="print-toolbar">
+        <button type="button" onclick="window.print()">Cetak / Download PDF</button>
+        <button type="button" onclick="window.close()">Tutup</button>
+    </div>
+
+    {% for page in pages %}
+    <div class="sheet {% if not loop.last %}sheet-break{% endif %}">
+        <table class="meta-table">
+            <colgroup>
+                <col style="width: 20%;">
+                <col style="width: 50%;">
+                <col style="width: 21%;">
+                <col style="width: 10%;">
+            </colgroup>
+            <tr>
+                <td rowspan="2">
+                    <img
+                        src="https://www.kartindorubber.com/assets/img/logo/logo2.png"
+                        alt="Kartindo Rubber"
+                        class="head-logo"
+                    >
+                </td>
+                <td rowspan="2" class="title-cell">LAPORAN PRODUKSI HARIAN CG DAN PEMAKAIAN BAHAN PENOLONG</td>
+                <td class="doc-cell-top">No.Dokumen/Revisi</td>
+                <td class="doc-cell-top">Level</td>
+            </tr>
+            <tr>
+                <td class="doc-cell-bottom">SK-PROSBY-FM-01/05</td>
+                <td class="doc-cell-bottom">4</td>
+            </tr>
+        </table>
+
+        <table class="info" style="margin-top: 4px;">
+            <colgroup>
+                <col style="width: 33%;">
+                <col style="width: 25%;">
+                <col style="width: 42%;">
+            </colgroup>
+            <tr>
+                <td>
+                    <strong>Nama Operator :</strong>
+                    <span style="margin-left: 16px;">{{ nama_operator }}</span>
+                </td>
+                <td class="center">
+                    <strong>No.Mesin :</strong>
+                    <span style="margin-left: 10px;">{{ no_mesin }}</span>
+                </td>
+                <td class="center">
+                    <strong>Hari / Tanggal :</strong>
+                    <span style="margin-left: 10px;">{{ hari_tanggal or tanggal }}</span>
+                </td>
+            </tr>
+        </table>
+
+        <div class="section-title">A. Hasil Produksi Cushion Gum</div>
+
+        <table class="main">
+            <colgroup>
+                <col class="col-product">
+                <col class="col-order">
+                <col class="col-time">
+                <col class="col-time">
+                <col class="col-line">
+                <col class="col-small">
+                <col class="col-small">
+                <col class="col-small">
+                <col class="col-small">
+                <col class="col-small">
+                <col class="col-small">
+                <col class="col-small">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th rowspan="2" class="h">Nama Produk</th>
+                    <th rowspan="2" class="h">Order<br>( roll )</th>
+                    <th colspan="2" class="h">Waktu</th>
+                    <th rowspan="2" class="h">Line</th>
+                    <th rowspan="2" class="h">Pakai<br>( mnt )</th>
+                    <th colspan="2" class="h">Target ( roll )</th>
+                    <th rowspan="2" class="h">Aktual<br>( roll )</th>
+                    <th rowspan="2" class="h">Persentase<br>( % )</th>
+                    <th colspan="2" class="h">Berat</th>
+                </tr>
+                <tr>
+                    <th class="hs">Awal</th>
+                    <th class="hs">Akhir</th>
+                    <th class="hs">Per menit</th>
+                    <th class="hs">Total</th>
+                    <th class="hs">Per roll</th>
+                    <th class="hs">total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in page.rows %}
+                <tr>
+                    <td class="left product-name-cell">{{ row.nama_produk }}</td>
+                    <td class="center">{{ row.order_roll }}</td>
+                    <td class="center">{{ row.waktu_awal }}</td>
+                    <td class="center">{{ row.waktu_akhir }}</td>
+                    <td class="center">{{ row.line }}</td>
+                    <td class="center bg-green">{{ row.pakai_menit }}</td>
+                    <td class="center bg-pink">{{ row.target_per_menit }}</td>
+                    <td class="center bg-orange">{{ row.target_total }}</td>
+                    <td class="center">{{ row.aktual_roll }}</td>
+                    <td class="center">{{ row.persentase }}</td>
+                    <td class="center">{{ row.per_roll }}</td>
+                    <td class="center">{{ row.berat_total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            {% if page.is_last %}
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="2" class="center total-label-cell"><strong>Total</strong></td>
+                    <td colspan="2" class="right">menit</td>
+                    <td></td>
+                    <td class="bg-green"></td>
+                    <td class="bg-pink"></td>
+                    <td class="center bg-orange"><strong>{{ total_target }}</strong></td>
+                    <td class="center bg-orange"><strong>{{ total_aktual }}</strong></td>
+                    <td class="center"><strong>{{ total_persen }}</strong></td>
+                    <td colspan="2" class="right"><strong>{{ total_berat }} Kg</strong></td>
+                </tr>
+            </tfoot>
+            {% endif %}
+        </table>
+        {% if page.is_last %}
+        <table class="target-roll-table">
+            <tr>
+                <th colspan="6" class="target-roll-title">Target roll Per menit</th>
+            </tr>
+            <tr>
+                <th>1/8</th>
+                <th>CG Potong</th>
+                <th class="target-roll-head">Cushion Gum 1 line<br>( 02 )</th>
+                <th class="target-roll-head">Cushion Gum 2 line<br>( 02 )</th>
+                <th></th>
+                <th></th>
+            </tr>
+            <tr>
+                <td>0,5</td>
+                <td>0,166</td>
+                <td>0,37 ( 10 kg )</td>
+                <td>0,60 ( 10 kg )</td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+
+        <div class="section-title section-b">B. Pemakaian Bahan Penolong</div>
+
+        <table class="helper-table helper-plastik">
+            <colgroup>
+                <col style="width: 9.5%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 3%;">
+                <col style="width: 2.5%;">
+                <col style="width: 6.5%;">
+                <col style="width: 7.1%;">
+                <col style="width: 6.3%;">
+                <col style="width: 6.3%;">
+            </colgroup>
+            <tr>
+                <th colspan="14" class="helper-main-title">Plastik</th>
+            </tr>
+            <tr class="plastik-head-main">
+                <th rowspan="2">Lebar x tebal<br>(mm)</th>
+                <th rowspan="2">230 x 0,13<br>(Biru E)</th>
+                <th rowspan="2">210 x 0,13<br>(Hijau E)</th>
+                <th rowspan="2">190 x 0,13<br>(Kuning E)</th>
+                <th rowspan="2">630 x 0,13<br>(Biru P)</th>
+                <th rowspan="2">630 x 0,15<br>(Merah E)</th>
+                <th rowspan="2">270 x 0,13<br>(Merah E)</th>
+                <th rowspan="2">240 x 0,13<br>(Merah E)</th>
+                <th rowspan="2" colspan="2" class="gum-cord-head">Gum Cord</th>
+                <th rowspan="2"></th>
+                <th rowspan="2" class="helper-grey">Total<br>Pemakaian<br>Plastik</th>
+                <th colspan="2" class="plastik-terbuang-head">Plastik Terbuang</th>
+            </tr>
+            <tr class="plastik-head-sub">
+                <th class="helper-pink plastik-terbuang-sub">Plastik Produksi</th>
+                <th class="helper-pink plastik-terbuang-sub plastik-rework-cell">
+                    <span class="block-line keep-line">Plastik Rework</span>
+                    <span class="block-line keep-line">CG Potong</span>
+                </th>
+            </tr>
+            <tr>
+                <th>Berat ( Kg )</th>
+                <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                <td colspan="2"></td><td></td>
+                <td></td>
+                <td class="helper-pink"></td>
+                <td class="helper-pink"></td>
+            </tr>
+        </table>
+
+        <table class="helper-table helper-sub helper-kotak">
+            <colgroup>
+                <col style="width: 9.5%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 2.4%;">
+                <col style="width: 3.6%;">
+                <col style="width: 6%;">
+                <col style="width: 7.1%;">
+                <col style="width: 6.3%;">
+                <col style="width: 6.3%;">
+            </colgroup>
+            <tr>
+                <th colspan="14" class="helper-main-title">Kotak</th>
+            </tr>
+            <tr>
+                <th colspan="2">Tinggi</th>
+                <th>160</th>
+                <th>185</th>
+                <th>200</th>
+                <th>220</th>
+                <th>310</th>
+                <th>350</th>
+                <th colspan="2">Gum Cord</th>
+                <th></th>
+                <th></th>
+                <th class="helper-grey">Total</th>
+                <th class="helper-pink">Terbuang</th>
+            </tr>
+            <tr>
+                <th colspan="2">Jumlah</th>
+                <td></td><td></td><td></td><td></td><td></td><td></td>
+                <td colspan="2"></td><td></td><td></td>
+                <td class="helper-grey"></td>
+                <td class="helper-pink"></td>
+            </tr>
+        </table>
+
+        <table class="helper-table helper-sub helper-tungkul">
+            <colgroup>
+                <col style="width: 9.5%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 3%;">
+                <col style="width: 3%;">
+                <col style="width: 6%;">
+                <col style="width: 7.1%;">
+                <col style="width: 6.3%;">
+                <col style="width: 6.3%;">
+            </colgroup>
+            <tr>
+                <th colspan="10" class="helper-main-title">Tungkul Paralon</th>
+                <th colspan="4" class="helper-main-title">Lakban</th>
+            </tr>
+            <tr>
+                <th colspan="2">Panjang ( mm )</th>
+                <th>165</th>
+                <th>195</th>
+                <th>210</th>
+                <th>240</th>
+                <th></th>
+                <th class="helper-grey">Total</th>
+                <th class="helper-pink tungkul-terbuang-cell">Terbuang</th>
+                <th class="tungkul-after-terbuang"></th>
+                <th colspan="4" rowspan="2" class="lakban-roll-cell">Roll</th>
+            </tr>
+            <tr>
+                <th colspan="2">Jumlah</th>
+                <td></td><td></td><td></td><td></td><td></td>
+                <td class="helper-grey"></td>
+                <td class="helper-pink tungkul-terbuang-cell"></td>
+                <td class="tungkul-after-terbuang"></td>
+            </tr>
+        </table>
+
+        <div class="section-title section-c">C. Hasil Produksi Gum Cord</div>
+        <table class="gum-cord-print-table">
+            <colgroup>
+                <col style="width: 9.5%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 7.2%;">
+                <col style="width: 3%;">
+                <col style="width: 3%;">
+                <col style="width: 6%;">
+                <col style="width: 7.1%;">
+                <col style="width: 6.3%;">
+                <col style="width: 6.3%;">
+            </colgroup>
+            <tr>
+                <th rowspan="2" colspan="2">Nama Produk</th>
+                <th rowspan="2">Order<br>( Kotak )</th>
+                <th colspan="3">Waktu</th>
+                <th rowspan="2">Pakai<br>( mnt )</th>
+                <th colspan="2">Target ( kotak )</th>
+                <th rowspan="2" colspan="2">Aktual<br>( kotak )</th>
+                <th rowspan="2">Persentase<br>( % )</th>
+                <th colspan="2">Berat</th>
+            </tr>
+            <tr>
+                <th>Awal</th>
+                <th colspan="2">Akhir</th>
+                <th>Per menit</th>
+                <th>Total</th>
+                <th>Per kotak</th>
+                <th>total</th>
+            </tr>
+            <tr>
+                <td class="left" colspan="2">Gum Cord</td>
+                <td></td>
+                <td></td>
+                <td colspan="2"></td>
+                <td class="bg-green"></td>
+                <td class="bg-pink">0.08</td>
+                <td class="bg-orange"></td>
+                <td colspan="2"></td>
+                <td></td>
+                <td></td>
+            </tr>
+        </table>
+        {% endif %}
+
+        <div class="keterangan">
+            Batch UID: <strong>{{ batch_uid }}</strong>
+        </div>
+    </div>
+    {% endfor %}
+</body>
+</html>
