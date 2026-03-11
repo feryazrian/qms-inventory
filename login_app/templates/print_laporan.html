@@ -201,11 +201,17 @@
             </tr>
             <tr>
                 <th>Berat ( Kg )</th>
-                <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                <td colspan="2"></td><td></td>
-                <td></td>
-                <td class="helper-pink"></td>
-                <td class="helper-pink"></td>
+                <td>{{ plastik["230_blue"] }}</td>
+                <td>{{ plastik["210_green"] }}</td>
+                <td>{{ plastik["190_yellow"] }}</td>
+                <td>{{ plastik["630_birupolos"] }}</td>
+                <td>{{ plastik["630_red"] }}</td>
+                <td>{{ plastik["270_red"] }}</td>
+                <td>{{ plastik["240_red"] }}</td>
+                <td colspan="2">{{ plastik["plastik_gumcord"] }}</td><td></td>
+                <td>{{ plastik["total_plastik"] }}</td>
+                <td class="helper-pink">{{ plastik["plastik_terbuang"] }}</td>
+                <td class="helper-pink">{{ plastik["plastik_terbuang_cgpotong"] }}</td>
             </tr>
         </table>
 
@@ -245,10 +251,15 @@
             </tr>
             <tr>
                 <th colspan="2">Jumlah</th>
-                <td></td><td></td><td></td><td></td><td></td><td></td>
-                <td colspan="2"></td><td></td><td></td>
-                <td class="helper-grey"></td>
-                <td class="helper-pink"></td>
+                <td>{{ kotak["box_160"] }}</td>
+                <td>{{ kotak["box_185"] }}</td>
+                <td>{{ kotak["box_200"] }}</td>
+                <td>{{ kotak["box_220"] }}</td>
+                <td>{{ kotak["box_310"] }}</td>
+                <td>{{ kotak["box_350"] }}</td>
+                <td colspan="2">{{ kotak["box_gumcord"] }}</td><td></td><td></td>
+                <td class="helper-grey">{{ kotak["total"] }}</td>
+                <td class="helper-pink">{{ kotak["terbuang"] }}</td>
             </tr>
         </table>
 
@@ -282,13 +293,19 @@
                 <th></th>
                 <th class="helper-grey">Total</th>
                 <th colspan="2" class="helper-pink tungkul-terbuang-cell">Terbuang</th>
-                <th colspan="4" rowspan="2" class="lakban-roll-cell">Roll</th>
+                <th colspan="4" rowspan="2" class="lakban-roll-cell">
+                    {% if tungkul["lakban"] %}{{ tungkul["lakban"] }}{% endif %}{% if tungkul["lakban"] %}&nbsp;&nbsp;{% endif %}Roll
+                </th>
             </tr>
             <tr>
                 <th colspan="2">Jumlah</th>
-                <td></td><td></td><td></td><td></td><td></td>
-                <td class="helper-grey"></td>
-                <td colspan="2" class="helper-pink tungkul-terbuang-cell"></td>
+                <td>{{ tungkul["tp_165"] }}</td>
+                <td>{{ tungkul["tp_195"] }}</td>
+                <td>{{ tungkul["tp_210"] }}</td>
+                <td>{{ tungkul["tp_240"] }}</td>
+                <td></td>
+                <td class="helper-grey">{{ tungkul["total"] }}</td>
+                <td colspan="2" class="helper-pink tungkul-terbuang-cell">{{ tungkul["terbuang"] }}</td>
             </tr>
         </table>
 
@@ -327,17 +344,17 @@
                 <th>total</th>
             </tr>
             <tr>
-                <td class="center gum-cord-normal" colspan="2">Gum Cord</td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td class="bg-green"></td>
-                <td class="bg-pink gum-cord-normal">0.08</td>
-                <td class="bg-orange"></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
+                <td class="center gum-cord-normal" colspan="2">{{ gum_cord["nama_produk"] }}</td>
+                <td>{{ gum_cord["order_kotak"] }}</td>
+                <td>{{ gum_cord["waktu_awal"] }}</td>
+                <td>{{ gum_cord["waktu_akhir"] }}</td>
+                <td class="bg-green">{{ gum_cord["pakai_menit"] }}</td>
+                <td class="bg-pink gum-cord-normal">{{ gum_cord["target_per_menit"] }}</td>
+                <td class="bg-orange">{{ gum_cord["target_total"] }}</td>
+                <td>{{ gum_cord["aktual_kotak"] }}</td>
+                <td>{{ gum_cord["persentase"] }}</td>
+                <td>{{ gum_cord["berat_per_kotak"] }}</td>
+                <td>{{ gum_cord["berat_total"] }}</td>
             </tr>
         </table>
 

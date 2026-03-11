@@ -640,33 +640,6 @@
         max-width: 100%;
     }
 
-    .gum-cord-header {
-        flex-wrap: nowrap;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .gum-cord-header .section-title {
-        margin: 0;
-        font-size: clamp(16px, 4.6vw, 20px);
-        flex: 1;
-        min-width: 0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .gum-cord-header .section-actions {
-        width: auto;
-        flex-wrap: nowrap;
-        justify-content: flex-end;
-    }
-
-    .gum-cord-header .save-btn {
-        padding: 6px 10px;
-        font-size: 12px;
-    }
-
     .production-header .section-actions {
         width: 100%;
         flex-wrap: nowrap;

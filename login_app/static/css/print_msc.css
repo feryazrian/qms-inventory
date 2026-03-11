@@ -1,0 +1,376 @@
+@page {
+    size: folio;
+    size: 215.9mm 330.2mm;
+    margin: 6mm;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background: #f3f3f3;
+    font-family: "Times New Roman", serif;
+    color: #000;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+}
+
+.print-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 10px;
+    background: #1f2937;
+}
+
+.print-toolbar button {
+    border: 0;
+    background: #fff;
+    color: #111;
+    padding: 8px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.sheet {
+    width: 204mm;
+    min-height: 318mm;
+    margin: 12px auto;
+    background: #fff;
+    border: 1.4px solid #1f1f1f;
+    padding: 6mm;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    border: 1px solid #1f1f1f;
+}
+
+th,
+td {
+    border: 0.8px solid #1f1f1f;
+    font-size: 11px;
+    line-height: 1.2;
+    padding: 2px 3px;
+    vertical-align: middle;
+}
+
+.center {
+    text-align: center;
+}
+
+.meta-table {
+    margin-bottom: 3px;
+    border: 2.8px solid #000;
+}
+
+.meta-table td {
+    text-align: center;
+    font-weight: 700;
+    border: 2.8px solid #000;
+}
+
+.head-logo {
+    width: 100%;
+    height: 54px;
+    object-fit: contain;
+}
+
+.title-cell {
+    font-size: 15px;
+    line-height: 1.2;
+    letter-spacing: 0.1px;
+    padding: 5px 8px;
+    font-weight: 700;
+}
+
+.doc-cell-top {
+    font-size: 14px;
+}
+
+.doc-cell-bottom {
+    font-size: 14px;
+}
+
+.info-wrap {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 63% 37%;
+    gap: 0;
+    margin-bottom: 4px;
+}
+
+.info-fields {
+    border: 0.8px solid #1f1f1f;
+    border-right: none;
+    table-layout: fixed;
+}
+
+.approval-table th,
+.approval-table td {
+    text-align: center;
+    height: 22px;
+    font-size: 8.8px;
+}
+
+.info-fields td {
+    border: none;
+    font-size: 11px;
+    height: 22px;
+    padding: 4px 6px;
+}
+
+.info-fields .label-col {
+    width: 15%;
+}
+
+.info-fields .colon-col {
+    width: 3%;
+}
+
+.info-fields .value-col {
+    width: 19%;
+}
+
+.info-fields .label-cell {
+    white-space: nowrap;
+}
+
+.info-fields .colon-cell {
+    text-align: center;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.info-fields .value-cell {
+    white-space: nowrap;
+}
+
+.info-fields tr td:nth-child(4) {
+    padding-left: 75px;
+}
+
+.info-fields tr td:nth-child(5) {
+    padding-left: 40px;
+}
+
+.info-fields tr td:nth-child(6) {
+    padding-left: 45px;
+}
+
+.approval-table {
+    border-left: 0.8px solid #1f1f1f;
+    border-right: 0.8px solid #1f1f1f;
+}
+
+.approval-table th {
+    height: 34px;
+    font-size: 11px;
+    font-weight: 400;
+    border-bottom: 2px solid #1f1f1f;
+}
+
+.approval-table td {
+    height: 50px;
+}
+
+.section-title-cell {
+    font-size: 11px;
+    font-weight: 500;
+    height: 25px;
+    line-height: 1.15;
+    text-align: center;
+    background: #d9d9d9;
+}
+
+.main-table th {
+    text-align: center;
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 1.15;
+}
+
+.main-table tbody td {
+    height: 25px;
+}
+
+.col-no {
+    width: 3.8%;
+}
+
+.col-bahan {
+    width: 14.5%;
+}
+
+.col-jam {
+    width: 6.8%;
+}
+
+.col-pakai {
+    width: 7%;
+}
+
+.col-target-small {
+    width: 6.5%;
+}
+
+.col-target-total {
+    width: 7.2%;
+}
+
+.col-aktual {
+    width: 7.2%;
+}
+
+.col-persen {
+    width: 8.2%;
+}
+
+.col-obat {
+    width: 6.6%;
+}
+
+.col-keterangan {
+    width: 17.4%;
+}
+
+.bg-green {
+    background: #c8d8a4;
+}
+
+.bg-orange {
+    background: #ecc7a6;
+}
+
+.bg-blue {
+    background: #bfd7ee;
+}
+
+.empty-cell {
+    text-align: center;
+    padding: 8px 6px;
+}
+
+.total-row td {
+    height: 35px;
+}
+
+.target-table {
+    margin-top: 2px;
+}
+
+.target-table th,
+.target-table td {
+    text-align: center;
+    font-size: 11px;
+    height: 25px;
+    line-height: 1.15;
+}
+
+.target-table th {
+    font-weight: 500;
+}
+
+.primary-target thead tr:first-child th {
+    background: #d9d9d9;
+}
+
+.primary-target tbody td {
+    height: 35px;
+}
+
+.primary-target {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.secondary-target {
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+.secondary-target tbody td {
+    height: 35px;
+}
+
+.control-table {
+    margin-top: 2px;
+}
+
+.control-table th,
+.control-table td {
+    font-size: 11px;
+    height: 25px;
+    line-height: 1.15;
+}
+
+.control-table th {
+    text-align: center;
+    font-weight: 500;
+}
+
+.control-table .control-title {
+    background: #d9d9d9;
+}
+
+.control-table .spek-cell {
+    text-align: center;
+}
+
+.ctrl-parameter {
+    width: 37%;
+}
+
+.ctrl-std {
+    width: 18%;
+}
+
+.ctrl-spek {
+    width: 12%;
+}
+
+.ctrl-time {
+    width: 11%;
+}
+
+.catatan {
+    margin-top: 0;
+    min-height: 84px;
+    font-size: 11px;
+    border: 1px solid #1f1f1f;
+    border-top: none;
+    padding: 6px 8px;
+    box-sizing: border-box;
+}
+
+.footer-company {
+    margin-top: 2px;
+    text-align: center;
+    font-size: 11px;
+}
+
+@media print {
+    body {
+        background: #fff;
+    }
+
+    .print-toolbar {
+        display: none;
+    }
+
+    .sheet {
+        width: auto;
+        min-height: auto;
+        margin: 0;
+        border: none;
+        padding: 0;
+    }
+}

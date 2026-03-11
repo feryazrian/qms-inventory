@@ -103,14 +103,32 @@
                             <td>{{ row[4] if row[4] is not none else '' }}</td>
                             <td>
                                 <div class="aksi-wrap">
-                                    <button type="button" class="aksi-btn aksi-read">Read</button>
-                                    <button type="button" class="aksi-btn aksi-edit">Edit</button>
+                                    <button
+                                        type="button"
+                                        class="aksi-btn aksi-read gc-read-btn"
+                                        data-row-token="{{ row[0] }}"
+                                    >
+                                        Read
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="aksi-btn aksi-edit gc-edit-btn"
+                                        data-row-token="{{ row[0] }}"
+                                    >
+                                        Edit
+                                    </button>
                                     <form method="POST" action="{{ url_for('laporan_delete') }}" onsubmit="return confirm('Yakin hapus data ini?');">
                                         <input type="hidden" name="id" value="{{ row[0] }}">
                                         <input type="hidden" name="sumber" value="gum-cord">
                                         <button type="submit" class="aksi-btn aksi-delete">Delete</button>
                                     </form>
-                                    <button type="button" class="aksi-btn aksi-cetak">Cetak</button>
+                                    <button
+                                        type="button"
+                                        class="aksi-btn aksi-cetak gc-cetak-btn"
+                                        data-row-token="{{ row[0] }}"
+                                    >
+                                        Cetak
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -167,7 +185,13 @@
                                         <input type="hidden" name="sumber" value="msc">
                                         <button type="submit" class="aksi-btn aksi-delete">Delete</button>
                                     </form>
-                                    <button type="button" class="aksi-btn aksi-cetak">Cetak</button>
+                                    <button
+                                        type="button"
+                                        class="aksi-btn aksi-cetak msc-cetak-btn"
+                                        data-batch-uid="{{ row[6] or '' }}"
+                                    >
+                                        Cetak
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -260,8 +284,203 @@
                 </tfoot>
             </table>
         </div>
+        <div class="cg-modal-helper-wrap">
+            <div class="cg-helper-block">
+                <div class="cg-helper-table-wrap">
+                    <table class="cg-helper-table">
+                        <thead>
+                            <tr>
+                                <th colspan="13" class="cg-helper-title">Plastik</th>
+                            </tr>
+                            <tr>
+                                <th rowspan="2" class="cg-plastik-shift cg-plastik-dim-title"><span class="cg-nowrap">Lebar x tebal</span><br>(mm)</th>
+                                <th rowspan="2">230 x 0,15<br>(Biru E)</th>
+                                <th rowspan="2">210 x 0,15<br>(Hijau E)</th>
+                                <th rowspan="2">190 x 0,15<br>(Kuning E)</th>
+                                <th rowspan="2">630 x 0,13<br>(Biru P)</th>
+                                <th rowspan="2">630 x 0,15<br>(Merah E)</th>
+                                <th rowspan="2">270 x 0,15<br>(Merah E)</th>
+                                <th rowspan="2">240 x 0,15<br>(Merah E)</th>
+                                <th rowspan="2">Gum Cord</th>
+                                <th rowspan="2"></th>
+                                <th rowspan="2" class="cg-h-grey cg-plastik-total-title">Total Pemakaian Plastik</th>
+                                <th colspan="2" class="cg-h-pink">Plastik Terbuang</th>
+                            </tr>
+                            <tr>
+                                <th class="cg-h-pink">Plastik Produksi</th>
+                                <th class="cg-h-pink">CG Potong</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Berat (Kg)</strong></td>
+                                <td><input type="number" step="0.01" id="cg-plastik-230-blue" data-helper-field="230_blue" class="cg-plastik-item"></td>
+                                <td><input type="number" step="0.01" id="cg-plastik-210-green" data-helper-field="210_green" class="cg-plastik-item"></td>
+                                <td><input type="number" step="0.01" id="cg-plastik-190-yellow" data-helper-field="190_yellow" class="cg-plastik-item"></td>
+                                <td><input type="number" step="0.01" id="cg-plastik-630-birupolos" data-helper-field="630_birupolos" class="cg-plastik-item"></td>
+                                <td><input type="number" step="0.01" id="cg-plastik-630-red" data-helper-field="630_red" class="cg-plastik-item"></td>
+                                <td><input type="number" step="0.01" id="cg-plastik-270-red" data-helper-field="270_red" class="cg-plastik-item"></td>
+                                <td><input type="number" step="0.01" id="cg-plastik-240-red" data-helper-field="240_red" class="cg-plastik-item"></td>
+                                <td><input type="number" step="0.01" id="cg-plastik-gumcord" data-helper-field="plastik_gumcord" class="cg-plastik-item"></td>
+                                <td><input type="number" step="0.01" readonly tabindex="-1"></td>
+                                <td class="cg-h-grey"><input type="number" step="0.01" id="cg-plastik-total" data-helper-field="total_plastik" data-helper-fixed="1"></td>
+                                <td class="cg-h-pink"><input type="number" step="0.01" id="cg-plastik-terbuang" data-helper-field="plastik_terbuang"></td>
+                                <td class="cg-h-pink"><input type="number" step="0.01" id="cg-plastik-terbuang-cgpotong" data-helper-field="plastik_terbuang_cgpotong"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="cg-helper-block">
+                <div class="cg-helper-table-wrap">
+                    <table class="cg-helper-table">
+                        <thead>
+                            <tr>
+                                <th colspan="11" class="cg-helper-title">Kotak</th>
+                            </tr>
+                            <tr>
+                                <th class="cg-kotak-label-col">Tinggi</th>
+                                <th>160</th>
+                                <th>185</th>
+                                <th>200</th>
+                                <th>220</th>
+                                <th>310</th>
+                                <th>350</th>
+                                <th>Gum Cord</th>
+                                <th></th>
+                                <th class="cg-h-grey">Total</th>
+                                <th class="cg-h-pink">Terbuang</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="cg-kotak-label-col"><strong>Jumlah</strong></td>
+                                <td><input type="number" step="1" id="cg-kotak-160" data-helper-field="box_160" class="cg-kotak-item"></td>
+                                <td><input type="number" step="1" id="cg-kotak-185" data-helper-field="box_185" class="cg-kotak-item"></td>
+                                <td><input type="number" step="1" id="cg-kotak-200" data-helper-field="box_200" class="cg-kotak-item"></td>
+                                <td><input type="number" step="1" id="cg-kotak-220" data-helper-field="box_220" class="cg-kotak-item"></td>
+                                <td><input type="number" step="1" id="cg-kotak-310" data-helper-field="box_310" class="cg-kotak-item"></td>
+                                <td><input type="number" step="1" id="cg-kotak-350" data-helper-field="box_350" class="cg-kotak-item"></td>
+                                <td><input type="number" step="1" id="cg-kotak-gumcord" data-helper-field="box_gumcord" class="cg-kotak-item"></td>
+                                <td><input type="number" step="1" readonly tabindex="-1"></td>
+                                <td class="cg-h-grey"><input type="number" step="1" id="cg-kotak-total" data-helper-field="total" data-helper-fixed="1"></td>
+                                <td class="cg-h-pink"><input type="number" step="1" id="cg-kotak-terbuang" data-helper-field="terbuang"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="cg-helper-block">
+                <div class="cg-helper-table-wrap">
+                    <table class="cg-helper-table">
+                        <thead>
+                            <tr>
+                                <th colspan="8" class="cg-helper-title">Tungkul Paralon</th>
+                                <th rowspan="2" class="cg-helper-title">Lakban</th>
+                            </tr>
+                            <tr>
+                                <th class="cg-tungkul-label-col">Panjang (mm)</th>
+                                <th>165</th>
+                                <th>195</th>
+                                <th>210</th>
+                                <th>240</th>
+                                <th></th>
+                                <th class="cg-h-grey">Total</th>
+                                <th class="cg-h-pink">Terbuang</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="cg-tungkul-label-col"><strong>Jumlah</strong></td>
+                                <td><input type="number" step="1" id="cg-tungkul-165" data-helper-field="tp_165" class="cg-tungkul-item"></td>
+                                <td><input type="number" step="1" id="cg-tungkul-195" data-helper-field="tp_195" class="cg-tungkul-item"></td>
+                                <td><input type="number" step="1" id="cg-tungkul-210" data-helper-field="tp_210" class="cg-tungkul-item"></td>
+                                <td><input type="number" step="1" id="cg-tungkul-240" data-helper-field="tp_240" class="cg-tungkul-item"></td>
+                                <td><input type="number" step="1" readonly tabindex="-1"></td>
+                                <td class="cg-h-grey"><input type="number" step="1" id="cg-tungkul-total" data-helper-field="total" data-helper-fixed="1"></td>
+                                <td class="cg-h-pink"><input type="number" step="1" id="cg-tungkul-terbuang" data-helper-field="terbuang"></td>
+                                <td>
+                                    <div class="cg-lakban-wrap">
+                                        <input type="number" step="1" id="cg-tungkul-lakban" data-helper-field="lakban">
+                                        <span>Roll</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
         <div class="cg-modal-actions">
             <button type="button" class="aksi-btn aksi-edit" id="cg-modal-update-btn" hidden>Update</button>
+        </div>
+    </div>
+</div>
+
+<div id="gc-modal" class="cg-modal" hidden>
+    <div class="cg-modal-backdrop" data-close-gc="1"></div>
+    <div class="cg-modal-card" role="dialog" aria-modal="true" aria-labelledby="gc-modal-title">
+        <div class="cg-modal-head">
+            <h3 id="gc-modal-title">Detail Produksi Gum Cord</h3>
+            <button type="button" class="cg-modal-close" data-close-gc="1">Tutup</button>
+        </div>
+        <div class="cg-modal-meta">
+            <div>
+                <label>Nama Operator</label>
+                <input type="text" id="gc-modal-nama-operator">
+            </div>
+            <div>
+                <label>No. Mesin</label>
+                <input type="text" id="gc-modal-no-mesin">
+            </div>
+            <div>
+                <label>Hari / Tanggal</label>
+                <input type="date" id="gc-modal-tanggal">
+            </div>
+        </div>
+        <div class="cg-modal-table-wrap">
+            <table class="cg-modal-prod-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2">Nama Produk</th>
+                        <th rowspan="2">Order<br>( Kotak )</th>
+                        <th colspan="2">Waktu</th>
+                        <th rowspan="2">Pakai<br>( menit )</th>
+                        <th colspan="2">Target ( kotak )</th>
+                        <th rowspan="2">Aktual<br>( kotak )</th>
+                        <th rowspan="2">Persentase<br>( % )</th>
+                        <th colspan="2">Berat</th>
+                    </tr>
+                    <tr>
+                        <th>Awal</th>
+                        <th>Akhir</th>
+                        <th>Per menit</th>
+                        <th>Total</th>
+                        <th>Per kotak</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr id="gc-modal-row">
+                        <td><input type="text" data-field="nama_produk"></td>
+                        <td><input type="number" step="1" data-field="order_kotak"></td>
+                        <td><input type="time" data-field="waktu_awal"></td>
+                        <td><input type="time" data-field="waktu_akhir"></td>
+                        <td class="bg-green"><input type="number" step="1" data-field="pakai_menit"></td>
+                        <td class="bg-pink"><input type="number" step="0.01" data-field="target_per_menit"></td>
+                        <td class="bg-orange"><input type="number" step="0.01" data-field="target_total"></td>
+                        <td><input type="number" step="1" data-field="aktual_kotak"></td>
+                        <td><input type="number" step="0.01" data-field="persentase"></td>
+                        <td><input type="number" step="0.01" data-field="berat_per_kotak"></td>
+                        <td><input type="number" step="0.01" data-field="berat_total"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="cg-modal-actions">
+            <button type="button" class="aksi-btn aksi-edit" id="gc-modal-update-btn" hidden>Update</button>
         </div>
     </div>
 </div>
@@ -392,6 +611,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const cgGrandAktual = document.getElementById("cg-modal-grand-aktual");
     const cgGrandPersen = document.getElementById("cg-modal-grand-persen");
     const cgGrandBerat = document.getElementById("cg-modal-grand-berat");
+    const cgPlastikRoot = cgModal.querySelector(".cg-helper-block:nth-of-type(1)");
+    const cgKotakRoot = cgModal.querySelector(".cg-helper-block:nth-of-type(2)");
+    const cgTungkulRoot = cgModal.querySelector(".cg-helper-block:nth-of-type(3)");
     let activeCgBatchUid = "";
 
     function setCgModalEditable(editable) {
@@ -399,7 +621,11 @@ document.addEventListener("DOMContentLoaded", function () {
             el.readOnly = !editable;
             el.disabled = !editable;
         });
-        cgModalBody.querySelectorAll("input[data-field]").forEach((el) => {
+        cgModalBody.querySelectorAll("input[data-field], select[data-field]").forEach((el) => {
+            el.readOnly = !editable;
+            el.disabled = !editable;
+        });
+        document.querySelectorAll("#cg-modal [data-helper-field]").forEach((el) => {
             el.readOnly = !editable;
             el.disabled = !editable;
         });
@@ -407,7 +633,28 @@ document.addEventListener("DOMContentLoaded", function () {
             el.readOnly = true;
             el.disabled = false;
         });
+        document.querySelectorAll("#cg-modal [data-helper-fixed='1']").forEach((el) => {
+            el.readOnly = true;
+            el.disabled = false;
+        });
         cgUpdateBtn.hidden = !editable;
+    }
+
+    function buildCgTargetPerMenitSelect(value) {
+        const numericValue = Number.parseFloat(value);
+        const selectedValue = Number.isFinite(numericValue) ? numericValue.toFixed(3) : "";
+        const options = [
+            { value: "", label: "" },
+            { value: "0.500", label: "0,5" },
+            { value: "0.166", label: "0,166" },
+            { value: "0.370", label: "0,37" },
+            { value: "0.600", label: "0,60" },
+        ];
+        return `
+            <select data-field="target_per_menit">
+                ${options.map((opt) => `<option value="${opt.value}" ${opt.value === selectedValue ? "selected" : ""}>${opt.label}</option>`).join("")}
+            </select>
+        `;
     }
 
     function buildCgRow(index, row) {
@@ -419,7 +666,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td><input type="time" data-field="waktu_akhir" value="${row.waktu_akhir ?? ""}"></td>
                 <td><input type="number" step="1" data-field="line" value="${row.line ?? ""}"></td>
                 <td class="bg-green"><input type="number" step="1" data-field="pakai_menit" value="${row.pakai_menit ?? ""}"></td>
-                <td class="bg-pink"><input type="number" step="0.001" data-field="target_per_menit" value="${row.target_per_menit ?? ""}"></td>
+                <td class="bg-pink">${buildCgTargetPerMenitSelect(row.target_per_menit)}</td>
                 <td class="bg-orange"><input type="number" step="0.01" data-field="target_total" value="${row.target_total ?? ""}"></td>
                 <td><input type="number" step="1" data-field="aktual_roll" value="${row.aktual_roll ?? ""}"></td>
                 <td><input type="number" step="0.01" data-field="persentase" value="${row.persentase ?? ""}"></td>
@@ -438,6 +685,168 @@ document.addEventListener("DOMContentLoaded", function () {
         cgModal.hidden = true;
         document.body.classList.remove("modal-open");
         activeCgBatchUid = "";
+    }
+
+    function parseNum(value) {
+        const normalized = String(value ?? "").replace(",", ".").trim();
+        const n = Number.parseFloat(normalized);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function parseIntSafe(value) {
+        const n = Number.parseInt(String(value ?? "").trim(), 10);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function computeMinutesFromTimes(startVal, endVal) {
+        if (!startVal || !endVal) return null;
+        const [sh, sm] = startVal.split(":").map((v) => Number.parseInt(v, 10));
+        const [eh, em] = endVal.split(":").map((v) => Number.parseInt(v, 10));
+        if (![sh, sm, eh, em].every(Number.isFinite)) return null;
+        const start = (sh * 60) + sm;
+        const end = (eh * 60) + em;
+        const diff = end - start;
+        return diff >= 0 ? diff : null;
+    }
+
+    function recalcCgRow(tr, sourceField) {
+        if (!tr) return;
+        const waktuAwal = tr.querySelector("[data-field='waktu_awal']");
+        const waktuAkhir = tr.querySelector("[data-field='waktu_akhir']");
+        const pakaiMenit = tr.querySelector("[data-field='pakai_menit']");
+        const targetPerMenit = tr.querySelector("[data-field='target_per_menit']");
+        const targetTotal = tr.querySelector("[data-field='target_total']");
+        const aktualRoll = tr.querySelector("[data-field='aktual_roll']");
+        const persentase = tr.querySelector("[data-field='persentase']");
+        const perRoll = tr.querySelector("[data-field='per_roll']");
+        const beratTotal = tr.querySelector("[data-field='berat_total']");
+
+        if (sourceField === "waktu_awal" || sourceField === "waktu_akhir") {
+            const minutes = computeMinutesFromTimes(waktuAwal?.value, waktuAkhir?.value);
+            pakaiMenit.value = minutes === null ? "" : String(minutes);
+        }
+
+        const minutesVal = parseIntSafe(pakaiMenit?.value);
+        const targetPerMenitVal = parseNum(targetPerMenit?.value);
+        if (targetTotal) {
+            if (minutesVal === null || targetPerMenitVal === null) {
+                targetTotal.value = "";
+            } else {
+                targetTotal.value = (minutesVal * targetPerMenitVal).toFixed(2);
+            }
+        }
+
+        const targetTotalVal = parseNum(targetTotal?.value);
+        const aktualVal = parseIntSafe(aktualRoll?.value);
+        if (persentase) {
+            if (targetTotalVal === null || targetTotalVal === 0 || aktualVal === null) {
+                persentase.value = "";
+            } else {
+                persentase.value = ((aktualVal / targetTotalVal) * 100).toFixed(2);
+            }
+        }
+
+        const perRollVal = parseNum(perRoll?.value);
+        if (beratTotal) {
+            if (aktualVal === null || perRollVal === null) {
+                beratTotal.value = "";
+            } else {
+                beratTotal.value = (aktualVal * perRollVal).toFixed(2);
+            }
+        }
+    }
+
+    function recalcCgGrandTotals() {
+        let totalTarget = 0;
+        let totalAktual = 0;
+        let totalBerat = 0;
+
+        cgModalBody.querySelectorAll("tr").forEach((tr) => {
+            const targetVal = parseNum(tr.querySelector("[data-field='target_total']")?.value);
+            const aktualVal = parseIntSafe(tr.querySelector("[data-field='aktual_roll']")?.value);
+            const beratVal = parseNum(tr.querySelector("[data-field='berat_total']")?.value);
+
+            if (targetVal !== null) totalTarget += targetVal;
+            if (aktualVal !== null) totalAktual += aktualVal;
+            if (beratVal !== null) totalBerat += beratVal;
+        });
+
+        cgGrandTarget.value = totalTarget ? totalTarget.toFixed(2) : "";
+        cgGrandAktual.value = totalAktual ? String(totalAktual) : "";
+        cgGrandBerat.value = totalBerat ? totalBerat.toFixed(2) : "";
+        if (!totalTarget || !totalAktual) {
+            cgGrandPersen.value = "";
+        } else {
+            cgGrandPersen.value = ((totalAktual / totalTarget) * 100).toFixed(2);
+        }
+    }
+
+    function recalcAllCgRows() {
+        cgModalBody.querySelectorAll("tr").forEach((tr) => recalcCgRow(tr));
+        recalcCgGrandTotals();
+    }
+
+    function setHelperValues(root, data) {
+        if (!root) return;
+        root.querySelectorAll("[data-helper-field]").forEach((input) => {
+            const key = input.dataset.helperField;
+            const value = data && Object.prototype.hasOwnProperty.call(data, key) ? data[key] : null;
+            input.value = value ?? "";
+        });
+    }
+
+    function collectHelperValues(root) {
+        const obj = {};
+        if (!root) return obj;
+        root.querySelectorAll("[data-helper-field]").forEach((input) => {
+            obj[input.dataset.helperField] = input.value;
+        });
+        return obj;
+    }
+
+    function recalcCgHelperTotals() {
+        const plastikTotalInput = document.getElementById("cg-plastik-total");
+        const plastikItems = [
+            "cg-plastik-230-blue",
+            "cg-plastik-210-green",
+            "cg-plastik-190-yellow",
+            "cg-plastik-630-birupolos",
+            "cg-plastik-630-red",
+            "cg-plastik-270-red",
+            "cg-plastik-240-red",
+            "cg-plastik-gumcord",
+        ].map((id) => parseNum(document.getElementById(id)?.value));
+        const plastikSum = plastikItems.reduce((acc, val) => acc + (val ?? 0), 0);
+        if (plastikTotalInput) {
+            plastikTotalInput.value = plastikSum ? plastikSum.toFixed(2) : "";
+        }
+
+        const kotakTotalInput = document.getElementById("cg-kotak-total");
+        const kotakItems = [
+            "cg-kotak-160",
+            "cg-kotak-185",
+            "cg-kotak-200",
+            "cg-kotak-220",
+            "cg-kotak-310",
+            "cg-kotak-350",
+            "cg-kotak-gumcord",
+        ].map((id) => parseIntSafe(document.getElementById(id)?.value));
+        const kotakSum = kotakItems.reduce((acc, val) => acc + (val ?? 0), 0);
+        if (kotakTotalInput) {
+            kotakTotalInput.value = kotakSum ? String(kotakSum) : "";
+        }
+
+        const tungkulTotalInput = document.getElementById("cg-tungkul-total");
+        const tungkulItems = [
+            "cg-tungkul-165",
+            "cg-tungkul-195",
+            "cg-tungkul-210",
+            "cg-tungkul-240",
+        ].map((id) => parseIntSafe(document.getElementById(id)?.value));
+        const tungkulSum = tungkulItems.reduce((acc, val) => acc + (val ?? 0), 0);
+        if (tungkulTotalInput) {
+            tungkulTotalInput.value = tungkulSum ? String(tungkulSum) : "";
+        }
     }
 
     async function loadCushionBatch(batchUid, mode) {
@@ -461,7 +870,12 @@ document.addEventListener("DOMContentLoaded", function () {
             cgGrandPersen.value = data.total_persentase ?? "";
             cgGrandBerat.value = data.berat_kg_total ?? "";
             cgModalBody.innerHTML = (data.rows || []).map((row, idx) => buildCgRow(idx, row)).join("");
+            setHelperValues(cgPlastikRoot, data.plastik || {});
+            setHelperValues(cgKotakRoot, data.kotak || {});
+            setHelperValues(cgTungkulRoot, data.tungkul || {});
             setCgModalEditable(mode === "edit");
+            recalcAllCgRows();
+            recalcCgHelperTotals();
             openCgModal();
         } catch (err) {
             alert(err.message || "Gagal membuka data Cushion Gum.");
@@ -472,8 +886,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const rows = [];
         cgModalBody.querySelectorAll("tr").forEach((tr) => {
             const row = {};
-            tr.querySelectorAll("input[data-field]").forEach((input) => {
-                row[input.dataset.field] = input.value;
+            tr.querySelectorAll("input[data-field], select[data-field]").forEach((field) => {
+                row[field.dataset.field] = field.value;
             });
             rows.push(row);
         });
@@ -490,6 +904,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 berat_kg_total: cgGrandBerat.value,
             },
             rows: collectCgRows(),
+            plastik: collectHelperValues(cgPlastikRoot),
+            kotak: collectHelperValues(cgKotakRoot),
+            tungkul: collectHelperValues(cgTungkulRoot),
         };
         try {
             const res = await fetch(`/laporan/cushion-gum/update/${encodeURIComponent(activeCgBatchUid)}`, {
@@ -524,6 +941,16 @@ document.addEventListener("DOMContentLoaded", function () {
             window.open(`/laporan/cushion-gum/cetak/${encodeURIComponent(batchUid)}`, "_blank");
         });
     });
+    document.querySelectorAll(".gc-cetak-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const rowToken = btn.dataset.rowToken || "";
+            if (!rowToken) {
+                alert("Row token Gum Cord tidak tersedia.");
+                return;
+            }
+            window.open(`/laporan/gum-cord/cetak/${encodeURIComponent(rowToken)}`, "_blank");
+        });
+    });
     document.querySelectorAll("[data-close-cg='1']").forEach((el) => {
         el.addEventListener("click", closeCgModal);
     });
@@ -542,6 +969,289 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!timeInput || timeInput.disabled) return;
         if (typeof timeInput.showPicker === "function") {
             timeInput.showPicker();
+        }
+    });
+
+    cgModalBody.addEventListener("input", (event) => {
+        const field = event.target?.dataset?.field;
+        if (!field) return;
+        const tr = event.target.closest("tr");
+        if (!tr) return;
+
+        if (
+            field === "waktu_awal" ||
+            field === "waktu_akhir" ||
+            field === "pakai_menit" ||
+            field === "target_per_menit" ||
+            field === "target_total" ||
+            field === "aktual_roll"
+        ) {
+            recalcCgRow(tr, field);
+            recalcCgGrandTotals();
+        }
+    });
+
+    cgModalBody.addEventListener("change", (event) => {
+        const field = event.target?.dataset?.field;
+        if (field !== "target_per_menit") return;
+        const tr = event.target.closest("tr");
+        if (!tr) return;
+        recalcCgRow(tr, field);
+        recalcCgGrandTotals();
+    });
+
+    cgModal.addEventListener("input", (event) => {
+        if (
+            event.target.classList.contains("cg-plastik-item") ||
+            event.target.classList.contains("cg-kotak-item") ||
+            event.target.classList.contains("cg-tungkul-item")
+        ) {
+            recalcCgHelperTotals();
+        }
+    });
+
+    const gcModal = document.getElementById("gc-modal");
+    const gcUpdateBtn = document.getElementById("gc-modal-update-btn");
+    const gcNamaOperator = document.getElementById("gc-modal-nama-operator");
+    const gcNoMesin = document.getElementById("gc-modal-no-mesin");
+    const gcTanggal = document.getElementById("gc-modal-tanggal");
+    const gcRow = document.getElementById("gc-modal-row");
+    let activeGcRowToken = "";
+
+    function getGcField(field) {
+        return gcRow?.querySelector(`[data-field='${field}']`) || null;
+    }
+
+    function setGcModalEditable(editable) {
+        [gcNamaOperator, gcNoMesin, gcTanggal].forEach((el) => {
+            el.readOnly = !editable;
+            el.disabled = !editable;
+        });
+        gcRow?.querySelectorAll("input[data-field]").forEach((el) => {
+            el.readOnly = !editable;
+            el.disabled = !editable;
+        });
+        gcUpdateBtn.hidden = !editable;
+    }
+
+    function openGcModal() {
+        gcModal.hidden = false;
+        document.body.classList.add("modal-open");
+    }
+
+    function closeGcModal() {
+        gcModal.hidden = true;
+        document.body.classList.remove("modal-open");
+        activeGcRowToken = "";
+    }
+
+    function parseGcNum(value) {
+        const raw = String(value ?? "").replace(",", ".").trim();
+        const num = Number.parseFloat(raw);
+        return Number.isFinite(num) ? num : null;
+    }
+
+    function parseGcInt(value) {
+        const num = Number.parseInt(String(value ?? "").trim(), 10);
+        return Number.isFinite(num) ? num : null;
+    }
+
+    function computeGcMinutes(startVal, endVal) {
+        if (!startVal || !endVal) return null;
+        const [sh, sm] = startVal.split(":").map((v) => Number.parseInt(v, 10));
+        const [eh, em] = endVal.split(":").map((v) => Number.parseInt(v, 10));
+        if (![sh, sm, eh, em].every(Number.isFinite)) return null;
+        const start = (sh * 60) + sm;
+        const end = (eh * 60) + em;
+        const diff = end - start;
+        return diff >= 0 ? diff : null;
+    }
+
+    function recalcGcRow(sourceField) {
+        function formatGcCalc(value) {
+            if (value === null || value === undefined || Number.isNaN(value)) return "";
+            const rounded = Math.round(value * 100) / 100;
+            if (Number.isInteger(rounded)) return String(rounded);
+            return String(rounded).replace(/(\.\d*?[1-9])0+$/u, "$1");
+        }
+
+        const waktuAwal = getGcField("waktu_awal");
+        const waktuAkhir = getGcField("waktu_akhir");
+        const pakaiMenit = getGcField("pakai_menit");
+        const targetPerMenit = getGcField("target_per_menit");
+        const targetTotal = getGcField("target_total");
+        const aktualKotak = getGcField("aktual_kotak");
+        const persentase = getGcField("persentase");
+        const beratPerKotak = getGcField("berat_per_kotak");
+        const beratTotal = getGcField("berat_total");
+
+        if (sourceField === "waktu_awal" || sourceField === "waktu_akhir") {
+            const minutes = computeGcMinutes(waktuAwal?.value, waktuAkhir?.value);
+            if (pakaiMenit) pakaiMenit.value = minutes === null ? "" : String(minutes);
+        }
+
+        const minutesVal = parseGcInt(pakaiMenit?.value);
+        const targetPerMenitVal = parseGcNum(targetPerMenit?.value);
+        if (targetTotal) {
+            targetTotal.value =
+                minutesVal === null || targetPerMenitVal === null
+                    ? ""
+                    : formatGcCalc(minutesVal * targetPerMenitVal);
+        }
+
+        const targetTotalVal = parseGcNum(targetTotal?.value);
+        const aktualVal = parseGcInt(aktualKotak?.value);
+        if (persentase) {
+            persentase.value =
+                targetTotalVal === null || targetTotalVal === 0 || aktualVal === null
+                    ? ""
+                    : formatGcCalc((aktualVal / targetTotalVal) * 100);
+        }
+
+        const beratPerKotakVal = parseGcNum(beratPerKotak?.value);
+        if (beratTotal) {
+            beratTotal.value =
+                aktualVal === null || beratPerKotakVal === null
+                    ? ""
+                    : formatGcCalc(aktualVal * beratPerKotakVal);
+        }
+    }
+
+    function setGcRowValues(data) {
+        function formatGcDisplayValue(field, value) {
+            if (value === null || value === undefined || value === "") return "";
+            const decimalFields = new Set([
+                "target_per_menit",
+                "target_total",
+                "persentase",
+                "berat_per_kotak",
+                "berat_total",
+            ]);
+            if (!decimalFields.has(field)) return value;
+
+            const num = Number.parseFloat(String(value).replace(",", "."));
+            if (!Number.isFinite(num)) return value;
+            if (Number.isInteger(num)) return String(num);
+            return String(num);
+        }
+
+        const fields = [
+            "nama_produk",
+            "order_kotak",
+            "waktu_awal",
+            "waktu_akhir",
+            "pakai_menit",
+            "target_per_menit",
+            "target_total",
+            "aktual_kotak",
+            "persentase",
+            "berat_per_kotak",
+            "berat_total",
+        ];
+        fields.forEach((field) => {
+            const input = getGcField(field);
+            if (input) input.value = formatGcDisplayValue(field, data?.[field]);
+        });
+    }
+
+    function collectGcRowValues() {
+        const obj = {};
+        gcRow?.querySelectorAll("input[data-field]").forEach((input) => {
+            obj[input.dataset.field] = input.value;
+        });
+        return obj;
+    }
+
+    async function loadGumCordRow(rowToken, mode) {
+        if (!rowToken) {
+            alert("Row token Gum Cord tidak tersedia.");
+            return;
+        }
+        try {
+            const res = await fetch(`/laporan/gum-cord/read/${encodeURIComponent(rowToken)}`);
+            const json = await res.json();
+            if (!res.ok || !json.ok) {
+                throw new Error(json.message || "Gagal mengambil data Gum Cord.");
+            }
+            const data = json.data || {};
+            activeGcRowToken = rowToken;
+            gcNamaOperator.value = data.nama_operator || "";
+            gcNoMesin.value = data.no_mesin || "";
+            gcTanggal.value = data.tanggal_produksi || "";
+            setGcRowValues(data);
+            setGcModalEditable(mode === "edit");
+            recalcGcRow();
+            openGcModal();
+        } catch (err) {
+            alert(err.message || "Gagal membuka data Gum Cord.");
+        }
+    }
+
+    async function submitGcUpdate() {
+        if (!activeGcRowToken) return;
+        const payload = {
+            header: {
+                nama_operator: gcNamaOperator.value,
+                no_mesin: gcNoMesin.value,
+                tanggal_produksi: gcTanggal.value,
+            },
+            row: collectGcRowValues(),
+        };
+        try {
+            const res = await fetch(`/laporan/gum-cord/update/${encodeURIComponent(activeGcRowToken)}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload),
+            });
+            const json = await res.json();
+            if (!res.ok || !json.ok) {
+                throw new Error(json.message || "Gagal update data Gum Cord.");
+            }
+            alert("Data Gum Cord berhasil diupdate.");
+            window.location.href = "/laporan?tab=gum-cord";
+        } catch (err) {
+            alert(err.message || "Gagal update data Gum Cord.");
+        }
+    }
+
+    document.querySelectorAll(".gc-read-btn").forEach((btn) => {
+        btn.addEventListener("click", () => loadGumCordRow(btn.dataset.rowToken, "read"));
+    });
+    document.querySelectorAll(".gc-edit-btn").forEach((btn) => {
+        btn.addEventListener("click", () => loadGumCordRow(btn.dataset.rowToken, "edit"));
+    });
+    document.querySelectorAll("[data-close-gc='1']").forEach((el) => {
+        el.addEventListener("click", closeGcModal);
+    });
+    gcUpdateBtn?.addEventListener("click", submitGcUpdate);
+
+    gcRow?.addEventListener("click", (event) => {
+        const timeInput = event.target.closest("input[type='time']");
+        if (!timeInput || timeInput.disabled) return;
+        if (typeof timeInput.showPicker === "function") {
+            timeInput.showPicker();
+        }
+    });
+    gcRow?.addEventListener("focusin", (event) => {
+        const timeInput = event.target.closest("input[type='time']");
+        if (!timeInput || timeInput.disabled) return;
+        if (typeof timeInput.showPicker === "function") {
+            timeInput.showPicker();
+        }
+    });
+    gcRow?.addEventListener("input", (event) => {
+        const field = event.target?.dataset?.field;
+        if (!field) return;
+        if (
+            field === "waktu_awal" ||
+            field === "waktu_akhir" ||
+            field === "pakai_menit" ||
+            field === "target_per_menit" ||
+            field === "target_total" ||
+            field === "aktual_kotak" ||
+            field === "berat_per_kotak"
+        ) {
+            recalcGcRow(field);
         }
     });
 
@@ -564,7 +1274,7 @@ document.addEventListener("DOMContentLoaded", function () {
             el.readOnly = !editable;
             el.disabled = !editable;
         });
-        mscModalBody.querySelectorAll("input").forEach((el) => {
+        mscModalBody.querySelectorAll("input, select").forEach((el) => {
             el.readOnly = !editable;
             el.disabled = !editable;
         });
@@ -575,6 +1285,30 @@ document.addEventListener("DOMContentLoaded", function () {
         mscUpdateBtn.hidden = !editable;
     }
 
+    function buildMscTargetPerMenitSelect(value) {
+        const numericValue = Number.parseFloat(value);
+        const selectedValue = Number.isFinite(numericValue) ? numericValue.toFixed(3) : "";
+        const options = [
+            { value: "", label: "" },
+            { value: "0.080", label: "0,08" },
+            { value: "0.110", label: "0,11" },
+            { value: "0.230", label: "0,23" },
+            { value: "0.370", label: "0,37" },
+            { value: "0.500", label: "0,5" },
+            { value: "0.600", label: "0,60" },
+        ];
+        const hasSelected = options.some((opt) => opt.value === selectedValue);
+        const dynamicOption = !hasSelected && selectedValue
+            ? [{ value: selectedValue, label: String(numericValue).replace(".", ",") }]
+            : [];
+        const allOptions = [...options, ...dynamicOption];
+        return `
+            <select data-field="target_per_menit">
+                ${allOptions.map((opt) => `<option value="${opt.value}" ${opt.value === selectedValue ? "selected" : ""}>${opt.label}</option>`).join("")}
+            </select>
+        `;
+    }
+
     function buildMscRow(index, row) {
         return `
             <tr>
@@ -583,7 +1317,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td><input type="time" data-field="jam_awal" value="${row.jam_awal ?? ""}"></td>
                 <td><input type="time" data-field="jam_akhir" value="${row.jam_akhir ?? ""}"></td>
                 <td><input type="number" step="1" data-field="pakai_menit" value="${row.pakai_menit ?? ""}"></td>
-                <td><input type="number" step="0.001" data-field="target_per_menit" value="${row.target_per_menit ?? ""}"></td>
+                <td>${buildMscTargetPerMenitSelect(row.target_per_menit)}</td>
                 <td><input type="number" step="0.001" data-field="target_total" value="${row.target_total ?? ""}"></td>
                 <td><input type="number" step="0.001" data-field="aktual_batch" value="${row.aktual_batch ?? ""}"></td>
                 <td><input type="number" step="0.01" data-field="persentase" value="${row.persentase ?? ""}"></td>
@@ -603,6 +1337,99 @@ document.addEventListener("DOMContentLoaded", function () {
         mscModal.hidden = true;
         document.body.classList.remove("modal-open");
         activeBatchUid = "";
+    }
+
+    function parseMscNum(value) {
+        const raw = String(value ?? "").replace(",", ".").trim();
+        const n = Number.parseFloat(raw);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function parseMscInt(value) {
+        const n = Number.parseInt(String(value ?? "").trim(), 10);
+        return Number.isFinite(n) ? n : null;
+    }
+
+    function formatMscCalc(value) {
+        if (value === null || value === undefined || Number.isNaN(value)) return "";
+        const rounded = Math.round(value * 1000) / 1000;
+        if (Number.isInteger(rounded)) return String(rounded);
+        return String(rounded).replace(/(\.\d*?[1-9])0+$/u, "$1");
+    }
+
+    function computeMscMinutes(jamAwal, jamAkhir) {
+        if (!jamAwal || !jamAkhir) return null;
+        const [sh, sm] = jamAwal.split(":").map((v) => Number.parseInt(v, 10));
+        const [eh, em] = jamAkhir.split(":").map((v) => Number.parseInt(v, 10));
+        if (![sh, sm, eh, em].every(Number.isFinite)) return null;
+        const start = (sh * 60) + sm;
+        const end = (eh * 60) + em;
+        const diff = end - start;
+        return diff >= 0 ? diff : null;
+    }
+
+    function recalcMscRow(tr, sourceField) {
+        if (!tr) return;
+        const jamAwal = tr.querySelector("[data-field='jam_awal']");
+        const jamAkhir = tr.querySelector("[data-field='jam_akhir']");
+        const pakaiMenit = tr.querySelector("[data-field='pakai_menit']");
+        const targetPerMenit = tr.querySelector("[data-field='target_per_menit']");
+        const targetTotal = tr.querySelector("[data-field='target_total']");
+        const aktualBatch = tr.querySelector("[data-field='aktual_batch']");
+        const persentase = tr.querySelector("[data-field='persentase']");
+
+        if (sourceField === "jam_awal" || sourceField === "jam_akhir") {
+            const minutes = computeMscMinutes(jamAwal?.value, jamAkhir?.value);
+            if (pakaiMenit) pakaiMenit.value = minutes === null ? "" : String(minutes);
+        }
+
+        const pakaiVal = parseMscInt(pakaiMenit?.value);
+        const targetPerMenitVal = parseMscNum(targetPerMenit?.value);
+        if (targetTotal) {
+            targetTotal.value =
+                pakaiVal === null || targetPerMenitVal === null
+                    ? ""
+                    : formatMscCalc(pakaiVal * targetPerMenitVal);
+        }
+
+        const targetTotalVal = parseMscNum(targetTotal?.value);
+        const aktualVal = parseMscNum(aktualBatch?.value);
+        if (persentase) {
+            persentase.value =
+                targetTotalVal === null || targetTotalVal === 0 || aktualVal === null
+                    ? ""
+                    : formatMscCalc((aktualVal / targetTotalVal) * 100);
+        }
+    }
+
+    function recalcMscTotals() {
+        let totalPakai = 0;
+        let totalTarget = 0;
+        let totalAktual = 0;
+
+        mscModalBody.querySelectorAll("tr").forEach((tr) => {
+            const pakaiVal = parseMscInt(tr.querySelector("[data-field='pakai_menit']")?.value);
+            const targetVal = parseMscNum(tr.querySelector("[data-field='target_total']")?.value);
+            const aktualVal = parseMscNum(tr.querySelector("[data-field='aktual_batch']")?.value);
+
+            if (pakaiVal !== null) totalPakai += pakaiVal;
+            if (targetVal !== null) totalTarget += targetVal;
+            if (aktualVal !== null) totalAktual += aktualVal;
+        });
+
+        mscGrandPakai.value = totalPakai ? String(totalPakai) : "";
+        mscGrandTarget.value = totalTarget ? formatMscCalc(totalTarget) : "";
+        mscGrandAktual.value = totalAktual ? formatMscCalc(totalAktual) : "";
+        if (!totalTarget || !totalAktual) {
+            mscGrandPersentase.value = "";
+        } else {
+            mscGrandPersentase.value = formatMscCalc((totalAktual / totalTarget) * 100);
+        }
+    }
+
+    function recalcAllMscRows() {
+        mscModalBody.querySelectorAll("tr").forEach((tr) => recalcMscRow(tr));
+        recalcMscTotals();
     }
 
     async function loadMscBatch(batchUid, mode) {
@@ -631,6 +1458,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             mscModalBody.innerHTML = (data.rows || []).map((row, idx) => buildMscRow(idx, row)).join("");
             setModalEditable(mode === "edit");
+            recalcAllMscRows();
             openModal();
         } catch (err) {
             alert(err.message || "Gagal membuka data MSC.");
@@ -641,8 +1469,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const rows = [];
         mscModalBody.querySelectorAll("tr").forEach((tr) => {
             const obj = {};
-            tr.querySelectorAll("input[data-field]").forEach((input) => {
-                obj[input.dataset.field] = input.value;
+            tr.querySelectorAll("input[data-field], select[data-field]").forEach((field) => {
+                obj[field.dataset.field] = field.value;
             });
             rows.push(obj);
         });
@@ -686,6 +1514,16 @@ document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".msc-edit-btn").forEach((btn) => {
         btn.addEventListener("click", () => loadMscBatch(btn.dataset.batchUid, "edit"));
     });
+    document.querySelectorAll(".msc-cetak-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const batchUid = btn.dataset.batchUid || "";
+            if (!batchUid) {
+                alert("Batch UID tidak tersedia.");
+                return;
+            }
+            window.open(`/laporan/msc/cetak/${encodeURIComponent(batchUid)}`, "_blank");
+        });
+    });
     document.querySelectorAll("[data-close-modal='1']").forEach((el) => {
         el.addEventListener("click", closeModal);
     });
@@ -704,6 +1542,36 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!timeInput || timeInput.disabled) return;
         if (typeof timeInput.showPicker === "function") {
             timeInput.showPicker();
+        }
+    });
+
+    mscModalBody.addEventListener("input", (event) => {
+        const field = event.target?.dataset?.field;
+        if (!field) return;
+        const tr = event.target.closest("tr");
+        if (!tr) return;
+
+        if (
+            field === "jam_awal" ||
+            field === "jam_akhir" ||
+            field === "pakai_menit" ||
+            field === "target_per_menit" ||
+            field === "target_total" ||
+            field === "aktual_batch"
+        ) {
+            recalcMscRow(tr, field);
+            recalcMscTotals();
+        }
+    });
+
+    mscModalBody.addEventListener("change", (event) => {
+        const field = event.target?.dataset?.field;
+        if (!field) return;
+        const tr = event.target.closest("tr");
+        if (!tr) return;
+        if (field === "jam_awal" || field === "jam_akhir" || field === "target_per_menit") {
+            recalcMscRow(tr, field);
+            recalcMscTotals();
         }
     });
 });

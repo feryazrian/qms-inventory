@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gum Cord</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/cg.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/gc.css') }}">
+</head>
+<body>
+    <div class="header">
+        <div class="header-inner">
+            <a href="/home" aria-label="Ke halaman Home">
+                <img
+                    src="https://www.kartindorubber.com/assets/img/logo/logo2.png"
+                    alt="Kartindo Rubber"
+                    class="header-logo"
+                >
+            </a>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+
+    <div class="container gum-cord-page">
+        <div class="cg-info">
+            <div>
+                <label>Nama Operator</label>
+                <input type="text" name="nama_operator" form="gum-cord-form">
+            </div>
+            <div>
+                <label>No. Mesin</label>
+                <input type="text" id="no-mesin" name="no_mesin" form="gum-cord-form">
+            </div>
+            <div>
+                <label>Hari / Tanggal</label>
+                <input type="date" id="tanggal_display">
+            </div>
+        </div>
+
+        <div class="content-box">
+            <div class="section-header gum-cord-header">
+                <h3 class="section-title"><span class="section-prefix">C.</span> Hasil Produksi Gum Cord</h3>
+                <div class="section-actions">
+                    <button type="submit" class="save-btn" form="gum-cord-form">Simpan</button>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <form id="gum-cord-form" method="POST" action="/cushion-gum-cord" autocomplete="off">
+                    <input type="hidden" name="tanggal_produksi" id="tanggal_c">
+                    <table class="production-table helper-table">
+                        <colgroup>
+                            <col>
+                            <col>
+                            <col>
+                            <col>
+                            <col>
+                            <col>
+                            <col>
+                            <col>
+                            <col>
+                            <col>
+                            <col>
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Nama Produk</th>
+                                <th rowspan="2">Order<br>(Kotak)</th>
+                                <th colspan="2">Waktu</th>
+                                <th rowspan="2" class="bg-green">Pakai<br>(menit)</th>
+                                <th colspan="2">Target (kotak)</th>
+                                <th rowspan="2">Aktual<br>(kotak)</th>
+                                <th rowspan="2">Persentase<br>(%)</th>
+                                <th colspan="2">Berat</th>
+                            </tr>
+                            <tr>
+                                <th>Awal</th>
+                                <th>Akhir</th>
+                                <th class="bg-orange">Per menit</th>
+                                <th class="bg-orange">Total</th>
+                                <th>Per kotak</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr oninput="hitungPakaiMenitC(this)">
+                                <td><input name="nama_produk" value="Gum Cord" readonly></td>
+                                <td><input class="order-c" name="order_kotak"></td>
+                                <td><input type="time" class="awal-c" name="waktu_awal"></td>
+                                <td><input type="time" class="akhir-c" name="waktu_akhir"></td>
+                                <td class="bg-green">
+                                    <input class="pakai-c" name="pakai_menit" readonly>
+                                </td>
+                                <td class="bg-pink">
+                                    <input class="target-menit-c" name="target_per_menit" value="0.08" readonly>
+                                </td>
+                                <td class="bg-orange">
+                                    <input class="target-total-c" name="target_total" readonly>
+                                </td>
+                                <td><input class="aktual-c" name="aktual_kotak" oninput="hitungPersentaseC(this)"></td>
+                                <td><input class="persentase-c" name="persentase" readonly></td>
+                                <td><input class="berat-per-kotak-c" name="berat_per_kotak" readonly></td>
+                                <td><input class="berat-total-c" name="berat_total" readonly></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, "0");
+        const dd = String(today.getDate()).padStart(2, "0");
+        const formatted = `${yyyy}-${mm}-${dd}`;
+
+        const tanggalC = document.getElementById("tanggal_c");
+        const tanggalDisplay = document.getElementById("tanggal_display");
+        if (tanggalC) {
+            tanggalC.value = formatted;
+        }
+        if (tanggalDisplay) {
+            tanggalDisplay.value = formatted;
+            tanggalDisplay.addEventListener("change", function () {
+                if (tanggalC) {
+                    tanggalC.value = tanggalDisplay.value;
+                }
+            });
+        }
+
+        const noMesinInput = document.getElementById("no-mesin");
+        if (noMesinInput) {
+            noMesinInput.addEventListener("focus", function () {
+                if (!noMesinInput.value.trim()) {
+                    noMesinInput.value = "EXT-0";
+                    noMesinInput.setSelectionRange(
+                        noMesinInput.value.length,
+                        noMesinInput.value.length
+                    );
+                }
+            });
+        }
+    });
+
+    document.addEventListener("input", function (e) {
+        if (e.target.classList.contains("order-c")) {
+            const row = e.target.closest("tr");
+            const perKotakInput = row?.querySelector(".berat-per-kotak-c");
+            const aktualInput = row?.querySelector(".aktual-c");
+            if (!perKotakInput) return;
+
+            if (e.target.value.trim() !== "") {
+                perKotakInput.value = "8";
+            } else {
+                perKotakInput.value = "";
+            }
+
+            if (aktualInput && aktualInput.value) {
+                hitungPersentaseC(aktualInput);
+            }
+        }
+    });
+
+    function hitungPakaiMenitC(row) {
+        const awal = row.querySelector(".awal-c")?.value;
+        const akhir = row.querySelector(".akhir-c")?.value;
+        if (!awal || !akhir) return;
+
+        const [ja, ma] = awal.split(":").map(Number);
+        const [jb, mb] = akhir.split(":").map(Number);
+
+        const totalAwal = ja * 60 + ma;
+        const totalAkhir = jb * 60 + mb;
+        const pakai = totalAkhir - totalAwal;
+        const pakaiInput = row.querySelector(".pakai-c");
+        if (!pakaiInput) return;
+
+        if (pakai < 0) {
+            alert("Waktu akhir harus lebih besar");
+            pakaiInput.value = "";
+            return;
+        }
+
+        pakaiInput.value = pakai;
+
+        const targetMenitInput = row.querySelector(".target-menit-c");
+        const targetTotalInput = row.querySelector(".target-total-c");
+        if (!targetMenitInput || !targetTotalInput) return;
+
+        const targetPerMenit = parseFloat(targetMenitInput.value);
+        if (!isNaN(targetPerMenit)) {
+            const total = pakai * targetPerMenit;
+            targetTotalInput.value = total.toFixed(2);
+            const aktualInput = row.querySelector(".aktual-c");
+            if (aktualInput && aktualInput.value) {
+                hitungPersentaseC(aktualInput);
+            }
+        } else {
+            targetTotalInput.value = "";
+        }
+    }
+
+    function hitungPersentaseC(inputAktual) {
+        const row = inputAktual.closest("tr");
+        const totalTargetInput = row.querySelector(".target-total-c");
+        const persentaseInput = row.querySelector(".persentase-c");
+        const perKotakInput = row.querySelector(".berat-per-kotak-c");
+        const totalBeratInput = row.querySelector(".berat-total-c");
+
+        const aktual = parseFloat(inputAktual.value);
+        const totalTarget = parseFloat(totalTargetInput.value.replace(",", "."));
+
+        if (isNaN(aktual) || isNaN(totalTarget) || totalTarget === 0) {
+            persentaseInput.value = "";
+            return;
+        }
+
+        if (Math.abs(aktual - totalTarget) < 0.01) {
+            persentaseInput.value = "100.00";
+        } else {
+            const persen = (aktual / totalTarget) * 100;
+            persentaseInput.value = persen.toFixed(2);
+        }
+
+        if (totalBeratInput && perKotakInput) {
+            const perKotak = parseFloat(perKotakInput.value);
+            if (!isNaN(aktual) && !isNaN(perKotak)) {
+                totalBeratInput.value = (aktual * perKotak).toFixed(0);
+            } else {
+                totalBeratInput.value = "";
+            }
+        }
+    }
+    </script>
+</body>
+</html>

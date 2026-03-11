@@ -135,6 +135,18 @@ def fetch_laporan_cushion_gum():
         cur = conn.cursor()
         cur.execute(
             """
+            ALTER TABLE production_gum_cord
+            ADD COLUMN IF NOT EXISTS nama_operator VARCHAR(150)
+            """
+        )
+        cur.execute(
+            """
+            ALTER TABLE production_gum_cord
+            ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
+            """
+        )
+        cur.execute(
+            """
             SELECT
                 id,
                 tanggal_produksi,
@@ -160,6 +172,18 @@ def fetch_laporan_gum_cord():
     try:
         conn = get_db_conn()
         cur = conn.cursor()
+        cur.execute(
+            """
+            ALTER TABLE production_gum_cord
+            ADD COLUMN IF NOT EXISTS nama_operator VARCHAR(150)
+            """
+        )
+        cur.execute(
+            """
+            ALTER TABLE production_gum_cord
+            ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
+            """
+        )
         cur.execute(
             """
             SELECT
@@ -254,6 +278,289 @@ def ensure_cushion_batch_columns(conn):
         """
         ALTER TABLE grand_total
         ADD COLUMN IF NOT EXISTS berat_kg_total NUMERIC(12, 2)
+        """
+    )
+
+
+def ensure_pemakaian_plastik_table(conn):
+    cur = conn.cursor()
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pemakaian_plastik (
+            id BIGSERIAL PRIMARY KEY,
+            tanggal_produksi DATE,
+            batch_uid VARCHAR(50),
+            "230_blue" NUMERIC(12, 2),
+            "210_green" NUMERIC(12, 2),
+            "190_yellow" NUMERIC(12, 2),
+            "630_birupolos" NUMERIC(12, 2),
+            "630_red" NUMERIC(12, 2),
+            "270_red" NUMERIC(12, 2),
+            "240_red" NUMERIC(12, 2),
+            plastik_gumcord NUMERIC(12, 2),
+            total_plastik NUMERIC(12, 2),
+            plastik_terbuang NUMERIC(12, 2),
+            plastik_terbuang_cgpotong NUMERIC(12, 2),
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ADD COLUMN IF NOT EXISTS tanggal_produksi DATE
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ADD COLUMN IF NOT EXISTS batch_uid VARCHAR(50)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ADD COLUMN IF NOT EXISTS "230_blue" NUMERIC(12, 2)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ADD COLUMN IF NOT EXISTS "210_green" NUMERIC(12, 2)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ADD COLUMN IF NOT EXISTS "190_yellow" NUMERIC(12, 2)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ADD COLUMN IF NOT EXISTS "630_birupolos" NUMERIC(12, 2)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ADD COLUMN IF NOT EXISTS "630_red" NUMERIC(12, 2)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ADD COLUMN IF NOT EXISTS "270_red" NUMERIC(12, 2)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ADD COLUMN IF NOT EXISTS "240_red" NUMERIC(12, 2)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ADD COLUMN IF NOT EXISTS plastik_gumcord NUMERIC(12, 2)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ADD COLUMN IF NOT EXISTS total_plastik NUMERIC(12, 2)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ADD COLUMN IF NOT EXISTS plastik_terbuang NUMERIC(12, 2)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ADD COLUMN IF NOT EXISTS plastik_terbuang_cgpotong NUMERIC(12, 2)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_plastik
+        ALTER COLUMN "230_blue" TYPE NUMERIC(12, 2) USING "230_blue"::NUMERIC(12, 2),
+        ALTER COLUMN "210_green" TYPE NUMERIC(12, 2) USING "210_green"::NUMERIC(12, 2),
+        ALTER COLUMN "190_yellow" TYPE NUMERIC(12, 2) USING "190_yellow"::NUMERIC(12, 2),
+        ALTER COLUMN "630_birupolos" TYPE NUMERIC(12, 2) USING "630_birupolos"::NUMERIC(12, 2),
+        ALTER COLUMN "630_red" TYPE NUMERIC(12, 2) USING "630_red"::NUMERIC(12, 2),
+        ALTER COLUMN "270_red" TYPE NUMERIC(12, 2) USING "270_red"::NUMERIC(12, 2),
+        ALTER COLUMN "240_red" TYPE NUMERIC(12, 2) USING "240_red"::NUMERIC(12, 2),
+        ALTER COLUMN plastik_gumcord TYPE NUMERIC(12, 2) USING plastik_gumcord::NUMERIC(12, 2),
+        ALTER COLUMN total_plastik TYPE NUMERIC(12, 2) USING total_plastik::NUMERIC(12, 2),
+        ALTER COLUMN plastik_terbuang TYPE NUMERIC(12, 2) USING plastik_terbuang::NUMERIC(12, 2),
+        ALTER COLUMN plastik_terbuang_cgpotong TYPE NUMERIC(12, 2) USING plastik_terbuang_cgpotong::NUMERIC(12, 2)
+        """
+    )
+
+
+def ensure_pemakaian_kotak_table(conn):
+    cur = conn.cursor()
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pemakaian_kotak (
+            id BIGSERIAL PRIMARY KEY,
+            tanggal_produksi DATE,
+            batch_uid VARCHAR(50),
+            box_160 INTEGER,
+            box_185 INTEGER,
+            box_200 INTEGER,
+            box_220 INTEGER,
+            box_310 INTEGER,
+            box_350 INTEGER,
+            box_gumcord INTEGER,
+            total INTEGER,
+            terbuang INTEGER,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_kotak
+        ADD COLUMN IF NOT EXISTS tanggal_produksi DATE
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_kotak
+        ADD COLUMN IF NOT EXISTS batch_uid VARCHAR(50)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_kotak
+        ADD COLUMN IF NOT EXISTS box_160 INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_kotak
+        ADD COLUMN IF NOT EXISTS box_185 INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_kotak
+        ADD COLUMN IF NOT EXISTS box_200 INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_kotak
+        ADD COLUMN IF NOT EXISTS box_220 INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_kotak
+        ADD COLUMN IF NOT EXISTS box_310 INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_kotak
+        ADD COLUMN IF NOT EXISTS box_350 INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_kotak
+        ADD COLUMN IF NOT EXISTS box_gumcord INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_kotak
+        ADD COLUMN IF NOT EXISTS total INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_kotak
+        ADD COLUMN IF NOT EXISTS terbuang INTEGER
+        """
+    )
+
+
+def ensure_pemakaian_tungkul_table(conn):
+    cur = conn.cursor()
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS pemakaian_tungkul (
+            id BIGSERIAL PRIMARY KEY,
+            tanggal_produksi DATE,
+            batch_uid VARCHAR(50),
+            tp_165 INTEGER,
+            tp_195 INTEGER,
+            tp_210 INTEGER,
+            tp_240 INTEGER,
+            total INTEGER,
+            terbuang INTEGER,
+            lakban INTEGER,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_tungkul
+        ADD COLUMN IF NOT EXISTS tanggal_produksi DATE
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_tungkul
+        ADD COLUMN IF NOT EXISTS batch_uid VARCHAR(50)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_tungkul
+        ADD COLUMN IF NOT EXISTS tp_165 INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_tungkul
+        ADD COLUMN IF NOT EXISTS tp_195 INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_tungkul
+        ADD COLUMN IF NOT EXISTS tp_210 INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_tungkul
+        ADD COLUMN IF NOT EXISTS tp_240 INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_tungkul
+        ADD COLUMN IF NOT EXISTS total INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_tungkul
+        ADD COLUMN IF NOT EXISTS terbuang INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_tungkul
+        ADD COLUMN IF NOT EXISTS lakban INTEGER
         """
     )
 
@@ -558,6 +865,9 @@ def fetch_cushion_batch(batch_uid):
     try:
         conn = get_db_conn()
         ensure_cushion_batch_columns(conn)
+        ensure_pemakaian_plastik_table(conn)
+        ensure_pemakaian_kotak_table(conn)
+        ensure_pemakaian_tungkul_table(conn)
         cur = conn.cursor()
         cur.execute(
             """
@@ -603,7 +913,203 @@ def fetch_cushion_batch(batch_uid):
             (batch_uid,),
         )
         details = cur.fetchall()
-        return {"header": header, "details": details}
+
+        cur.execute(
+            """
+            SELECT
+                "230_blue",
+                "210_green",
+                "190_yellow",
+                "630_birupolos",
+                "630_red",
+                "270_red",
+                "240_red",
+                plastik_gumcord,
+                total_plastik,
+                plastik_terbuang,
+                plastik_terbuang_cgpotong
+            FROM pemakaian_plastik
+            WHERE batch_uid = %s
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (batch_uid,),
+        )
+        plastik = cur.fetchone()
+        if not plastik and header[1]:
+            cur.execute(
+                """
+                SELECT
+                    "230_blue",
+                    "210_green",
+                    "190_yellow",
+                    "630_birupolos",
+                    "630_red",
+                    "270_red",
+                    "240_red",
+                    plastik_gumcord,
+                    total_plastik,
+                    plastik_terbuang,
+                    plastik_terbuang_cgpotong
+                FROM pemakaian_plastik
+                WHERE tanggal_produksi = %s
+                ORDER BY id DESC
+                LIMIT 1
+                """,
+                (header[1],),
+            )
+            plastik = cur.fetchone()
+        if not plastik and header[1]:
+            cur.execute(
+                """
+                SELECT
+                    "230_blue",
+                    "210_green",
+                    "190_yellow",
+                    "630_birupolos",
+                    "630_red",
+                    "270_red",
+                    "240_red",
+                    plastik_gumcord,
+                    total_plastik,
+                    plastik_terbuang,
+                    plastik_terbuang_cgpotong
+                FROM pemakaian_plastik
+                WHERE created_at::date = %s
+                ORDER BY id DESC
+                LIMIT 1
+                """,
+                (header[1],),
+            )
+            plastik = cur.fetchone()
+
+        cur.execute(
+            """
+            SELECT
+                box_160,
+                box_185,
+                box_200,
+                box_220,
+                box_310,
+                box_350,
+                box_gumcord,
+                total,
+                terbuang
+            FROM pemakaian_kotak
+            WHERE batch_uid = %s
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (batch_uid,),
+        )
+        kotak = cur.fetchone()
+        if not kotak and header[1]:
+            cur.execute(
+                """
+                SELECT
+                    box_160,
+                    box_185,
+                    box_200,
+                    box_220,
+                    box_310,
+                    box_350,
+                    box_gumcord,
+                    total,
+                    terbuang
+                FROM pemakaian_kotak
+                WHERE tanggal_produksi = %s
+                ORDER BY id DESC
+                LIMIT 1
+                """,
+                (header[1],),
+            )
+            kotak = cur.fetchone()
+        if not kotak and header[1]:
+            cur.execute(
+                """
+                SELECT
+                    box_160,
+                    box_185,
+                    box_200,
+                    box_220,
+                    box_310,
+                    box_350,
+                    box_gumcord,
+                    total,
+                    terbuang
+                FROM pemakaian_kotak
+                WHERE created_at::date = %s
+                ORDER BY id DESC
+                LIMIT 1
+                """,
+                (header[1],),
+            )
+            kotak = cur.fetchone()
+
+        cur.execute(
+            """
+            SELECT
+                tp_165,
+                tp_195,
+                tp_210,
+                tp_240,
+                total,
+                terbuang,
+                lakban
+            FROM pemakaian_tungkul
+            WHERE batch_uid = %s
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (batch_uid,),
+        )
+        tungkul = cur.fetchone()
+        if not tungkul and header[1]:
+            cur.execute(
+                """
+                SELECT
+                    tp_165,
+                    tp_195,
+                    tp_210,
+                    tp_240,
+                    total,
+                    terbuang,
+                    lakban
+                FROM pemakaian_tungkul
+                WHERE tanggal_produksi = %s
+                ORDER BY id DESC
+                LIMIT 1
+                """,
+                (header[1],),
+            )
+            tungkul = cur.fetchone()
+        if not tungkul and header[1]:
+            cur.execute(
+                """
+                SELECT
+                    tp_165,
+                    tp_195,
+                    tp_210,
+                    tp_240,
+                    total,
+                    terbuang,
+                    lakban
+                FROM pemakaian_tungkul
+                WHERE created_at::date = %s
+                ORDER BY id DESC
+                LIMIT 1
+                """,
+                (header[1],),
+            )
+            tungkul = cur.fetchone()
+
+        return {
+            "header": header,
+            "details": details,
+            "plastik": plastik,
+            "kotak": kotak,
+            "tungkul": tungkul,
+        }
     finally:
         if conn:
             conn.close()
@@ -620,6 +1126,9 @@ def laporan_cushion_read(batch_uid):
 
     header = result["header"]
     details = result["details"]
+    plastik = result.get("plastik")
+    kotak = result.get("kotak")
+    tungkul = result.get("tungkul")
     return jsonify(
         {
             "ok": True,
@@ -649,6 +1158,39 @@ def laporan_cushion_read(batch_uid):
                     }
                     for row in details
                 ],
+                "plastik": {
+                    "230_blue": float(plastik[0]) if plastik and plastik[0] is not None else None,
+                    "210_green": float(plastik[1]) if plastik and plastik[1] is not None else None,
+                    "190_yellow": float(plastik[2]) if plastik and plastik[2] is not None else None,
+                    "630_birupolos": float(plastik[3]) if plastik and plastik[3] is not None else None,
+                    "630_red": float(plastik[4]) if plastik and plastik[4] is not None else None,
+                    "270_red": float(plastik[5]) if plastik and plastik[5] is not None else None,
+                    "240_red": float(plastik[6]) if plastik and plastik[6] is not None else None,
+                    "plastik_gumcord": float(plastik[7]) if plastik and plastik[7] is not None else None,
+                    "total_plastik": float(plastik[8]) if plastik and plastik[8] is not None else None,
+                    "plastik_terbuang": float(plastik[9]) if plastik and plastik[9] is not None else None,
+                    "plastik_terbuang_cgpotong": float(plastik[10]) if plastik and plastik[10] is not None else None,
+                },
+                "kotak": {
+                    "box_160": kotak[0] if kotak and kotak[0] is not None else None,
+                    "box_185": kotak[1] if kotak and kotak[1] is not None else None,
+                    "box_200": kotak[2] if kotak and kotak[2] is not None else None,
+                    "box_220": kotak[3] if kotak and kotak[3] is not None else None,
+                    "box_310": kotak[4] if kotak and kotak[4] is not None else None,
+                    "box_350": kotak[5] if kotak and kotak[5] is not None else None,
+                    "box_gumcord": kotak[6] if kotak and kotak[6] is not None else None,
+                    "total": kotak[7] if kotak and kotak[7] is not None else None,
+                    "terbuang": kotak[8] if kotak and kotak[8] is not None else None,
+                },
+                "tungkul": {
+                    "tp_165": tungkul[0] if tungkul and tungkul[0] is not None else None,
+                    "tp_195": tungkul[1] if tungkul and tungkul[1] is not None else None,
+                    "tp_210": tungkul[2] if tungkul and tungkul[2] is not None else None,
+                    "tp_240": tungkul[3] if tungkul and tungkul[3] is not None else None,
+                    "total": tungkul[4] if tungkul and tungkul[4] is not None else None,
+                    "terbuang": tungkul[5] if tungkul and tungkul[5] is not None else None,
+                    "lakban": tungkul[6] if tungkul and tungkul[6] is not None else None,
+                },
             },
         }
     )
@@ -662,6 +1204,9 @@ def laporan_cushion_update(batch_uid):
     payload = request.get_json(silent=True) or {}
     header = payload.get("header") or {}
     rows = payload.get("rows") or []
+    plastik_payload = payload.get("plastik") or {}
+    kotak_payload = payload.get("kotak") or {}
+    tungkul_payload = payload.get("tungkul") or {}
 
     if not rows:
         return jsonify({"ok": False, "message": "Data detail Cushion Gum kosong."}), 400
@@ -673,6 +1218,56 @@ def laporan_cushion_update(batch_uid):
     nama_operator = (header.get("nama_operator") or "").strip() or None
     no_mesin = (header.get("no_mesin") or "").strip() or None
     berat_kg_total = parse_decimal(str(header.get("berat_kg_total") or ""))
+    plastik_230_blue = parse_decimal(str(plastik_payload.get("230_blue") or ""))
+    plastik_210_green = parse_decimal(str(plastik_payload.get("210_green") or ""))
+    plastik_190_yellow = parse_decimal(str(plastik_payload.get("190_yellow") or ""))
+    plastik_630_birupolos = parse_decimal(str(plastik_payload.get("630_birupolos") or ""))
+    plastik_630_red = parse_decimal(str(plastik_payload.get("630_red") or ""))
+    plastik_270_red = parse_decimal(str(plastik_payload.get("270_red") or ""))
+    plastik_240_red = parse_decimal(str(plastik_payload.get("240_red") or ""))
+    plastik_gumcord = parse_decimal(str(plastik_payload.get("plastik_gumcord") or ""))
+    total_plastik = parse_decimal(str(plastik_payload.get("total_plastik") or ""))
+    plastik_terbuang = parse_decimal(str(plastik_payload.get("plastik_terbuang") or ""))
+    plastik_terbuang_cgpotong = parse_decimal(str(plastik_payload.get("plastik_terbuang_cgpotong") or ""))
+
+    box_160 = parse_int(str(kotak_payload.get("box_160") or ""))
+    box_185 = parse_int(str(kotak_payload.get("box_185") or ""))
+    box_200 = parse_int(str(kotak_payload.get("box_200") or ""))
+    box_220 = parse_int(str(kotak_payload.get("box_220") or ""))
+    box_310 = parse_int(str(kotak_payload.get("box_310") or ""))
+    box_350 = parse_int(str(kotak_payload.get("box_350") or ""))
+    box_gumcord = parse_int(str(kotak_payload.get("box_gumcord") or ""))
+    kotak_total = parse_int(str(kotak_payload.get("total") or ""))
+    kotak_terbuang = parse_int(str(kotak_payload.get("terbuang") or ""))
+
+    tp_165 = parse_int(str(tungkul_payload.get("tp_165") or ""))
+    tp_195 = parse_int(str(tungkul_payload.get("tp_195") or ""))
+    tp_210 = parse_int(str(tungkul_payload.get("tp_210") or ""))
+    tp_240 = parse_int(str(tungkul_payload.get("tp_240") or ""))
+    tungkul_total = parse_int(str(tungkul_payload.get("total") or ""))
+    tungkul_terbuang = parse_int(str(tungkul_payload.get("terbuang") or ""))
+    lakban = parse_int(str(tungkul_payload.get("lakban") or ""))
+
+    plastik_items = [
+        plastik_230_blue,
+        plastik_210_green,
+        plastik_190_yellow,
+        plastik_630_birupolos,
+        plastik_630_red,
+        plastik_270_red,
+        plastik_240_red,
+        plastik_gumcord,
+    ]
+    if total_plastik is None and any(value is not None for value in plastik_items):
+        total_plastik = sum((value or Decimal("0")) for value in plastik_items)
+
+    kotak_items = [box_160, box_185, box_200, box_220, box_310, box_350, box_gumcord]
+    if kotak_total is None and any(value is not None for value in kotak_items):
+        kotak_total = sum(value or 0 for value in kotak_items)
+
+    tungkul_items = [tp_165, tp_195, tp_210, tp_240]
+    if tungkul_total is None and any(value is not None for value in tungkul_items):
+        tungkul_total = sum(value or 0 for value in tungkul_items)
 
     parsed_rows = []
     total_target = Decimal("0")
@@ -770,6 +1365,9 @@ def laporan_cushion_update(batch_uid):
     try:
         conn = get_db_conn()
         ensure_cushion_batch_columns(conn)
+        ensure_pemakaian_plastik_table(conn)
+        ensure_pemakaian_kotak_table(conn)
+        ensure_pemakaian_tungkul_table(conn)
         cur = conn.cursor()
         cur.execute(
             """
@@ -819,6 +1417,108 @@ def laporan_cushion_update(batch_uid):
             """,
             parsed_rows,
         )
+
+        cur.execute("DELETE FROM pemakaian_plastik WHERE batch_uid = %s", (batch_uid,))
+        plastik_values = [
+            plastik_230_blue,
+            plastik_210_green,
+            plastik_190_yellow,
+            plastik_630_birupolos,
+            plastik_630_red,
+            plastik_270_red,
+            plastik_240_red,
+            plastik_gumcord,
+            total_plastik,
+            plastik_terbuang,
+            plastik_terbuang_cgpotong,
+        ]
+        if any(value is not None for value in plastik_values):
+            cur.execute(
+                """
+                INSERT INTO pemakaian_plastik (
+                    tanggal_produksi,
+                    batch_uid,
+                    "230_blue",
+                    "210_green",
+                    "190_yellow",
+                    "630_birupolos",
+                    "630_red",
+                    "270_red",
+                    "240_red",
+                    plastik_gumcord,
+                    total_plastik,
+                    plastik_terbuang,
+                    plastik_terbuang_cgpotong
+                ) VALUES (
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                )
+                """,
+                (tanggal_produksi, batch_uid, *plastik_values),
+            )
+
+        cur.execute("DELETE FROM pemakaian_kotak WHERE batch_uid = %s", (batch_uid,))
+        kotak_values = [
+            box_160,
+            box_185,
+            box_200,
+            box_220,
+            box_310,
+            box_350,
+            box_gumcord,
+            kotak_total,
+            kotak_terbuang,
+        ]
+        if any(value is not None for value in kotak_values):
+            cur.execute(
+                """
+                INSERT INTO pemakaian_kotak (
+                    tanggal_produksi,
+                    batch_uid,
+                    box_160,
+                    box_185,
+                    box_200,
+                    box_220,
+                    box_310,
+                    box_350,
+                    box_gumcord,
+                    total,
+                    terbuang
+                ) VALUES (
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                )
+                """,
+                (tanggal_produksi, batch_uid, *kotak_values),
+            )
+
+        cur.execute("DELETE FROM pemakaian_tungkul WHERE batch_uid = %s", (batch_uid,))
+        tungkul_values = [
+            tp_165,
+            tp_195,
+            tp_210,
+            tp_240,
+            tungkul_total,
+            tungkul_terbuang,
+            lakban,
+        ]
+        if any(value is not None for value in tungkul_values):
+            cur.execute(
+                """
+                INSERT INTO pemakaian_tungkul (
+                    tanggal_produksi,
+                    batch_uid,
+                    tp_165,
+                    tp_195,
+                    tp_210,
+                    tp_240,
+                    total,
+                    terbuang,
+                    lakban
+                ) VALUES (
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s
+                )
+                """,
+                (tanggal_produksi, batch_uid, *tungkul_values),
+            )
         conn.commit()
     except Exception as e:
         if conn:
@@ -829,6 +1529,199 @@ def laporan_cushion_update(batch_uid):
             conn.close()
 
     return jsonify({"ok": True, "message": "Data Cushion Gum berhasil diupdate."})
+
+
+@app.route("/laporan/gum-cord/read/<row_token>", methods=["GET"])
+def laporan_gum_cord_read(row_token):
+    if "user" not in session:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    conn = None
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            ALTER TABLE production_gum_cord
+            ADD COLUMN IF NOT EXISTS nama_operator VARCHAR(150)
+            """
+        )
+        cur.execute(
+            """
+            ALTER TABLE production_gum_cord
+            ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
+            """
+        )
+        cur.execute(
+            """
+            SELECT
+                ctid::text AS row_token,
+                tanggal_produksi,
+                nama_operator,
+                no_mesin,
+                nama_produk,
+                order_kotak,
+                waktu_awal,
+                waktu_akhir,
+                pakai_menit,
+                target_per_menit,
+                target_total,
+                aktual_kotak,
+                persentase,
+                berat_per_kotak,
+                berat_total
+            FROM production_gum_cord
+            WHERE ctid = %s::tid
+            LIMIT 1
+            """,
+            (row_token,),
+        )
+        row = cur.fetchone()
+        if not row:
+            return jsonify({"ok": False, "message": "Data Gum Cord tidak ditemukan."}), 404
+
+        return jsonify(
+            {
+                "ok": True,
+                "data": {
+                    "row_token": row[0],
+                    "tanggal_produksi": str(row[1]) if row[1] else "",
+                    "nama_operator": row[2] or "",
+                    "no_mesin": row[3] or "",
+                    "nama_produk": row[4] or "",
+                    "order_kotak": row[5],
+                    "waktu_awal": row[6].strftime("%H:%M") if row[6] else "",
+                    "waktu_akhir": row[7].strftime("%H:%M") if row[7] else "",
+                    "pakai_menit": row[8],
+                    "target_per_menit": float(row[9]) if row[9] is not None else None,
+                    "target_total": float(row[10]) if row[10] is not None else None,
+                    "aktual_kotak": row[11],
+                    "persentase": float(row[12]) if row[12] is not None else None,
+                    "berat_per_kotak": float(row[13]) if row[13] is not None else None,
+                    "berat_total": float(row[14]) if row[14] is not None else None,
+                },
+            }
+        )
+    finally:
+        if conn:
+            conn.close()
+
+
+@app.route("/laporan/gum-cord/update/<row_token>", methods=["POST"])
+def laporan_gum_cord_update(row_token):
+    if "user" not in session:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    payload = request.get_json(silent=True) or {}
+    header = payload.get("header") or {}
+    row = payload.get("row") or {}
+
+    tanggal_produksi = (header.get("tanggal_produksi") or "").strip()
+    if not tanggal_produksi:
+        return jsonify({"ok": False, "message": "Tanggal produksi wajib diisi."}), 400
+
+    nama_operator = (header.get("nama_operator") or "").strip() or None
+    no_mesin = (header.get("no_mesin") or "").strip() or None
+    nama_produk = (row.get("nama_produk") or "").strip() or "Gum Cord"
+    order_kotak = parse_int(str(row.get("order_kotak") or ""))
+    waktu_awal = (row.get("waktu_awal") or "").strip() or None
+    waktu_akhir = (row.get("waktu_akhir") or "").strip() or None
+    pakai_menit = parse_int(str(row.get("pakai_menit") or ""))
+    target_per_menit = parse_decimal(str(row.get("target_per_menit") or ""))
+    target_total = parse_decimal(str(row.get("target_total") or ""))
+    aktual_kotak = parse_int(str(row.get("aktual_kotak") or ""))
+    persentase = parse_decimal(str(row.get("persentase") or ""))
+    berat_per_kotak = parse_decimal(str(row.get("berat_per_kotak") or ""))
+    berat_total = parse_decimal(str(row.get("berat_total") or ""))
+
+    if pakai_menit is None and waktu_awal and waktu_akhir:
+        try:
+            t_awal = datetime.strptime(waktu_awal, "%H:%M")
+            t_akhir = datetime.strptime(waktu_akhir, "%H:%M")
+            diff = int((t_akhir - t_awal).total_seconds() / 60)
+            if diff >= 0:
+                pakai_menit = diff
+        except ValueError:
+            pakai_menit = None
+
+    if target_total is None and pakai_menit is not None and target_per_menit is not None:
+        target_total = (Decimal(pakai_menit) * target_per_menit).quantize(Decimal("0.01"))
+
+    if persentase is None and target_total and target_total != 0 and aktual_kotak is not None:
+        persentase = ((Decimal(aktual_kotak) / target_total) * Decimal("100")).quantize(
+            Decimal("0.01")
+        )
+
+    if berat_total is None and aktual_kotak is not None and berat_per_kotak is not None:
+        berat_total = (Decimal(aktual_kotak) * berat_per_kotak).quantize(Decimal("0.01"))
+
+    conn = None
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            ALTER TABLE production_gum_cord
+            ADD COLUMN IF NOT EXISTS nama_operator VARCHAR(150)
+            """
+        )
+        cur.execute(
+            """
+            ALTER TABLE production_gum_cord
+            ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
+            """
+        )
+        cur.execute(
+            """
+            UPDATE production_gum_cord
+            SET
+                tanggal_produksi = %s,
+                nama_operator = %s,
+                no_mesin = %s,
+                nama_produk = %s,
+                order_kotak = %s,
+                waktu_awal = %s,
+                waktu_akhir = %s,
+                pakai_menit = %s,
+                target_per_menit = %s,
+                target_total = %s,
+                aktual_kotak = %s,
+                persentase = %s,
+                berat_per_kotak = %s,
+                berat_total = %s
+            WHERE ctid = %s::tid
+            """,
+            (
+                tanggal_produksi,
+                nama_operator,
+                no_mesin,
+                nama_produk,
+                order_kotak,
+                waktu_awal,
+                waktu_akhir,
+                pakai_menit,
+                target_per_menit,
+                target_total,
+                aktual_kotak,
+                persentase,
+                berat_per_kotak,
+                berat_total,
+                row_token,
+            ),
+        )
+        if cur.rowcount == 0:
+            conn.rollback()
+            return jsonify({"ok": False, "message": "Data Gum Cord tidak ditemukan."}), 404
+        conn.commit()
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({"ok": False, "message": f"Gagal update: {e}"}), 500
+    finally:
+        if conn:
+            conn.close()
+
+    return jsonify({"ok": True, "message": "Data Gum Cord berhasil diupdate."})
 
 
 @app.route("/laporan/msc/update/<batch_uid>", methods=["POST"])
@@ -1231,6 +2124,14 @@ def home():
     return render_template("home.html", user=session["user"])
 
 
+@app.route("/gum-cord")
+def gum_cord():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    return render_template("gum_cord.html", user=session["user"])
+
+
 @app.route("/item-code", methods=["GET", "POST"])
 def item_code():
     if "user" not in session:
@@ -1373,33 +2274,169 @@ def laporan():
     )
 
 
-@app.route("/laporan/cushion-gum/cetak/<batch_uid>", methods=["GET"])
-def laporan_cushion_cetak(batch_uid):
-    if "user" not in session:
-        return redirect(url_for("login"))
+def fetch_latest_gum_cord_by_date(tanggal_produksi):
+    conn = None
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT
+                ctid::text AS row_token,
+                tanggal_produksi,
+                nama_operator,
+                no_mesin,
+                nama_produk,
+                order_kotak,
+                waktu_awal,
+                waktu_akhir,
+                pakai_menit,
+                target_per_menit,
+                target_total,
+                aktual_kotak,
+                persentase,
+                berat_per_kotak,
+                berat_total
+            FROM production_gum_cord
+            WHERE tanggal_produksi = %s
+            ORDER BY ctid DESC
+            LIMIT 1
+            """,
+            (tanggal_produksi,),
+        )
+        row = cur.fetchone()
+        if not row:
+            return None
+        return {
+            "row_token": row[0],
+            "tanggal_produksi": row[1],
+            "nama_operator": row[2] if len(row) > 2 else None,
+            "no_mesin": row[3] if len(row) > 3 else None,
+            "nama_produk": row[4] if len(row) > 4 else None,
+            "order_kotak": row[5] if len(row) > 5 else None,
+            "waktu_awal": row[6] if len(row) > 6 else None,
+            "waktu_akhir": row[7] if len(row) > 7 else None,
+            "pakai_menit": row[8] if len(row) > 8 else None,
+            "target_per_menit": row[9] if len(row) > 9 else None,
+            "target_total": row[10] if len(row) > 10 else None,
+            "aktual_kotak": row[11] if len(row) > 11 else None,
+            "persentase": row[12] if len(row) > 12 else None,
+            "berat_per_kotak": row[13] if len(row) > 13 else None,
+            "berat_total": row[14] if len(row) > 14 else None,
+        }
+    finally:
+        if conn:
+            conn.close()
 
-    result = fetch_cushion_batch(batch_uid)
-    if not result:
-        return "Data batch Cushion Gum tidak ditemukan.", 404
 
-    header = result.get("header") or ()
-    details = result.get("details") or []
+def fetch_gum_cord_by_row_token(row_token):
+    conn = None
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT
+                ctid::text AS row_token,
+                tanggal_produksi,
+                nama_operator,
+                no_mesin,
+                nama_produk,
+                order_kotak,
+                waktu_awal,
+                waktu_akhir,
+                pakai_menit,
+                target_per_menit,
+                target_total,
+                aktual_kotak,
+                persentase,
+                berat_per_kotak,
+                berat_total
+            FROM production_gum_cord
+            WHERE ctid = %s::tid
+            LIMIT 1
+            """,
+            (row_token,),
+        )
+        row = cur.fetchone()
+        if not row:
+            return None
+        return {
+            "row_token": row[0],
+            "tanggal_produksi": row[1],
+            "nama_operator": row[2] if len(row) > 2 else None,
+            "no_mesin": row[3] if len(row) > 3 else None,
+            "nama_produk": row[4] if len(row) > 4 else None,
+            "order_kotak": row[5] if len(row) > 5 else None,
+            "waktu_awal": row[6] if len(row) > 6 else None,
+            "waktu_akhir": row[7] if len(row) > 7 else None,
+            "pakai_menit": row[8] if len(row) > 8 else None,
+            "target_per_menit": row[9] if len(row) > 9 else None,
+            "target_total": row[10] if len(row) > 10 else None,
+            "aktual_kotak": row[11] if len(row) > 11 else None,
+            "persentase": row[12] if len(row) > 12 else None,
+            "berat_per_kotak": row[13] if len(row) > 13 else None,
+            "berat_total": row[14] if len(row) > 14 else None,
+        }
+    finally:
+        if conn:
+            conn.close()
+
+
+def fetch_latest_cushion_batch_uid_by_date(tanggal_produksi):
+    conn = None
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT batch_uid
+            FROM grand_total
+            WHERE tanggal_produksi = %s
+              AND batch_uid IS NOT NULL
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (tanggal_produksi,),
+        )
+        row = cur.fetchone()
+        return row[0] if row and row[0] else None
+    finally:
+        if conn:
+            conn.close()
+
+
+def render_print_laporan_combined(cushion_result, gum_cord_row, batch_uid_label):
+    header = (cushion_result or {}).get("header") or ()
+    details = (cushion_result or {}).get("details") or []
+    plastik = (cushion_result or {}).get("plastik")
+    kotak = (cushion_result or {}).get("kotak")
+    tungkul = (cushion_result or {}).get("tungkul")
+
+    tanggal_obj = None
+    if len(header) > 1 and header[1]:
+        tanggal_obj = header[1]
+    elif gum_cord_row and gum_cord_row.get("tanggal_produksi"):
+        tanggal_obj = gum_cord_row.get("tanggal_produksi")
 
     tanggal = ""
     hari_tanggal = ""
-    if len(header) > 1 and header[1]:
-        tanggal_obj = header[1]
+    if tanggal_obj:
         tanggal = tanggal_obj.strftime("%d-%m-%Y")
-        hari_map = [
-            "Senin",
-            "Selasa",
-            "Rabu",
-            "Kamis",
-            "Jumat",
-            "Sabtu",
-            "Minggu",
-        ]
+        hari_map = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]
         hari_tanggal = f"{hari_map[tanggal_obj.weekday()]} / {tanggal}"
+
+    nama_operator = ""
+    no_mesin = ""
+    if len(header) > 2 and header[2]:
+        nama_operator = header[2]
+    elif gum_cord_row and gum_cord_row.get("nama_operator"):
+        nama_operator = gum_cord_row.get("nama_operator") or ""
+
+    if len(header) > 3 and header[3]:
+        no_mesin = header[3]
+    elif gum_cord_row and gum_cord_row.get("no_mesin"):
+        no_mesin = gum_cord_row.get("no_mesin") or ""
 
     def empty_row():
         return {
@@ -1442,9 +2479,7 @@ def laporan_cushion_cetak(batch_uid):
     total_berat = format_number_display(header[7] if len(header) > 7 else None)
 
     rows_per_page = 13
-    row_chunks = [
-        rows[i : i + rows_per_page] for i in range(0, len(rows), rows_per_page)
-    ] or [[]]
+    row_chunks = [rows[i : i + rows_per_page] for i in range(0, len(rows), rows_per_page)] or [[]]
 
     pages = []
     total_pages = len(row_chunks)
@@ -1452,18 +2487,61 @@ def laporan_cushion_cetak(batch_uid):
         page_rows = list(chunk)
         if len(page_rows) < rows_per_page:
             page_rows.extend([empty_row() for _ in range(rows_per_page - len(page_rows))])
-        pages.append(
-            {
-                "rows": page_rows,
-                "is_last": index == (total_pages - 1),
-            }
-        )
+        pages.append({"rows": page_rows, "is_last": index == (total_pages - 1)})
+
+    gum_cord_print = {
+        "nama_produk": (gum_cord_row or {}).get("nama_produk") or "Gum Cord",
+        "order_kotak": format_number_display((gum_cord_row or {}).get("order_kotak")),
+        "waktu_awal": ((gum_cord_row or {}).get("waktu_awal").strftime("%H:%M") if (gum_cord_row or {}).get("waktu_awal") else ""),
+        "waktu_akhir": ((gum_cord_row or {}).get("waktu_akhir").strftime("%H:%M") if (gum_cord_row or {}).get("waktu_akhir") else ""),
+        "pakai_menit": format_number_display((gum_cord_row or {}).get("pakai_menit")),
+        "target_per_menit": format_number_display((gum_cord_row or {}).get("target_per_menit")),
+        "target_total": format_number_display((gum_cord_row or {}).get("target_total")),
+        "aktual_kotak": format_number_display((gum_cord_row or {}).get("aktual_kotak")),
+        "persentase": format_number_display((gum_cord_row or {}).get("persentase")),
+        "berat_per_kotak": format_number_display((gum_cord_row or {}).get("berat_per_kotak")),
+        "berat_total": format_number_display((gum_cord_row or {}).get("berat_total")),
+    }
+
+    plastik_print = {
+        "230_blue": format_number_display(plastik[0] if plastik else None),
+        "210_green": format_number_display(plastik[1] if plastik else None),
+        "190_yellow": format_number_display(plastik[2] if plastik else None),
+        "630_birupolos": format_number_display(plastik[3] if plastik else None),
+        "630_red": format_number_display(plastik[4] if plastik else None),
+        "270_red": format_number_display(plastik[5] if plastik else None),
+        "240_red": format_number_display(plastik[6] if plastik else None),
+        "plastik_gumcord": format_number_display(plastik[7] if plastik else None),
+        "total_plastik": format_number_display(plastik[8] if plastik else None),
+        "plastik_terbuang": format_number_display(plastik[9] if plastik else None),
+        "plastik_terbuang_cgpotong": format_number_display(plastik[10] if plastik else None),
+    }
+    kotak_print = {
+        "box_160": format_number_display(kotak[0] if kotak else None),
+        "box_185": format_number_display(kotak[1] if kotak else None),
+        "box_200": format_number_display(kotak[2] if kotak else None),
+        "box_220": format_number_display(kotak[3] if kotak else None),
+        "box_310": format_number_display(kotak[4] if kotak else None),
+        "box_350": format_number_display(kotak[5] if kotak else None),
+        "box_gumcord": format_number_display(kotak[6] if kotak else None),
+        "total": format_number_display(kotak[7] if kotak else None),
+        "terbuang": format_number_display(kotak[8] if kotak else None),
+    }
+    tungkul_print = {
+        "tp_165": format_number_display(tungkul[0] if tungkul else None),
+        "tp_195": format_number_display(tungkul[1] if tungkul else None),
+        "tp_210": format_number_display(tungkul[2] if tungkul else None),
+        "tp_240": format_number_display(tungkul[3] if tungkul else None),
+        "total": format_number_display(tungkul[4] if tungkul else None),
+        "terbuang": format_number_display(tungkul[5] if tungkul else None),
+        "lakban": format_number_display(tungkul[6] if tungkul else None),
+    }
 
     return render_template(
         "print_laporan.html",
-        batch_uid=batch_uid,
-        nama_operator=(header[2] or "") if len(header) > 2 else "",
-        no_mesin=(header[3] or "") if len(header) > 3 else "",
+        batch_uid=batch_uid_label or "-",
+        nama_operator=nama_operator,
+        no_mesin=no_mesin,
         tanggal=tanggal,
         hari_tanggal=hari_tanggal,
         pages=pages,
@@ -1471,7 +2549,131 @@ def laporan_cushion_cetak(batch_uid):
         total_aktual=total_aktual,
         total_persen=total_persen,
         total_berat=total_berat,
+        plastik=plastik_print,
+        kotak=kotak_print,
+        tungkul=tungkul_print,
+        gum_cord=gum_cord_print,
     )
+
+
+@app.route("/laporan/cushion-gum/cetak/<batch_uid>", methods=["GET"])
+def laporan_cushion_cetak(batch_uid):
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    result = fetch_cushion_batch(batch_uid)
+    if not result:
+        return "Data batch Cushion Gum tidak ditemukan.", 404
+    header = result.get("header") or ()
+    tanggal_produksi = header[1] if len(header) > 1 else None
+    gum_cord_row = fetch_latest_gum_cord_by_date(tanggal_produksi) if tanggal_produksi else None
+    return render_print_laporan_combined(result, gum_cord_row, batch_uid)
+
+
+@app.route("/laporan/gum-cord/cetak/<row_token>", methods=["GET"])
+def laporan_gum_cord_cetak(row_token):
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    gum_cord_row = fetch_gum_cord_by_row_token(row_token)
+    if not gum_cord_row:
+        return "Data Gum Cord tidak ditemukan.", 404
+
+    tanggal_produksi = gum_cord_row.get("tanggal_produksi")
+    cushion_result = None
+    batch_uid = "-"
+    if tanggal_produksi:
+        batch_uid_by_date = fetch_latest_cushion_batch_uid_by_date(tanggal_produksi)
+        if batch_uid_by_date:
+            cushion_result = fetch_cushion_batch(batch_uid_by_date)
+            batch_uid = batch_uid_by_date
+
+    return render_print_laporan_combined(cushion_result, gum_cord_row, batch_uid)
+
+
+@app.route("/laporan/msc/cetak/<batch_uid>", methods=["GET"])
+def laporan_msc_cetak(batch_uid):
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    result = fetch_msc_batch(batch_uid)
+    if not result:
+        return "Data batch MSC tidak ditemukan.", 404
+
+    header = result.get("header") or ()
+    details = result.get("details") or []
+
+    tanggal = ""
+    hari_tanggal = ""
+    if len(header) > 1 and header[1]:
+        tanggal_obj = header[1]
+        tanggal = tanggal_obj.strftime("%d-%m-%Y")
+        hari_map = [
+            "Senin",
+            "Selasa",
+            "Rabu",
+            "Kamis",
+            "Jumat",
+            "Sabtu",
+            "Minggu",
+        ]
+        hari_tanggal = f"{hari_map[tanggal_obj.weekday()]} / {tanggal}"
+
+    rows = []
+    for row in details:
+        rows.append(
+            {
+                "nama_bahan": (row[0] or "") if len(row) > 0 else "",
+                "jam_awal": row[1].strftime("%H:%M") if len(row) > 1 and row[1] else "",
+                "jam_akhir": row[2].strftime("%H:%M") if len(row) > 2 and row[2] else "",
+                "pakai_menit": format_number_display(row[3] if len(row) > 3 else None),
+                "target_per_menit": format_number_display(row[4] if len(row) > 4 else None),
+                "target_total": format_number_display(row[5] if len(row) > 5 else None),
+                "aktual_batch": format_number_display(row[6] if len(row) > 6 else None),
+                "persentase": format_number_display(row[7] if len(row) > 7 else None),
+                "obat_timbang": format_number_display(row[8] if len(row) > 8 else None),
+                "obat_sisa": format_number_display(row[9] if len(row) > 9 else None),
+                "keterangan": (row[10] or "") if len(row) > 10 else "",
+            }
+        )
+    max_rows = 12
+    if len(rows) < max_rows:
+        rows.extend(
+            [
+                {
+                    "nama_bahan": "",
+                    "jam_awal": "",
+                    "jam_akhir": "",
+                    "pakai_menit": "",
+                    "target_per_menit": "",
+                    "target_total": "",
+                    "aktual_batch": "",
+                    "persentase": "",
+                    "obat_timbang": "",
+                    "obat_sisa": "",
+                    "keterangan": "",
+                }
+                for _ in range(max_rows - len(rows))
+            ]
+        )
+    else:
+        rows = rows[:max_rows]
+
+    return render_template(
+        "print_laporan_msc.html",
+        batch_uid=batch_uid,
+        nama_operator=(header[2] or "") if len(header) > 2 else "",
+        no_mesin=(header[3] or "") if len(header) > 3 else "",
+        regu=(header[4] or "") if len(header) > 4 else "",
+        tanggal=tanggal,
+        hari_tanggal=hari_tanggal,
+        rows=rows,
+        total_pakai_menit=format_number_display(header[5] if len(header) > 5 else None),
+        total_target=format_number_display(header[6] if len(header) > 6 else None),
+        total_aktual=format_number_display(header[7] if len(header) > 7 else None),
+        total_persen=format_number_display(header[8] if len(header) > 8 else None),
+    )
+
 
 @app.route("/laporan/delete", methods=["POST"])
 def laporan_delete():
@@ -1494,6 +2696,9 @@ def laporan_delete():
     try:
         conn = get_db_conn()
         ensure_cushion_batch_columns(conn)
+        ensure_pemakaian_plastik_table(conn)
+        ensure_pemakaian_kotak_table(conn)
+        ensure_pemakaian_tungkul_table(conn)
         cur = conn.cursor()
         if sumber == "cushion-gum":
             data_id = parse_int(data_key)
@@ -1516,6 +2721,27 @@ def laporan_delete():
                     cur.execute(
                         """
                         DELETE FROM production_cushion_gum
+                        WHERE batch_uid = %s
+                        """,
+                        (batch_uid,),
+                    )
+                    cur.execute(
+                        """
+                        DELETE FROM pemakaian_plastik
+                        WHERE batch_uid = %s
+                        """,
+                        (batch_uid,),
+                    )
+                    cur.execute(
+                        """
+                        DELETE FROM pemakaian_kotak
+                        WHERE batch_uid = %s
+                        """,
+                        (batch_uid,),
+                    )
+                    cur.execute(
+                        """
+                        DELETE FROM pemakaian_tungkul
                         WHERE batch_uid = %s
                         """,
                         (batch_uid,),
@@ -1572,6 +2798,17 @@ def cushion_gum():
     if "user" not in session:
         return redirect(url_for("login"))
 
+    init_conn = None
+    try:
+        init_conn = get_db_conn()
+        ensure_pemakaian_plastik_table(init_conn)
+        ensure_pemakaian_kotak_table(init_conn)
+        ensure_pemakaian_tungkul_table(init_conn)
+        init_conn.commit()
+    finally:
+        if init_conn:
+            init_conn.close()
+
     if request.method == "POST":
         tanggal_produksi = request.form.get("tanggal_produksi")
         if not tanggal_produksi:
@@ -1596,6 +2833,38 @@ def cushion_gum():
         per_roll_list = request.form.getlist("per_roll[]")
         berat_total_list = request.form.getlist("berat_total[]")
         berat_kg_total = parse_decimal(request.form.get("berat_kg_total"))
+        plastik_230_blue = parse_decimal(request.form.get("230_blue"))
+        plastik_210_green = parse_decimal(request.form.get("210_green"))
+        plastik_190_yellow = parse_decimal(request.form.get("190_yellow"))
+        plastik_630_birupolos = parse_decimal(request.form.get("630_birupolos"))
+        plastik_630_red = parse_decimal(request.form.get("630_red"))
+        plastik_270_red = parse_decimal(request.form.get("270_red"))
+        plastik_240_red = parse_decimal(request.form.get("240_red"))
+        plastik_gumcord = parse_decimal(request.form.get("plastik_gumcord"))
+        total_plastik = parse_decimal(request.form.get("total_plastik"))
+        plastik_terbuang = parse_decimal(request.form.get("plastik_terbuang"))
+        plastik_terbuang_cgpotong = parse_decimal(
+            request.form.get("plastik_terbuang_cgpotong")
+        )
+        box_160 = parse_int(request.form.get("box_160"))
+        box_185 = parse_int(request.form.get("box_185"))
+        box_200 = parse_int(request.form.get("box_200"))
+        box_220 = parse_int(request.form.get("box_220"))
+        box_310 = parse_int(request.form.get("box_310"))
+        box_350 = parse_int(request.form.get("box_350"))
+        box_gumcord = parse_int(request.form.get("box_gumcord"))
+        kotak_total = parse_int(request.form.get("total"))
+        kotak_terbuang = parse_int(request.form.get("terbuang"))
+        tp_165 = parse_int(request.form.get("tp_165"))
+        tp_195 = parse_int(request.form.get("tp_195"))
+        tp_210 = parse_int(request.form.get("tp_210"))
+        tp_240 = parse_int(request.form.get("tp_240"))
+        tungkul_total = parse_int(request.form.get("tungkul_total"))
+        tungkul_terbuang = parse_int(request.form.get("tungkul_terbuang"))
+        lakban = parse_int(request.form.get("lakban"))
+        tungkul_items = [tp_165, tp_195, tp_210, tp_240]
+        if any(value is not None for value in tungkul_items):
+            tungkul_total = sum(value or 0 for value in tungkul_items)
 
         max_len = max(
             len(nama_produk_list),
@@ -1700,6 +2969,9 @@ def cushion_gum():
         try:
             conn = get_db_conn()
             ensure_cushion_batch_columns(conn)
+            ensure_pemakaian_plastik_table(conn)
+            ensure_pemakaian_kotak_table(conn)
+            ensure_pemakaian_tungkul_table(conn)
             batch_uid = generate_batch_uid(conn, tanggal_produksi, "CG", "grand_total")
             rows = [row[:-1] + (batch_uid,) for row in rows]
             cur = conn.cursor()
@@ -1775,6 +3047,105 @@ def cushion_gum():
                 ),
             )
 
+            plastik_values = [
+                plastik_230_blue,
+                plastik_210_green,
+                plastik_190_yellow,
+                plastik_630_birupolos,
+                plastik_630_red,
+                plastik_270_red,
+                plastik_240_red,
+                plastik_gumcord,
+                total_plastik,
+                plastik_terbuang,
+                plastik_terbuang_cgpotong,
+            ]
+            if any(value is not None for value in plastik_values):
+                cur.execute(
+                    """
+                    INSERT INTO pemakaian_plastik (
+                        tanggal_produksi,
+                        batch_uid,
+                        "230_blue",
+                        "210_green",
+                        "190_yellow",
+                        "630_birupolos",
+                        "630_red",
+                        "270_red",
+                        "240_red",
+                        plastik_gumcord,
+                        total_plastik,
+                        plastik_terbuang,
+                        plastik_terbuang_cgpotong
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    )
+                    """,
+                    (tanggal_produksi, batch_uid, *plastik_values),
+                )
+
+            kotak_values = [
+                box_160,
+                box_185,
+                box_200,
+                box_220,
+                box_310,
+                box_350,
+                box_gumcord,
+                kotak_total,
+                kotak_terbuang,
+            ]
+            if any(value is not None for value in kotak_values):
+                cur.execute(
+                    """
+                    INSERT INTO pemakaian_kotak (
+                        tanggal_produksi,
+                        batch_uid,
+                        box_160,
+                        box_185,
+                        box_200,
+                        box_220,
+                        box_310,
+                        box_350,
+                        box_gumcord,
+                        total,
+                        terbuang
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    )
+                    """,
+                    (tanggal_produksi, batch_uid, *kotak_values),
+                )
+
+            tungkul_values = [
+                tp_165,
+                tp_195,
+                tp_210,
+                tp_240,
+                tungkul_total,
+                tungkul_terbuang,
+                lakban,
+            ]
+            if any(value is not None for value in tungkul_values):
+                cur.execute(
+                    """
+                    INSERT INTO pemakaian_tungkul (
+                        tanggal_produksi,
+                        batch_uid,
+                        tp_165,
+                        tp_195,
+                        tp_210,
+                        tp_240,
+                        total,
+                        terbuang,
+                        lakban
+                    ) VALUES (
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    )
+                    """,
+                    (tanggal_produksi, batch_uid, *tungkul_values),
+                )
+
             conn.commit()
         except Exception:
             if conn:
@@ -1798,6 +3169,8 @@ def cushion_gum_cord():
     if not tanggal_produksi:
         return "Tanggal produk wajib diisi.", 400
 
+    nama_operator = (request.form.get("nama_operator") or "").strip() or None
+    no_mesin = (request.form.get("no_mesin") or "").strip() or None
     nama_produk = request.form.get("nama_produk")
     order_kotak = parse_int(request.form.get("order_kotak"))
     waktu_awal = request.form.get("waktu_awal") or None
@@ -1814,9 +3187,23 @@ def cushion_gum_cord():
     try:
         conn = get_db_conn()
         cur = conn.cursor()
+        cur.execute(
+            """
+            ALTER TABLE production_gum_cord
+            ADD COLUMN IF NOT EXISTS nama_operator VARCHAR(150)
+            """
+        )
+        cur.execute(
+            """
+            ALTER TABLE production_gum_cord
+            ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
+            """
+        )
         insert_sql = """
             INSERT INTO production_gum_cord (
                 tanggal_produksi,
+                nama_operator,
+                no_mesin,
                 nama_produk,
                 order_kotak,
                 waktu_awal,
@@ -1829,13 +3216,15 @@ def cushion_gum_cord():
                 berat_per_kotak,
                 berat_total
             ) VALUES (
-                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
             )
         """
         cur.execute(
             insert_sql,
             (
                 tanggal_produksi,
+                nama_operator,
+                no_mesin,
                 nama_produk,
                 order_kotak,
                 waktu_awal,
@@ -1858,7 +3247,7 @@ def cushion_gum_cord():
         if conn:
             conn.close()
 
-    return redirect(url_for("cushion_gum", saved="1"))
+    return redirect(url_for("gum_cord", saved="1"))
 
 @app.route("/msc", methods=["GET", "POST"])
 def msc():

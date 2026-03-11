@@ -1,0 +1,39 @@
+.gum-cord-page .content-box {
+    margin-top: 24px;
+}
+
+.gum-cord-header {
+    margin-bottom: 10px;
+}
+
+.gum-cord-header .section-title {
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .gum-cord-header {
+        flex-wrap: nowrap;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .gum-cord-header .section-title {
+        font-size: clamp(16px, 4.6vw, 20px);
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .gum-cord-header .section-actions {
+        width: auto;
+        flex-wrap: nowrap;
+        justify-content: flex-end;
+    }
+
+    .gum-cord-header .save-btn {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+}
