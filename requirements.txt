@@ -1,1 +1,6 @@
--r login_app/requirements.txt
+flask
+gunicorn
+psycopg2-binary
+python-dotenv
+reportlab
+pypdf
