@@ -4,9 +4,12 @@ from decimal import Decimal, InvalidOperation
 from io import BytesIO
 import os
 import psycopg2
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = "secret123"
+app.secret_key = os.getenv("SECRET_KEY", "dev-only-change-me")
 
 # DATA LOGIN
 USERNAME = "admin"

@@ -1,0 +1,1 @@
+-r login_app/requirements.txt
