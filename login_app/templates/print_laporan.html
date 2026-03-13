@@ -4,13 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laporan Produksi Cushion Gum - {{ batch_uid }}</title>
+    {% if inline_css %}
+    <style>{{ inline_css|safe }}</style>
+    {% else %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
+    {% endif %}
 </head>
 <body>
+    {% if show_toolbar is not defined or show_toolbar %}
     <div class="print-toolbar">
-        <button type="button" onclick="window.print()">Cetak / Download PDF</button>
+        <button type="button" onclick="window.print()">Cetak</button>
+        <a href="{{ download_url }}" class="print-toolbar-link">Download PDF</a>
         <button type="button" onclick="window.close()">Tutup</button>
     </div>
+    {% endif %}
 
     {% for page in pages %}
     <div class="sheet {% if not loop.last %}sheet-break{% endif %}">

@@ -189,6 +189,11 @@ td select {
     color: #fff;
 }
 
+.btn-edit:disabled {
+    opacity: 0.7;
+    cursor: wait;
+}
+
 .btn-delete {
     background: #d72638;
     color: #fff;

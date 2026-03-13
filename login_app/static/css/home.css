@@ -81,57 +81,189 @@ body {
     margin: 16px 0 0 0;
 }
 
-.top-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 0;
+.quick-menu {
+    position: relative;
+    flex-shrink: 0;
 }
 
-.report-card {
-    display: inline-flex;
-    flex-direction: column;
-    gap: 3px;
-    min-width: 180px;
+.quick-menu summary {
+    list-style: none;
+}
+
+.quick-menu summary::-webkit-details-marker {
+    display: none;
+}
+
+.quick-menu-trigger {
+    width: 42px;
+    height: 42px;
+    border-radius: 999px;
+    border: 1.5px solid #E4AAB1;
+    background: #FFFFFF;
+    box-shadow: 0 10px 24px rgba(17, 24, 39, 0.06);
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    font-family: inherit;
-    text-align: left;
-    text-decoration: none;
-    background: #ffffff;
-    border: 1px solid #f0b5bb;
-    border-radius: 14px;
-    padding: 9px 12px;
-    box-shadow: 0 5px 12px rgba(17, 24, 39, 0.07);
     transition: 0.25s ease;
 }
 
-.report-card:hover {
-    transform: translateY(-3px);
-    border-color: #d72638;
-    box-shadow: 0 8px 18px rgba(17, 24, 39, 0.12);
+.quick-menu-trigger:hover,
+.quick-menu[open] .quick-menu-trigger {
+    transform: translateY(-2px);
+    border-color: #D72638;
+    box-shadow: 0 14px 28px rgba(215, 38, 56, 0.14);
 }
 
-.report-head {
+.quick-menu-icon {
+    position: relative;
+    width: 22px;
+    height: 18px;
+    display: block;
+}
+
+.quick-menu-chevron {
+    position: absolute;
+    left: 50%;
+    width: 13px;
+    height: 13px;
+    border-top: 2.5px solid #D72638;
+    border-left: 2.5px solid #D72638;
+    transform-origin: center;
+    animation-duration: 0.28s;
+    animation-timing-function: ease;
+    animation-fill-mode: forwards;
+}
+
+.quick-menu-chevron-top {
+    top: 0;
+    transform: translateX(-50%) rotate(45deg);
+    animation-name: quick-menu-close-top;
+}
+
+.quick-menu-chevron-bottom {
+    top: 6px;
+    transform: translateX(-50%) rotate(45deg);
+    animation-name: quick-menu-close-bottom;
+}
+
+.quick-menu[open] .quick-menu-chevron-top {
+    top: -3px;
+    animation-name: quick-menu-open-top;
+}
+
+.quick-menu[open] .quick-menu-chevron-bottom {
+    top: 5px;
+    animation-name: quick-menu-open-bottom;
+}
+
+@keyframes quick-menu-open-top {
+    from {
+        top: 0;
+        transform: translateX(-50%) rotate(45deg);
+    }
+    to {
+        top: -3px;
+        transform: translateX(-50%) rotate(225deg);
+    }
+}
+
+@keyframes quick-menu-open-bottom {
+    from {
+        top: 6px;
+        transform: translateX(-50%) rotate(45deg);
+    }
+    to {
+        top: 4px;
+        transform: translateX(-50%) rotate(225deg);
+    }
+}
+
+@keyframes quick-menu-close-top {
+    from {
+        top: -3px;
+        transform: translateX(-50%) rotate(225deg);
+    }
+    to {
+        top: 0;
+        transform: translateX(-50%) rotate(45deg);
+    }
+}
+
+@keyframes quick-menu-close-bottom {
+    from {
+        top: 4px;
+        transform: translateX(-50%) rotate(225deg);
+    }
+    to {
+        top: 6px;
+        transform: translateX(-50%) rotate(45deg);
+    }
+}
+
+.quick-menu-panel {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    min-width: 220px;
+    padding: 14px;
+    border-radius: 18px;
+    border: 1px solid #E9D5D8;
+    background: #FFFFFF;
+    box-shadow: 0 18px 36px rgba(17, 24, 39, 0.12);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 5;
+}
+
+.quick-menu-label {
+    margin: 0 0 4px 0;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #9A6A73;
+}
+
+.quick-menu-item {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #F1D7DB;
+    border-radius: 12px;
+    background: #FFF8F8;
+    color: #2F3441;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: left;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    cursor: default;
+    text-decoration: none;
+    transition: 0.2s ease;
+    box-sizing: border-box;
 }
 
-.report-icon {
-    color: #d72638;
-    font-size: 14px;
-    line-height: 1;
+.quick-menu-item:hover {
+    border-color: #E4AAB1;
+    background: #FFF1F3;
 }
 
-.report-title {
-    color: #d72638;
-    font-size: 19px;
-    font-weight: 700;
-    line-height: 1.1;
+.quick-menu-item-icon {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #111111;
+    flex-shrink: 0;
 }
 
-.report-subtitle {
-    color: #556070;
-    font-size: 12px;
+.quick-menu-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
 }
 
 /* GRID CARD */
@@ -222,20 +354,18 @@ body {
         margin-top: 16px;
     }
 
-    .top-actions {
-        justify-content: stretch;
-        margin-top: 10px;
-    }
-
-    .report-card {
-        width: 100%;
-        min-width: 0;
-        box-sizing: border-box;
-    }
-
     .hero-row {
         flex-direction: column;
-        gap: 0;
+        align-items: stretch;
+        gap: 14px;
+    }
+
+    .quick-menu {
+        align-self: flex-end;
+    }
+
+    .quick-menu-panel {
+        min-width: 200px;
     }
 
     .card {

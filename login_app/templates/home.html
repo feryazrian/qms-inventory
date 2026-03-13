@@ -31,15 +31,42 @@
                 <h3>Selamat Datang</h3>
                 <p>Pilih menu untuk mulai bekerja.</p>
             </div>
-            <div class="top-actions">
-                <a href="/laporan" class="report-card">
-                    <span class="report-head">
-                        <span class="report-icon" aria-hidden="true">[#]</span>
-                        <span class="report-title">Laporan</span>
+            <details class="quick-menu">
+                <summary class="quick-menu-trigger" aria-label="Buka menu cepat">
+                    <span class="quick-menu-icon" aria-hidden="true">
+                        <span class="quick-menu-chevron quick-menu-chevron-top"></span>
+                        <span class="quick-menu-chevron quick-menu-chevron-bottom"></span>
                     </span>
-                    <span class="report-subtitle">Lihat ringkasan & histori</span>
-                </a>
-            </div>
+                </summary>
+                <div class="quick-menu-panel">
+                    <p class="quick-menu-label">Menu Tambahan</p>
+                    <a href="{{ url_for('item_code') }}" class="quick-menu-item">
+                        <span class="quick-menu-item-icon" aria-hidden="true">
+                            <svg viewBox="0 0 48 48" class="quick-menu-svg" focusable="false">
+                                <path d="M12 6h17l9 9v19a4 4 0 0 1-4 4H12a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4Z" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/>
+                                <path d="M29 6v10h9" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/>
+                                <path d="M16 18h1M16 23h1M16 28h1M16 33h1" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+                                <path d="M21 22h10M21 27h10" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+                                <circle cx="35" cy="35" r="9" fill="#FFFFFF" stroke="currentColor" stroke-width="2.8"/>
+                                <path d="M35 31v8M31 35h8" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/>
+                            </svg>
+                        </span>
+                        <span>Item Code</span>
+                    </a>
+                    <button type="button" class="quick-menu-item">
+                        <span class="quick-menu-item-icon" aria-hidden="true">
+                            <svg viewBox="0 0 48 48" class="quick-menu-svg" focusable="false">
+                                <path d="M16 21v-7a8 8 0 1 1 16 0v7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M20 21v-7a4 4 0 1 1 8 0v7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M14 21h20a4 4 0 0 1 4 4v13a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4V25a4 4 0 0 1 4-4Z" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/>
+                                <path d="M24 27a3.8 3.8 0 0 1 2.1 7v3.2h-4.2V34A3.8 3.8 0 0 1 24 27Z" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linejoin="round"/>
+                                <path d="M19 42l2.7-4.2h4.6L29 42" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                        <span>Akses User</span>
+                    </button>
+                </div>
+            </details>
         </div>
 
         <div class="cards">
@@ -67,8 +94,28 @@
                 <h3>Stock Master Batch</h3>
                 <p>Lihat laporan dan data historis.</p>
             </div>
+
+            <a href="/laporan" class="card">
+                <h3>Laporan Hasil Produksi</h3>
+                <p>Lihat ringkasan & histori.</p>
+            </a>
         </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var quickMenu = document.querySelector('.quick-menu');
+
+            if (!quickMenu) {
+                return;
+            }
+
+            document.addEventListener('click', function (event) {
+                if (quickMenu.hasAttribute('open') && !quickMenu.contains(event.target)) {
+                    quickMenu.removeAttribute('open');
+                }
+            });
+        });
+    </script>
 </body>
 </html>

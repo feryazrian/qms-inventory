@@ -28,7 +28,8 @@ body {
     background: #1f2937;
 }
 
-.print-toolbar button {
+.print-toolbar button,
+.print-toolbar-link {
     border: 0;
     background: #fff;
     color: #111;
@@ -36,6 +37,9 @@ body {
     border-radius: 4px;
     cursor: pointer;
     font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
 }
 
 .sheet {

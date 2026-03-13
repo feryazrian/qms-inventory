@@ -62,10 +62,10 @@
                 </thead>
                 <tbody>
                     {% for row in products %}
-                    <tr>
-                        <td>{{ row[0] }}</td>
-                        <td>{{ row[1] }}</td>
-                        <td>
+                    <tr data-product-row="{{ row[0] }}">
+                        <td class="cell-id">{{ row[0] }}</td>
+                        <td class="cell-name">{{ row[1] }}</td>
+                        <td class="cell-status">
                             {% if row[2] %}
                             <span class="badge active">Aktif</span>
                             {% else %}
@@ -77,13 +77,14 @@
                                 <button
                                     type="button"
                                     class="btn-edit"
+                                    data-row-id="{{ row[0] }}"
                                     data-id="{{ row[0] }}"
                                     data-nama="{{ row[1] }}"
                                     data-aktif="{% if row[2] %}1{% else %}0{% endif %}"
                                     onclick="openEditProduct(this)"
                                 >Edit</button>
                                 <form method="POST" action="/item-code" onsubmit="return confirm('Hapus produk ini?');">
-                                    <input type="hidden" name="id_produk" value="{{ row[0] }}">
+                                    <input type="hidden" name="id_produk" value="{{ row[0] }}" class="delete-id-input">
                                     <button type="submit" name="action" value="delete" class="btn-delete">Hapus</button>
                                 </form>
                             </div>
@@ -102,9 +103,10 @@
 <div id="edit-modal" class="modal-backdrop" hidden>
     <div class="modal-card">
         <h3>Edit Produk</h3>
-        <form method="POST" action="/item-code">
+        <form method="POST" action="/item-code" id="edit-product-form">
             <input type="hidden" name="action" value="edit">
             <input type="hidden" name="id_asal" id="modal-id-asal">
+            <div id="modal-feedback" class="alert error" hidden></div>
 
             <label for="modal-id-produk">ID Produk</label>
             <input id="modal-id-produk" type="number" name="id_produk" required>
@@ -120,7 +122,7 @@
 
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="closeEditModal()">Batal</button>
-                <button type="submit" class="btn-edit">Simpan</button>
+                <button type="submit" class="btn-edit" id="edit-submit-btn">Simpan</button>
             </div>
         </form>
     </div>
@@ -136,6 +138,8 @@ function openEditProduct(buttonEl) {
     document.getElementById("modal-id-produk").value = id;
     document.getElementById("modal-nama-produk").value = nama;
     document.getElementById("modal-aktif").value = aktif;
+    document.getElementById("modal-feedback").hidden = true;
+    document.getElementById("modal-feedback").textContent = "";
 
     modal.hidden = false;
 }
@@ -148,6 +152,62 @@ function closeEditModal() {
 document.getElementById("edit-modal").addEventListener("click", function (e) {
     if (e.target.id === "edit-modal") {
         closeEditModal();
+    }
+});
+
+document.getElementById("edit-product-form").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    const form = e.currentTarget;
+    const submitBtn = document.getElementById("edit-submit-btn");
+    const feedback = document.getElementById("modal-feedback");
+    const formData = new FormData(form);
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Menyimpan...";
+    feedback.hidden = true;
+    feedback.textContent = "";
+
+    try {
+        const response = await fetch(form.action, {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest"
+            }
+        });
+
+        const result = await response.json();
+
+        if (!response.ok || !result.ok) {
+            throw new Error(result.message || "Gagal menyimpan perubahan.");
+        }
+
+        const row = document.querySelector(`[data-product-row="${result.row.id_asal}"]`);
+        if (row) {
+            row.setAttribute("data-product-row", result.row.id_produk);
+            row.querySelector(".cell-id").textContent = result.row.id_produk;
+            row.querySelector(".cell-name").textContent = result.row.nama_produk;
+            row.querySelector(".cell-status").innerHTML = result.row.aktif
+                ? '<span class="badge active">Aktif</span>'
+                : '<span class="badge inactive">Nonaktif</span>';
+
+            const editBtn = row.querySelector(".btn-edit");
+            editBtn.setAttribute("data-row-id", result.row.id_produk);
+            editBtn.setAttribute("data-id", result.row.id_produk);
+            editBtn.setAttribute("data-nama", result.row.nama_produk);
+            editBtn.setAttribute("data-aktif", result.row.aktif ? "1" : "0");
+
+            row.querySelector(".delete-id-input").value = result.row.id_produk;
+        }
+
+        closeEditModal();
+    } catch (error) {
+        feedback.textContent = error.message;
+        feedback.hidden = false;
+    } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "Simpan";
     }
 });
 </script>

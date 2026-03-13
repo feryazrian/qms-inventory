@@ -3,6 +3,8 @@ from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
 import os
+import subprocess
+import tempfile
 import psycopg2
 from dotenv import load_dotenv
 
@@ -2090,6 +2092,318 @@ def build_cushion_pdf_from_template(batch_data):
     return output
 
 
+def build_download_pdf(title, metadata_rows, sections, page_size):
+    try:
+        from reportlab.lib import colors
+        from reportlab.lib.pagesizes import A4, landscape
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.units import mm
+        from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    except Exception as exc:
+        raise RuntimeError(
+            "Library PDF belum terpasang. Jalankan: pip install reportlab pypdf"
+        ) from exc
+
+    buffer = BytesIO()
+    resolved_page_size = landscape(A4) if page_size == "landscape" else A4
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=resolved_page_size,
+        leftMargin=10 * mm,
+        rightMargin=10 * mm,
+        topMargin=10 * mm,
+        bottomMargin=10 * mm,
+    )
+
+    styles = getSampleStyleSheet()
+    title_style = ParagraphStyle(
+        "DownloadTitle",
+        parent=styles["Heading1"],
+        fontName="Helvetica-Bold",
+        fontSize=14,
+        leading=18,
+        spaceAfter=8,
+    )
+    heading_style = ParagraphStyle(
+        "SectionHeading",
+        parent=styles["Heading2"],
+        fontName="Helvetica-Bold",
+        fontSize=10,
+        leading=12,
+        textColor=colors.HexColor("#b91c1c"),
+        spaceAfter=6,
+        spaceBefore=8,
+    )
+    body_style = ParagraphStyle(
+        "BodyTextCompact",
+        parent=styles["BodyText"],
+        fontName="Helvetica",
+        fontSize=8,
+        leading=10,
+    )
+
+    story = [Paragraph(title, title_style)]
+
+    if metadata_rows:
+        metadata_table = Table(
+            [[Paragraph(f"<b>{label}</b>", body_style), Paragraph(value or "-", body_style)] for label, value in metadata_rows],
+            colWidths=[45 * mm, doc.width - (45 * mm)],
+        )
+        metadata_table.setStyle(
+            TableStyle(
+                [
+                    ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#111827")),
+                    ("INNERGRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#d1d5db")),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#f3f4f6")),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 6),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+                    ("TOPPADDING", (0, 0), (-1, -1), 5),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+                ]
+            )
+        )
+        story.extend([metadata_table, Spacer(1, 8)])
+
+    for section in sections:
+        story.append(Paragraph(section["title"], heading_style))
+        table = Table(section["rows"], repeatRows=1)
+        table.setStyle(
+            TableStyle(
+                [
+                    ("BOX", (0, 0), (-1, -1), 0.6, colors.HexColor("#111827")),
+                    ("INNERGRID", (0, 0), (-1, -1), 0.35, colors.HexColor("#cbd5e1")),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#fee2e2")),
+                    ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                    ("FONTSIZE", (0, 0), (-1, -1), section.get("font_size", 7)),
+                    ("LEADING", (0, 0), (-1, -1), section.get("leading", 9)),
+                    ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                    ("LEFTPADDING", (0, 0), (-1, -1), 4),
+                    ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+                    ("TOPPADDING", (0, 0), (-1, -1), 4),
+                    ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+                ]
+            )
+        )
+        story.extend([table, Spacer(1, 8)])
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
+
+
+def build_combined_laporan_download_pdf(cushion_result, gum_cord_row, batch_uid_label):
+    header = (cushion_result or {}).get("header") or ()
+    details = (cushion_result or {}).get("details") or []
+    plastik = (cushion_result or {}).get("plastik")
+    kotak = (cushion_result or {}).get("kotak")
+    tungkul = (cushion_result or {}).get("tungkul")
+
+    tanggal_obj = header[1] if len(header) > 1 and header[1] else (gum_cord_row or {}).get("tanggal_produksi")
+    tanggal = tanggal_obj.strftime("%d-%m-%Y") if tanggal_obj else "-"
+    nama_operator = (header[2] if len(header) > 2 and header[2] else (gum_cord_row or {}).get("nama_operator")) or "-"
+    no_mesin = (header[3] if len(header) > 3 and header[3] else (gum_cord_row or {}).get("no_mesin")) or "-"
+
+    cushion_rows = [[
+        "Nama Produk", "Order", "Awal", "Akhir", "Line", "Pakai",
+        "Target/mnt", "Target", "Aktual", "%", "Per Roll", "Berat",
+    ]]
+    for row in details:
+        cushion_rows.append(
+            [
+                format_product_name_for_print((row[0] or "") if len(row) > 0 else "").replace("\n", " "),
+                format_number_display(row[1] if len(row) > 1 else None),
+                row[2].strftime("%H:%M") if len(row) > 2 and row[2] else "-",
+                row[3].strftime("%H:%M") if len(row) > 3 and row[3] else "-",
+                format_number_display(row[4] if len(row) > 4 else None),
+                format_number_display(row[5] if len(row) > 5 else None),
+                format_number_display(row[6] if len(row) > 6 else None),
+                format_number_display(row[7] if len(row) > 7 else None),
+                format_number_display(row[8] if len(row) > 8 else None),
+                format_number_display(row[9] if len(row) > 9 else None),
+                format_number_display(row[10] if len(row) > 10 else None),
+                format_number_display(row[11] if len(row) > 11 else None),
+            ]
+        )
+    if len(cushion_rows) == 1:
+        cushion_rows.append(["-"] * 12)
+
+    helper_rows = [
+        ["Komponen", "Nilai"],
+        ["Plastik Total", format_number_display(plastik[8] if plastik else None)],
+        ["Plastik Terbuang", format_number_display(plastik[9] if plastik else None)],
+        ["Plastik Rework CG Potong", format_number_display(plastik[10] if plastik else None)],
+        ["Kotak Total", format_number_display(kotak[7] if kotak else None)],
+        ["Kotak Terbuang", format_number_display(kotak[8] if kotak else None)],
+        ["Tungkul Total", format_number_display(tungkul[4] if tungkul else None)],
+        ["Tungkul Terbuang", format_number_display(tungkul[5] if tungkul else None)],
+        ["Lakban", format_number_display(tungkul[6] if tungkul else None)],
+    ]
+
+    gum_cord_rows = [[
+        "Nama Produk", "Order", "Awal", "Akhir", "Pakai", "Target/mnt",
+        "Target", "Aktual", "%", "Berat/Kotak", "Berat Total",
+    ]]
+    gum_cord_rows.append(
+        [
+            (gum_cord_row or {}).get("nama_produk") or "Gum Cord",
+            format_number_display((gum_cord_row or {}).get("order_kotak")),
+            ((gum_cord_row or {}).get("waktu_awal").strftime("%H:%M") if (gum_cord_row or {}).get("waktu_awal") else "-"),
+            ((gum_cord_row or {}).get("waktu_akhir").strftime("%H:%M") if (gum_cord_row or {}).get("waktu_akhir") else "-"),
+            format_number_display((gum_cord_row or {}).get("pakai_menit")),
+            format_number_display((gum_cord_row or {}).get("target_per_menit")),
+            format_number_display((gum_cord_row or {}).get("target_total")),
+            format_number_display((gum_cord_row or {}).get("aktual_kotak")),
+            format_number_display((gum_cord_row or {}).get("persentase")),
+            format_number_display((gum_cord_row or {}).get("berat_per_kotak")),
+            format_number_display((gum_cord_row or {}).get("berat_total")),
+        ]
+    )
+
+    metadata_rows = [
+        ("Batch UID", batch_uid_label or "-"),
+        ("Tanggal", tanggal),
+        ("Nama Operator", nama_operator),
+        ("No. Mesin", no_mesin),
+        ("Total Target", format_number_display(header[4] if len(header) > 4 else None)),
+        ("Total Aktual", format_number_display(header[5] if len(header) > 5 else None)),
+        ("Total Persentase", format_number_display(header[6] if len(header) > 6 else None)),
+        ("Total Berat", format_number_display(header[7] if len(header) > 7 else None)),
+    ]
+
+    return build_download_pdf(
+        "Laporan Produksi Harian CG dan Pemakaian Bahan Penolong",
+        metadata_rows,
+        [
+            {"title": "A. Hasil Produksi Cushion Gum", "rows": cushion_rows, "font_size": 6.5},
+            {"title": "B. Ringkasan Bahan Penolong", "rows": helper_rows, "font_size": 8},
+            {"title": "C. Hasil Produksi Gum Cord", "rows": gum_cord_rows, "font_size": 7},
+        ],
+        page_size="landscape",
+    )
+
+
+def build_msc_download_pdf(result, batch_uid):
+    header = result.get("header") or ()
+    details = result.get("details") or []
+
+    tanggal_obj = header[1] if len(header) > 1 and header[1] else None
+    tanggal = tanggal_obj.strftime("%d-%m-%Y") if tanggal_obj else "-"
+
+    metadata_rows = [
+        ("Batch UID", batch_uid or "-"),
+        ("Tanggal", tanggal),
+        ("Nama Operator", (header[2] or "-") if len(header) > 2 else "-"),
+        ("No. Mesin", (header[3] or "-") if len(header) > 3 else "-"),
+        ("Regu", (header[4] or "-") if len(header) > 4 else "-"),
+        ("Total Pakai Menit", format_number_display(header[5] if len(header) > 5 else None)),
+        ("Total Target", format_number_display(header[6] if len(header) > 6 else None)),
+        ("Total Aktual", format_number_display(header[7] if len(header) > 7 else None)),
+        ("Total Persentase", format_number_display(header[8] if len(header) > 8 else None)),
+    ]
+
+    msc_rows = [[
+        "Nama Bahan", "Jam Awal", "Jam Akhir", "Pakai", "Target/mnt", "Target",
+        "Aktual", "%", "Obat Timbang", "Obat Sisa", "Keterangan",
+    ]]
+    for row in details:
+        msc_rows.append(
+            [
+                row[0] or "-",
+                row[1].strftime("%H:%M") if len(row) > 1 and row[1] else "-",
+                row[2].strftime("%H:%M") if len(row) > 2 and row[2] else "-",
+                format_number_display(row[3] if len(row) > 3 else None),
+                format_number_display(row[4] if len(row) > 4 else None),
+                format_number_display(row[5] if len(row) > 5 else None),
+                format_number_display(row[6] if len(row) > 6 else None),
+                format_number_display(row[7] if len(row) > 7 else None),
+                format_number_display(row[8] if len(row) > 8 else None),
+                format_number_display(row[9] if len(row) > 9 else None),
+                row[10] or "-",
+            ]
+        )
+    if len(msc_rows) == 1:
+        msc_rows.append(["-"] * 11)
+
+    return build_download_pdf(
+        "Laporan Produksi Harian MSC",
+        metadata_rows,
+        [{"title": "Hasil Produksi MSC", "rows": msc_rows, "font_size": 7}],
+        page_size="landscape",
+    )
+
+
+def load_static_css(filename):
+    css_path = os.path.join(app.root_path, "static", "css", filename)
+    with open(css_path, "r", encoding="utf-8") as css_file:
+        return css_file.read()
+
+
+def find_pdf_browser_executable():
+    candidates = [
+        os.environ.get("CHROME_PATH"),
+        os.environ.get("EDGE_PATH"),
+        r"C:\Program Files\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe",
+        r"C:\Program Files\Microsoft\Edge\Application\msedge.exe",
+        r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
+    ]
+    for candidate in candidates:
+        if candidate and os.path.exists(candidate):
+            return candidate
+    return None
+
+
+def render_template_to_pdf_bytes(template_name, context, css_filename):
+    browser_path = find_pdf_browser_executable()
+    if not browser_path:
+        raise RuntimeError(
+            "Browser untuk generate PDF tidak ditemukan. Pastikan Chrome atau Edge terpasang di lokasi default."
+        )
+
+    html_context = dict(context)
+    html_context["inline_css"] = load_static_css(css_filename)
+    html_context["show_toolbar"] = False
+    html = render_template(template_name, **html_context)
+
+    html_file = None
+    pdf_file = None
+    try:
+        with tempfile.NamedTemporaryFile("w", suffix=".html", delete=False, encoding="utf-8") as html_handle:
+            html_handle.write(html)
+            html_file = html_handle.name
+
+        with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as pdf_handle:
+            pdf_file = pdf_handle.name
+
+        subprocess.run(
+            [
+                browser_path,
+                "--headless=new",
+                "--disable-gpu",
+                "--allow-file-access-from-files",
+                "--no-pdf-header-footer",
+                f"--print-to-pdf={pdf_file}",
+                html_file,
+            ],
+            check=True,
+            timeout=90,
+        )
+
+        with open(pdf_file, "rb") as result_file:
+            pdf_bytes = result_file.read()
+        return BytesIO(pdf_bytes)
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError("Gagal membuat PDF dari template print.") from exc
+    finally:
+        for temp_path in [html_file, pdf_file]:
+            if temp_path and os.path.exists(temp_path):
+                try:
+                    os.remove(temp_path)
+                except OSError:
+                    pass
+
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -2142,6 +2456,7 @@ def item_code():
 
     notice = ""
     error = ""
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     if request.method == "POST":
         action = (request.form.get("action") or "add").strip().lower()
@@ -2192,6 +2507,18 @@ def item_code():
                             (id_baru, nama_produk, aktif, id_asal),
                         )
                         notice = "Produk berhasil diperbarui."
+                        if is_ajax:
+                            response_payload = {
+                                "ok": True,
+                                "notice": notice,
+                                "row": {
+                                    "id_asal": id_asal,
+                                    "id_produk": id_baru,
+                                    "nama_produk": nama_produk,
+                                    "aktif": aktif,
+                                    "aktif_label": "Aktif" if aktif else "Nonaktif",
+                                },
+                            }
 
             else:
                 nama_produk = (request.form.get("nama_produk") or "").strip()
@@ -2231,12 +2558,18 @@ def item_code():
 
             if not error:
                 conn.commit()
+                if is_ajax and action == "edit":
+                    return jsonify(response_payload)
                 return redirect(url_for("item_code", notice=notice))
             conn.rollback()
+            if is_ajax and action == "edit":
+                return jsonify({"ok": False, "message": error}), 400
         except Exception as e:
             if conn:
                 conn.rollback()
             error = f"Gagal menyimpan produk: {e}"
+            if is_ajax and action == "edit":
+                return jsonify({"ok": False, "message": error}), 500
         finally:
             if conn:
                 conn.close()
@@ -2409,7 +2742,7 @@ def fetch_latest_cushion_batch_uid_by_date(tanggal_produksi):
             conn.close()
 
 
-def render_print_laporan_combined(cushion_result, gum_cord_row, batch_uid_label):
+def build_print_laporan_combined_context(cushion_result, gum_cord_row, batch_uid_label, download_url):
     header = (cushion_result or {}).get("header") or ()
     details = (cushion_result or {}).get("details") or []
     plastik = (cushion_result or {}).get("plastik")
@@ -2540,69 +2873,36 @@ def render_print_laporan_combined(cushion_result, gum_cord_row, batch_uid_label)
         "lakban": format_number_display(tungkul[6] if tungkul else None),
     }
 
-    return render_template(
-        "print_laporan.html",
-        batch_uid=batch_uid_label or "-",
-        nama_operator=nama_operator,
-        no_mesin=no_mesin,
-        tanggal=tanggal,
-        hari_tanggal=hari_tanggal,
-        pages=pages,
-        total_target=total_target,
-        total_aktual=total_aktual,
-        total_persen=total_persen,
-        total_berat=total_berat,
-        plastik=plastik_print,
-        kotak=kotak_print,
-        tungkul=tungkul_print,
-        gum_cord=gum_cord_print,
+    return {
+        "download_url": download_url,
+        "batch_uid": batch_uid_label or "-",
+        "nama_operator": nama_operator,
+        "no_mesin": no_mesin,
+        "tanggal": tanggal,
+        "hari_tanggal": hari_tanggal,
+        "pages": pages,
+        "total_target": total_target,
+        "total_aktual": total_aktual,
+        "total_persen": total_persen,
+        "total_berat": total_berat,
+        "plastik": plastik_print,
+        "kotak": kotak_print,
+        "tungkul": tungkul_print,
+        "gum_cord": gum_cord_print,
+    }
+
+
+def render_print_laporan_combined(cushion_result, gum_cord_row, batch_uid_label, download_url):
+    context = build_print_laporan_combined_context(
+        cushion_result,
+        gum_cord_row,
+        batch_uid_label,
+        download_url,
     )
+    return render_template("print_laporan.html", **context)
 
 
-@app.route("/laporan/cushion-gum/cetak/<batch_uid>", methods=["GET"])
-def laporan_cushion_cetak(batch_uid):
-    if "user" not in session:
-        return redirect(url_for("login"))
-
-    result = fetch_cushion_batch(batch_uid)
-    if not result:
-        return "Data batch Cushion Gum tidak ditemukan.", 404
-    header = result.get("header") or ()
-    tanggal_produksi = header[1] if len(header) > 1 else None
-    gum_cord_row = fetch_latest_gum_cord_by_date(tanggal_produksi) if tanggal_produksi else None
-    return render_print_laporan_combined(result, gum_cord_row, batch_uid)
-
-
-@app.route("/laporan/gum-cord/cetak/<row_token>", methods=["GET"])
-def laporan_gum_cord_cetak(row_token):
-    if "user" not in session:
-        return redirect(url_for("login"))
-
-    gum_cord_row = fetch_gum_cord_by_row_token(row_token)
-    if not gum_cord_row:
-        return "Data Gum Cord tidak ditemukan.", 404
-
-    tanggal_produksi = gum_cord_row.get("tanggal_produksi")
-    cushion_result = None
-    batch_uid = "-"
-    if tanggal_produksi:
-        batch_uid_by_date = fetch_latest_cushion_batch_uid_by_date(tanggal_produksi)
-        if batch_uid_by_date:
-            cushion_result = fetch_cushion_batch(batch_uid_by_date)
-            batch_uid = batch_uid_by_date
-
-    return render_print_laporan_combined(cushion_result, gum_cord_row, batch_uid)
-
-
-@app.route("/laporan/msc/cetak/<batch_uid>", methods=["GET"])
-def laporan_msc_cetak(batch_uid):
-    if "user" not in session:
-        return redirect(url_for("login"))
-
-    result = fetch_msc_batch(batch_uid)
-    if not result:
-        return "Data batch MSC tidak ditemukan.", 404
-
+def build_print_laporan_msc_context(result, batch_uid, download_url):
     header = result.get("header") or ()
     details = result.get("details") or []
 
@@ -2626,19 +2926,20 @@ def laporan_msc_cetak(batch_uid):
     for row in details:
         rows.append(
             {
-                "nama_bahan": (row[0] or "") if len(row) > 0 else "",
-                "jam_awal": row[1].strftime("%H:%M") if len(row) > 1 and row[1] else "",
-                "jam_akhir": row[2].strftime("%H:%M") if len(row) > 2 and row[2] else "",
-                "pakai_menit": format_number_display(row[3] if len(row) > 3 else None),
+                "nama_bahan": row[0] or "",
+                "jam_awal": row[1].strftime("%H:%M") if row[1] else "",
+                "jam_akhir": row[2].strftime("%H:%M") if row[2] else "",
+                "pakai_menit": row[3] if row[3] is not None else "",
                 "target_per_menit": format_number_display(row[4] if len(row) > 4 else None),
                 "target_total": format_number_display(row[5] if len(row) > 5 else None),
                 "aktual_batch": format_number_display(row[6] if len(row) > 6 else None),
                 "persentase": format_number_display(row[7] if len(row) > 7 else None),
                 "obat_timbang": format_number_display(row[8] if len(row) > 8 else None),
                 "obat_sisa": format_number_display(row[9] if len(row) > 9 else None),
-                "keterangan": (row[10] or "") if len(row) > 10 else "",
+                "keterangan": row[10] or "",
             }
         )
+
     max_rows = 12
     if len(rows) < max_rows:
         rows.extend(
@@ -2662,19 +2963,151 @@ def laporan_msc_cetak(batch_uid):
     else:
         rows = rows[:max_rows]
 
-    return render_template(
-        "print_laporan_msc.html",
-        batch_uid=batch_uid,
-        nama_operator=(header[2] or "") if len(header) > 2 else "",
-        no_mesin=(header[3] or "") if len(header) > 3 else "",
-        regu=(header[4] or "") if len(header) > 4 else "",
-        tanggal=tanggal,
-        hari_tanggal=hari_tanggal,
-        rows=rows,
-        total_pakai_menit=format_number_display(header[5] if len(header) > 5 else None),
-        total_target=format_number_display(header[6] if len(header) > 6 else None),
-        total_aktual=format_number_display(header[7] if len(header) > 7 else None),
-        total_persen=format_number_display(header[8] if len(header) > 8 else None),
+    return {
+        "download_url": download_url,
+        "batch_uid": batch_uid,
+        "nama_operator": (header[2] or "") if len(header) > 2 else "",
+        "no_mesin": (header[3] or "") if len(header) > 3 else "",
+        "regu": (header[4] or "") if len(header) > 4 else "",
+        "tanggal": tanggal,
+        "hari_tanggal": hari_tanggal,
+        "rows": rows,
+        "total_pakai_menit": format_number_display(header[5] if len(header) > 5 else None),
+        "total_target": format_number_display(header[6] if len(header) > 6 else None),
+        "total_aktual": format_number_display(header[7] if len(header) > 7 else None),
+        "total_persen": format_number_display(header[8] if len(header) > 8 else None),
+    }
+
+
+@app.route("/laporan/cushion-gum/cetak/<batch_uid>", methods=["GET"])
+def laporan_cushion_cetak(batch_uid):
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    result = fetch_cushion_batch(batch_uid)
+    if not result:
+        return "Data batch Cushion Gum tidak ditemukan.", 404
+    header = result.get("header") or ()
+    tanggal_produksi = header[1] if len(header) > 1 else None
+    gum_cord_row = fetch_latest_gum_cord_by_date(tanggal_produksi) if tanggal_produksi else None
+    return render_print_laporan_combined(
+        result,
+        gum_cord_row,
+        batch_uid,
+        url_for("laporan_cushion_download", batch_uid=batch_uid),
+    )
+
+
+@app.route("/laporan/gum-cord/cetak/<row_token>", methods=["GET"])
+def laporan_gum_cord_cetak(row_token):
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    gum_cord_row = fetch_gum_cord_by_row_token(row_token)
+    if not gum_cord_row:
+        return "Data Gum Cord tidak ditemukan.", 404
+
+    tanggal_produksi = gum_cord_row.get("tanggal_produksi")
+    cushion_result = None
+    batch_uid = "-"
+    if tanggal_produksi:
+        batch_uid_by_date = fetch_latest_cushion_batch_uid_by_date(tanggal_produksi)
+        if batch_uid_by_date:
+            cushion_result = fetch_cushion_batch(batch_uid_by_date)
+            batch_uid = batch_uid_by_date
+
+    return render_print_laporan_combined(
+        cushion_result,
+        gum_cord_row,
+        batch_uid,
+        url_for("laporan_gum_cord_download", row_token=row_token),
+    )
+
+
+@app.route("/laporan/cushion-gum/download/<batch_uid>", methods=["GET"])
+def laporan_cushion_download(batch_uid):
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    result = fetch_cushion_batch(batch_uid)
+    if not result:
+        return "Data batch Cushion Gum tidak ditemukan.", 404
+
+    header = result.get("header") or ()
+    tanggal_produksi = header[1] if len(header) > 1 else None
+    gum_cord_row = fetch_latest_gum_cord_by_date(tanggal_produksi) if tanggal_produksi else None
+    context = build_print_laporan_combined_context(result, gum_cord_row, batch_uid, "")
+    pdf_buffer = render_template_to_pdf_bytes("print_laporan.html", context, "print.css")
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"laporan-cushion-gum-{batch_uid}.pdf",
+    )
+
+
+@app.route("/laporan/gum-cord/download/<row_token>", methods=["GET"])
+def laporan_gum_cord_download(row_token):
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    gum_cord_row = fetch_gum_cord_by_row_token(row_token)
+    if not gum_cord_row:
+        return "Data Gum Cord tidak ditemukan.", 404
+
+    tanggal_produksi = gum_cord_row.get("tanggal_produksi")
+    cushion_result = None
+    batch_uid = "-"
+    if tanggal_produksi:
+        batch_uid_by_date = fetch_latest_cushion_batch_uid_by_date(tanggal_produksi)
+        if batch_uid_by_date:
+            cushion_result = fetch_cushion_batch(batch_uid_by_date)
+            batch_uid = batch_uid_by_date
+
+    context = build_print_laporan_combined_context(cushion_result, gum_cord_row, batch_uid, "")
+    pdf_buffer = render_template_to_pdf_bytes("print_laporan.html", context, "print.css")
+    safe_token = row_token.replace("(", "").replace(")", "").replace(",", "-")
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"laporan-gum-cord-{safe_token}.pdf",
+    )
+
+
+@app.route("/laporan/msc/cetak/<batch_uid>", methods=["GET"])
+def laporan_msc_cetak(batch_uid):
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    result = fetch_msc_batch(batch_uid)
+    if not result:
+        return "Data batch MSC tidak ditemukan.", 404
+
+    context = build_print_laporan_msc_context(
+        result,
+        batch_uid,
+        url_for("laporan_msc_download", batch_uid=batch_uid),
+    )
+    return render_template("print_laporan_msc.html", **context)
+
+
+@app.route("/laporan/msc/download/<batch_uid>", methods=["GET"])
+def laporan_msc_download(batch_uid):
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    result = fetch_msc_batch(batch_uid)
+    if not result:
+        return "Data batch MSC tidak ditemukan.", 404
+
+    context = build_print_laporan_msc_context(result, batch_uid, "")
+    pdf_buffer = render_template_to_pdf_bytes("print_laporan_msc.html", context, "print_msc.css")
+    return send_file(
+        pdf_buffer,
+        mimetype="application/pdf",
+        as_attachment=True,
+        download_name=f"laporan-msc-{batch_uid}.pdf",
     )
 
 
