@@ -75,10 +75,21 @@ def get_connection():
     return psycopg2.connect(**DB_CONFIG)
 
 
+def ensure_master_produk_columns(conn):
+    cur = conn.cursor()
+    cur.execute(
+        """
+        ALTER TABLE master_produk
+        ADD COLUMN IF NOT EXISTS kode_produk VARCHAR(100)
+        """
+    )
+
+
 def fetch_master_produk():
     conn = None
     try:
         conn = get_db_conn()
+        ensure_master_produk_columns(conn)
         cur = conn.cursor()
         cur.execute(
             """
@@ -98,10 +109,11 @@ def fetch_master_produk_all():
     conn = None
     try:
         conn = get_db_conn()
+        ensure_master_produk_columns(conn)
         cur = conn.cursor()
         cur.execute(
             """
-            SELECT id, nama_produk, aktif
+            SELECT id, kode_produk, nama_produk, aktif
             FROM master_produk
             ORDER BY aktif DESC, nama_produk ASC
             """
@@ -2451,18 +2463,25 @@ def gum_cord():
 
 @app.route("/item-code", methods=["GET", "POST"])
 def item_code():
+    is_ajax = (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or (request.form.get("ajax") or "").strip() == "1"
+        or "application/json" in (request.headers.get("Accept") or "")
+    )
     if "user" not in session:
+        if is_ajax:
+            return jsonify({"ok": False, "message": "Session berakhir. Silakan login lagi."}), 401
         return redirect(url_for("login"))
 
     notice = ""
     error = ""
-    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
 
     if request.method == "POST":
         action = (request.form.get("action") or "add").strip().lower()
         conn = None
         try:
             conn = get_db_conn()
+            ensure_master_produk_columns(conn)
             cur = conn.cursor()
 
             if action == "delete":
@@ -2475,12 +2494,14 @@ def item_code():
 
             elif action == "edit":
                 id_asal = parse_int(request.form.get("id_asal"))
-                id_baru = parse_int(request.form.get("id_produk"))
+                kode_produk = (request.form.get("kode_produk") or "").strip()
                 nama_produk = (request.form.get("nama_produk") or "").strip()
                 aktif = (request.form.get("aktif") or "").strip() == "1"
 
-                if id_asal is None or id_baru is None:
+                if id_asal is None:
                     error = "ID produk tidak valid."
+                elif not kode_produk:
+                    error = "Kode produk wajib diisi."
                 elif not nama_produk:
                     error = "Nama produk wajib diisi."
                 else:
@@ -2500,32 +2521,65 @@ def item_code():
                     else:
                         cur.execute(
                             """
-                            UPDATE master_produk
-                            SET id = %s, nama_produk = %s, aktif = %s
-                            WHERE id = %s
+                            SELECT id
+                            FROM master_produk
+                            WHERE LOWER(TRIM(kode_produk)) = LOWER(TRIM(%s))
+                              AND id <> %s
+                            LIMIT 1
                             """,
-                            (id_baru, nama_produk, aktif, id_asal),
+                            (kode_produk, id_asal),
                         )
-                        notice = "Produk berhasil diperbarui."
-                        if is_ajax:
-                            response_payload = {
-                                "ok": True,
-                                "notice": notice,
-                                "row": {
-                                    "id_asal": id_asal,
-                                    "id_produk": id_baru,
-                                    "nama_produk": nama_produk,
-                                    "aktif": aktif,
-                                    "aktif_label": "Aktif" if aktif else "Nonaktif",
-                                },
-                            }
+                        duplicate_code = cur.fetchone()
+                        if duplicate_code:
+                            error = "Kode produk sudah dipakai produk lain."
+
+                if not error:
+                    cur.execute(
+                        """
+                        UPDATE master_produk
+                        SET kode_produk = %s, nama_produk = %s, aktif = %s
+                        WHERE id = %s
+                        """,
+                        (kode_produk, nama_produk, aktif, id_asal),
+                    )
+                    notice = "Produk berhasil diperbarui."
+                    if is_ajax:
+                        response_payload = {
+                            "ok": True,
+                            "notice": notice,
+                            "row": {
+                                "id_asal": id_asal,
+                                "id_produk": id_asal,
+                                "kode_produk": kode_produk,
+                                "nama_produk": nama_produk,
+                                "aktif": aktif,
+                                "aktif_label": "Aktif" if aktif else "Nonaktif",
+                            },
+                        }
 
             else:
+                kode_produk = (request.form.get("kode_produk") or "").strip()
                 nama_produk = (request.form.get("nama_produk") or "").strip()
                 aktif = (request.form.get("aktif") or "").strip() == "1"
-                if not nama_produk:
+                if not kode_produk:
+                    error = "Kode produk wajib diisi."
+                elif not nama_produk:
                     error = "Nama produk wajib diisi."
                 else:
+                    cur.execute(
+                        """
+                        SELECT id
+                        FROM master_produk
+                        WHERE LOWER(TRIM(kode_produk)) = LOWER(TRIM(%s))
+                        LIMIT 1
+                        """,
+                        (kode_produk,),
+                    )
+                    duplicate_code = cur.fetchone()
+                    if duplicate_code:
+                        error = "Kode produk sudah dipakai."
+
+                if not error:
                     cur.execute(
                         """
                         SELECT id, aktif
@@ -2540,19 +2594,19 @@ def item_code():
                         cur.execute(
                             """
                             UPDATE master_produk
-                            SET nama_produk = %s, aktif = %s
+                            SET kode_produk = %s, nama_produk = %s, aktif = %s
                             WHERE id = %s
                             """,
-                            (nama_produk, aktif, existing[0]),
+                            (kode_produk, nama_produk, aktif, existing[0]),
                         )
                         notice = "Produk sudah ada. Data diperbarui."
                     else:
                         cur.execute(
                             """
-                            INSERT INTO master_produk (nama_produk, aktif)
-                            VALUES (%s, %s)
+                            INSERT INTO master_produk (kode_produk, nama_produk, aktif)
+                            VALUES (%s, %s, %s)
                             """,
-                            (nama_produk, aktif),
+                            (kode_produk, nama_produk, aktif),
                         )
                         notice = "Produk baru berhasil ditambahkan."
 
@@ -2586,6 +2640,89 @@ def item_code():
         error=error,
         user=session["user"],
     )
+
+
+@app.route("/item-code/edit-ajax", methods=["POST"])
+def item_code_edit_ajax():
+    if "user" not in session:
+        return jsonify({"ok": False, "message": "Session berakhir. Silakan login lagi."}), 401
+
+    id_asal = parse_int(request.form.get("id_asal"))
+    kode_produk = (request.form.get("kode_produk") or "").strip()
+    nama_produk = (request.form.get("nama_produk") or "").strip()
+    aktif = (request.form.get("aktif") or "").strip() == "1"
+
+    if id_asal is None:
+        return jsonify({"ok": False, "message": "ID produk tidak valid."}), 400
+    if not kode_produk:
+        return jsonify({"ok": False, "message": "Kode produk wajib diisi."}), 400
+    if not nama_produk:
+        return jsonify({"ok": False, "message": "Nama produk wajib diisi."}), 400
+
+    conn = None
+    try:
+        conn = get_db_conn()
+        ensure_master_produk_columns(conn)
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            SELECT id
+            FROM master_produk
+            WHERE LOWER(TRIM(nama_produk)) = LOWER(TRIM(%s))
+              AND id <> %s
+            LIMIT 1
+            """,
+            (nama_produk, id_asal),
+        )
+        duplicate_name = cur.fetchone()
+        if duplicate_name:
+            return jsonify({"ok": False, "message": "Nama produk sudah dipakai produk lain."}), 400
+
+        cur.execute(
+            """
+            SELECT id
+            FROM master_produk
+            WHERE LOWER(TRIM(kode_produk)) = LOWER(TRIM(%s))
+              AND id <> %s
+            LIMIT 1
+            """,
+            (kode_produk, id_asal),
+        )
+        duplicate_code = cur.fetchone()
+        if duplicate_code:
+            return jsonify({"ok": False, "message": "Kode produk sudah dipakai produk lain."}), 400
+
+        cur.execute(
+            """
+            UPDATE master_produk
+            SET kode_produk = %s, nama_produk = %s, aktif = %s
+            WHERE id = %s
+            """,
+            (kode_produk, nama_produk, aktif, id_asal),
+        )
+        conn.commit()
+
+        return jsonify(
+            {
+                "ok": True,
+                "notice": "Produk berhasil diperbarui.",
+                "row": {
+                    "id_asal": id_asal,
+                    "kode_produk": kode_produk,
+                    "nama_produk": nama_produk,
+                    "aktif": aktif,
+                    "aktif_label": "Aktif" if aktif else "Nonaktif",
+                },
+            }
+        )
+    except Exception as e:
+        if conn:
+            conn.rollback()
+        return jsonify({"ok": False, "message": f"Gagal menyimpan produk: {e}"}), 500
+    finally:
+        if conn:
+            conn.close()
 
 
 @app.route("/laporan")

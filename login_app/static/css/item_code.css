@@ -30,18 +30,42 @@
     padding: 10px 12px;
     margin-bottom: 14px;
     font-size: 14px;
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
 }
 
 .alert.success {
     background: #e7f7ee;
     border: 1px solid #8dd3a9;
     color: #21653a;
+    animation: alert-enter 0.35s ease;
 }
 
 .alert.error {
     background: #fdecec;
     border: 1px solid #f0a7a7;
     color: #8a1f1f;
+}
+
+.alert.is-fading {
+    opacity: 0;
+    transform: translateY(-6px);
+    filter: blur(2px);
+    transition: opacity 0.7s ease, transform 0.7s ease, filter 0.7s ease;
+}
+
+@keyframes alert-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+        filter: blur(3px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
 }
 
 .form-card,
@@ -55,11 +79,12 @@
 
 .field-row {
     display: grid;
-    grid-template-columns: 1fr 160px;
+    grid-template-columns: 160px 1fr 200px;
     gap: 12px;
     margin-bottom: 12px;
 }
 
+.field-code,
 .field-grow,
 .field-check {
     display: flex;
@@ -67,6 +92,7 @@
     gap: 6px;
 }
 
+.field-code input,
 .field-grow input,
 .field-check select {
     height: 38px;
@@ -116,7 +142,7 @@ th {
 
 th:nth-child(1),
 td:nth-child(1) {
-    width: 70px;
+    width: 180px;
 }
 
 th:nth-child(3),
