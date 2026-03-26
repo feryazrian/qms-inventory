@@ -131,14 +131,27 @@
             <label for="modal-kode-produk">Kode Produk</label>
             <input id="modal-kode-produk" type="text" name="kode_produk" required>
 
-            <label for="modal-nama-produk">Nama Produk</label>
+            <label for="modal-nama-produk">Item Produk</label>
             <input id="modal-nama-produk" type="text" name="nama_produk" required>
 
-            <label for="modal-aktif">Status</label>
-            <select id="modal-aktif" name="aktif">
-                <option value="1">Aktif</option>
-                <option value="0">Nonaktif</option>
-            </select>
+            <label for="modal-aktif-trigger">Status</label>
+            <input id="modal-aktif" type="hidden" name="aktif" value="1">
+            <div class="custom-select" id="modal-status-select" data-custom-select>
+                <button
+                    type="button"
+                    class="custom-select-trigger"
+                    id="modal-aktif-trigger"
+                    aria-haspopup="listbox"
+                    aria-expanded="false"
+                    aria-controls="modal-aktif-menu"
+                >
+                    <span class="custom-select-label">Aktif</span>
+                </button>
+                <div class="custom-select-menu" id="modal-aktif-menu" role="listbox" hidden>
+                    <button type="button" class="custom-select-option is-selected" data-value="1" role="option" aria-selected="true">Aktif</button>
+                    <button type="button" class="custom-select-option" data-value="0" role="option" aria-selected="false">Nonaktif</button>
+                </div>
+            </div>
 
             <div class="modal-actions">
                 <button type="button" class="btn-cancel" onclick="closeEditModal()">Batal</button>
@@ -158,7 +171,7 @@ function openEditProduct(buttonEl) {
     document.getElementById("modal-id-asal").value = id;
     document.getElementById("modal-kode-produk").value = kode;
     document.getElementById("modal-nama-produk").value = nama;
-    document.getElementById("modal-aktif").value = aktif;
+    setCustomStatusValue(aktif);
     document.getElementById("modal-feedback").hidden = true;
     document.getElementById("modal-feedback").textContent = "";
 
@@ -167,7 +180,35 @@ function openEditProduct(buttonEl) {
 
 function closeEditModal() {
     const modal = document.getElementById("edit-modal");
+    closeCustomStatusMenu();
     modal.hidden = true;
+}
+
+function closeCustomStatusMenu() {
+    const select = document.getElementById("modal-status-select");
+    const trigger = document.getElementById("modal-aktif-trigger");
+    const menu = document.getElementById("modal-aktif-menu");
+    if (!select || !trigger || !menu) return;
+    select.classList.remove("is-open");
+    trigger.setAttribute("aria-expanded", "false");
+    menu.hidden = true;
+}
+
+function setCustomStatusValue(value) {
+    const hiddenInput = document.getElementById("modal-aktif");
+    const triggerLabel = document.querySelector("#modal-status-select .custom-select-label");
+    const options = document.querySelectorAll("#modal-status-select .custom-select-option");
+    const normalizedValue = value === "0" ? "0" : "1";
+    const label = normalizedValue === "1" ? "Aktif" : "Nonaktif";
+
+    if (hiddenInput) hiddenInput.value = normalizedValue;
+    if (triggerLabel) triggerLabel.textContent = label;
+
+    options.forEach((option) => {
+        const isSelected = option.getAttribute("data-value") === normalizedValue;
+        option.classList.toggle("is-selected", isSelected);
+        option.setAttribute("aria-selected", isSelected ? "true" : "false");
+    });
 }
 
 document.getElementById("edit-modal").addEventListener("click", function (e) {
@@ -244,6 +285,44 @@ document.getElementById("edit-product-form").addEventListener("submit", async fu
 
 document.addEventListener("DOMContentLoaded", function () {
     const successAlert = document.querySelector(".alert.success");
+    const customSelect = document.getElementById("modal-status-select");
+    const customTrigger = document.getElementById("modal-aktif-trigger");
+    const customMenu = document.getElementById("modal-aktif-menu");
+    const customOptions = customMenu ? Array.from(customMenu.querySelectorAll(".custom-select-option")) : [];
+
+    if (customSelect && customTrigger && customMenu) {
+        customTrigger.addEventListener("click", function () {
+            const isOpen = customSelect.classList.contains("is-open");
+            if (isOpen) {
+                closeCustomStatusMenu();
+            } else {
+                customSelect.classList.add("is-open");
+                customTrigger.setAttribute("aria-expanded", "true");
+                customMenu.hidden = false;
+            }
+        });
+
+        customOptions.forEach((option) => {
+            option.addEventListener("click", function () {
+                setCustomStatusValue(option.getAttribute("data-value") || "1");
+                closeCustomStatusMenu();
+            });
+        });
+
+        document.addEventListener("click", function (event) {
+            if (!customSelect.classList.contains("is-open")) return;
+            if (!customSelect.contains(event.target)) {
+                closeCustomStatusMenu();
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                closeCustomStatusMenu();
+            }
+        });
+    }
+
     if (!successAlert) {
         return;
     }

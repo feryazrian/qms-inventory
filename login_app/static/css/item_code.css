@@ -297,6 +297,84 @@ td select {
     box-sizing: border-box;
 }
 
+.custom-select {
+    position: relative;
+    width: 100%;
+}
+
+.custom-select-trigger {
+    width: 100%;
+    height: 36px;
+    border: 1px solid #cfd4dd;
+    border-radius: 8px;
+    background: #fff;
+    padding: 0 40px 0 10px;
+    text-align: left;
+    font-size: 14px;
+    box-sizing: border-box;
+    position: relative;
+    cursor: pointer;
+}
+
+.custom-select-trigger::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 14px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #64748b;
+    border-bottom: 2px solid #64748b;
+    transform: translateY(-65%) rotate(45deg);
+    transition: transform 0.2s ease;
+}
+
+.custom-select.is-open .custom-select-trigger::after {
+    transform: translateY(-35%) rotate(225deg);
+}
+
+.custom-select-menu {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 6px;
+    border: 1px solid #cfd4dd;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 12px 26px rgba(15, 23, 42, 0.12);
+    box-sizing: border-box;
+}
+
+.custom-select-menu[hidden] {
+    display: none;
+}
+
+.custom-select-option {
+    width: 100%;
+    border: 0;
+    border-radius: 8px;
+    background: #fff;
+    padding: 9px 10px;
+    text-align: left;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.custom-select-option:hover {
+    background: #f8fafc;
+}
+
+.custom-select-option.is-selected {
+    background: #e8f0fe;
+    color: #1f4b99;
+    font-weight: 700;
+}
+
 .modal-actions {
     margin-top: 14px;
     display: flex;
@@ -347,24 +425,133 @@ td select {
         display: none;
     }
 
-    th,
-    td {
-        padding: 8px;
+    .modal-card {
+        padding: 14px;
+    }
+
+    .table-card h3 {
+        text-align: center;
+    }
+
+    .table-wrap {
+        overflow: visible;
+    }
+
+    table {
+        min-width: 0;
+        table-layout: auto;
+    }
+
+    thead {
+        display: none;
+    }
+
+    tbody {
+        display: grid;
+        gap: 12px;
+    }
+
+    tbody tr {
+        display: block;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
+        overflow: hidden;
+    }
+
+    tbody td {
+        display: grid;
+        grid-template-columns: 96px minmax(0, 1fr);
+        align-items: flex-start;
+        gap: 12px;
+        padding: 10px 12px;
+        font-size: 12px;
+        border: 0;
+        border-bottom: 1px solid #eef2f7;
+        text-align: left;
+    }
+
+    tbody td:last-child {
+        border-bottom: 0;
+    }
+
+    tbody td::before {
+        text-align: left;
         font-size: 11px;
+        font-weight: 700;
+        color: #64748b;
+        line-height: 1.35;
+    }
+
+    tbody td:nth-child(1)::before {
+        content: "Kode Produk";
+    }
+
+    tbody td:nth-child(2)::before {
+        content: "Item Produk";
+    }
+
+    tbody td:nth-child(3)::before {
+        content: "Status";
+    }
+
+    tbody td:nth-child(4)::before {
+        content: "Action";
+    }
+
+    .cell-code,
+    .cell-name {
+        word-break: break-word;
+    }
+
+    .cell-name {
+        font-weight: 600;
+        color: #0f172a;
+    }
+
+    .cell-status {
+        align-items: center;
     }
 
     .action-group {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
         gap: 6px;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
+    }
+
+    .action-group > .btn-edit,
+    .action-group > form {
+        width: auto;
+        flex: 0 0 auto;
+    }
+
+    .action-group form {
+        margin: 0;
+    }
+
+    .action-group form .btn-delete {
+        width: auto;
     }
 
     .btn-edit,
     .btn-delete {
-        height: 32px;
+        min-height: 30px;
         font-size: 12px;
+        padding: 0 12px;
+        min-width: 68px;
+        white-space: nowrap;
     }
 
-    .modal-card {
-        padding: 14px;
+    .empty-cell {
+        display: block;
+        text-align: center;
+    }
+
+    .empty-cell::before {
+        content: none;
     }
 }

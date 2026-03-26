@@ -48,12 +48,41 @@
             </button>
             <form method="GET" action="{{ url_for('laporan') }}" class="laporan-month-filter" data-skip-splash>
                 <input type="hidden" name="tab" value="{{ active_tab }}">
-                <select id="laporan-bulan" name="bulan" class="laporan-month-select">
-                    <option value="" {% if not selected_month %}selected{% endif %} disabled>Pilih Bulan Produksi</option>
-                    {% for month in month_options %}
-                    <option value="{{ month.value }}" {% if selected_month == month.value %}selected{% endif %}>{{ month.label }}</option>
-                    {% endfor %}
-                </select>
+                <input type="hidden" id="laporan-bulan" name="bulan" value="{{ selected_month or '' }}">
+                <span class="laporan-month-filter-title">Pilih Bulan Produksi</span>
+                <div class="laporan-month-dropdown" data-month-dropdown>
+                    <button
+                        type="button"
+                        class="laporan-month-trigger"
+                        id="laporan-bulan-trigger"
+                        aria-haspopup="listbox"
+                        aria-expanded="false"
+                        aria-controls="laporan-bulan-options"
+                    >
+                        <span class="laporan-month-trigger-label">
+                            {% if selected_month %}
+                                {% for month in month_options %}
+                                    {% if selected_month == month.value %}{{ month.label }}{% endif %}
+                                {% endfor %}
+                            {% else %}
+                                Pilih bulan
+                            {% endif %}
+                        </span>
+                    </button>
+                    <div class="laporan-month-menu" id="laporan-bulan-options" role="listbox" hidden>
+                        {% for month in month_options %}
+                        <button
+                            type="button"
+                            class="laporan-month-option {% if selected_month == month.value %}is-selected{% endif %}"
+                            data-month-value="{{ month.value }}"
+                            role="option"
+                            aria-selected="{% if selected_month == month.value %}true{% else %}false{% endif %}"
+                        >
+                            {{ month.label }}
+                        </button>
+                        {% endfor %}
+                    </div>
+                </div>
             </form>
         </div>
     </div>
@@ -603,6 +632,11 @@ document.addEventListener("DOMContentLoaded", function () {
     const panels = document.querySelectorAll(".laporan-panel");
     const monthSelect = document.getElementById("laporan-bulan");
     const monthFilterForm = document.querySelector(".laporan-month-filter");
+    const monthDropdown = document.querySelector("[data-month-dropdown]");
+    const monthTrigger = document.getElementById("laporan-bulan-trigger");
+    const monthMenu = document.getElementById("laporan-bulan-options");
+    const monthTriggerLabel = monthTrigger?.querySelector(".laporan-month-trigger-label");
+    const monthOptions = monthMenu ? Array.from(monthMenu.querySelectorAll(".laporan-month-option")) : [];
 
     function buildLaporanUrl(tabValue) {
         const params = new URLSearchParams(window.location.search);
@@ -641,8 +675,63 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     if (monthSelect && monthFilterForm) {
-        monthSelect.addEventListener("change", function () {
-            monthFilterForm.submit();
+        function closeMonthMenu() {
+            if (!monthMenu || !monthTrigger) return;
+            monthMenu.hidden = true;
+            monthTrigger.setAttribute("aria-expanded", "false");
+            monthDropdown?.classList.remove("is-open");
+        }
+
+        function openMonthMenu() {
+            if (!monthMenu || !monthTrigger) return;
+            monthMenu.hidden = false;
+            monthTrigger.setAttribute("aria-expanded", "true");
+            monthDropdown?.classList.add("is-open");
+        }
+
+        function updateMonthSelection(value, label) {
+            monthSelect.value = value;
+            if (monthTriggerLabel) {
+                monthTriggerLabel.textContent = label || "Pilih Bulan Produksi";
+            }
+            monthOptions.forEach((option) => {
+                const isSelected = option.dataset.monthValue === value;
+                option.classList.toggle("is-selected", isSelected);
+                option.setAttribute("aria-selected", isSelected ? "true" : "false");
+            });
+        }
+
+        monthTrigger?.addEventListener("click", function () {
+            if (!monthMenu) return;
+            const isOpen = monthTrigger.getAttribute("aria-expanded") === "true";
+            if (isOpen) {
+                closeMonthMenu();
+            } else {
+                openMonthMenu();
+            }
+        });
+
+        monthOptions.forEach((option) => {
+            option.addEventListener("click", function () {
+                const value = option.dataset.monthValue || "";
+                const label = option.textContent.trim();
+                updateMonthSelection(value, label);
+                closeMonthMenu();
+                monthFilterForm.submit();
+            });
+        });
+
+        document.addEventListener("click", function (event) {
+            if (!monthDropdown || monthMenu?.hidden) return;
+            if (!monthDropdown.contains(event.target)) {
+                closeMonthMenu();
+            }
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape") {
+                closeMonthMenu();
+            }
         });
     }
 

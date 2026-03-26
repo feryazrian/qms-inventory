@@ -11,7 +11,7 @@
     border: 1px solid #d7dde6;
     border-bottom: none;
     border-radius: 12px 12px 0 0;
-    overflow: hidden;
+    overflow: visible;
     background: linear-gradient(180deg, #eef2f6 0%, #e9eef4 100%);
 }
 
@@ -58,29 +58,130 @@
 .laporan-month-filter {
     margin-left: auto;
     display: flex;
-    align-items: center;
-    gap: 10px;
+    position: relative;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
     padding: 10px 14px 10px 18px;
     background: rgba(255, 255, 255, 0.18);
 }
 
-.laporan-month-select {
-    min-width: 180px;
-    height: 38px;
-    border: 1px solid #cbd5e1;
-    border-radius: 10px;
-    padding: 0 12px;
+.laporan-month-filter-title {
+    font-size: 9px;
+    font-weight: 700;
+    color: #64748b;
+    line-height: 1.2;
+}
+
+.laporan-month-dropdown {
+    position: relative;
+    min-width: 156px;
+}
+
+.laporan-month-trigger {
+    width: 100%;
+    min-height: 34px;
+    border: 1px solid #d5dde8;
+    border-radius: 12px;
+    padding: 0 34px 0 10px;
     background: #ffffff;
     color: #1e293b;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    box-sizing: border-box;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 6px 16px rgba(15, 23, 42, 0.05);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+.laporan-month-trigger:hover {
+    border-color: #bcc8d8;
+}
+
+.laporan-month-trigger:focus-visible {
+    outline: none;
+    border-color: #d72638;
+    box-shadow: 0 0 0 3px rgba(215, 38, 56, 0.12), 0 8px 18px rgba(15, 23, 42, 0.08);
+}
+
+.laporan-month-trigger::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 30px;
+    width: 1px;
+    height: 16px;
+    background: #e2e8f0;
+    transform: translateY(-50%);
+}
+
+.laporan-month-trigger::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid #64748b;
+    border-bottom: 2px solid #64748b;
+    transform: translateY(-65%) rotate(45deg);
+    transition: transform 0.2s ease;
+}
+
+.laporan-month-dropdown.is-open .laporan-month-trigger::after {
+    transform: translateY(-35%) rotate(225deg);
+}
+
+.laporan-month-trigger-label {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.laporan-month-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px;
+    border: 1px solid #d7dde6;
+    border-radius: 14px;
+    background: #ffffff;
+    box-shadow: 0 18px 34px rgba(15, 23, 42, 0.14);
+    box-sizing: border-box;
+}
+
+.laporan-month-menu[hidden] {
+    display: none;
+}
+
+.laporan-month-option {
+    width: 100%;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #334155;
+    padding: 11px 12px;
+    text-align: left;
     font-size: 14px;
     font-weight: 600;
-    outline: none;
     cursor: pointer;
 }
 
-.laporan-month-select:focus {
-    border-color: #94a3b8;
-    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
+.laporan-month-option:hover {
+    background: #f8fafc;
+}
+
+.laporan-month-option.is-selected {
+    background: #fff1f3;
+    color: #d72638;
 }
 
 .laporan-panel {
@@ -932,34 +1033,61 @@ body.modal-open {
 
 @media (max-width: 768px) {
     .laporan-tabs {
-        flex-direction: column;
+        flex-wrap: wrap;
+        align-items: stretch;
+        overflow: visible;
     }
 
     .laporan-tab {
-        flex: 1 1 100%;
-        border-right: none;
-        border-bottom: 1px solid #d7dde6;
-        font-size: 15px;
-        text-align: left;
-        padding: 14px 16px;
-    }
-
-    .laporan-tab:last-child {
+        flex: 1 1 0;
+        min-width: 0;
+        border-right: 1px solid #d7dde6;
         border-bottom: none;
-    }
-
-    .laporan-month-filter {
-        margin-left: 0;
-        border-top: 1px solid #d7dde6;
-        justify-content: stretch;
+        font-size: 15px;
+        text-align: center;
         padding: 12px 14px;
     }
 
-    .laporan-month-select {
+    .laporan-tabs > .laporan-tab:last-of-type {
+        border-right: none;
+    }
+
+    .laporan-month-filter {
+        order: 10;
+        flex: 1 0 100%;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        margin-left: 0;
+        border-top: 1px solid #d7dde6;
+        background: linear-gradient(180deg, #eef3f8 0%, #edf2f7 100%);
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .laporan-month-dropdown {
         min-width: 0;
         width: 100%;
-        height: 40px;
+    }
+
+    .laporan-month-trigger {
+        min-height: 44px;
         font-size: 13px;
+    }
+
+    .laporan-month-filter-title {
+        font-size: 11px;
+    }
+
+    .laporan-month-menu {
+        top: calc(100% + 6px);
+    }
+
+    .laporan-month-option {
+        font-size: 13px;
+        padding: 10px 12px;
     }
 
     .laporan-panel {
@@ -974,11 +1102,32 @@ body.modal-open {
     }
 
     .aksi-wrap {
-        gap: 5px;
+        display: inline-flex;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        width: auto;
+        max-width: none;
+        margin: 0 auto;
+    }
+
+    .aksi-wrap > .aksi-btn,
+    .aksi-wrap > form {
+        width: auto;
+    }
+
+    .aksi-wrap form {
+        margin: 0;
+    }
+
+    .aksi-wrap form .aksi-btn {
+        width: auto;
     }
 
     .aksi-btn {
         font-size: 11px;
+        min-height: 26px;
         padding: 5px 8px;
     }
 

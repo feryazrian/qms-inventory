@@ -15,7 +15,7 @@ app.secret_key = os.getenv("SECRET_KEY", "dev-only-change-me")
 
 # DATA LOGIN
 USERNAME = "admin"
-PASSWORD = "112233"
+PASSWORD = "778899"
 
 # DATABASE CONFIG (LOCAL)
 DB_CONFIG = {
@@ -2809,8 +2809,13 @@ def laporan():
     if active_tab not in ["cushion-gum", "gum-cord", "msc"]:
         active_tab = "cushion-gum"
 
-    selected_month = normalize_laporan_month(request.args.get("bulan"))
     month_options = fetch_laporan_month_options()
+    selected_month = normalize_laporan_month(request.args.get("bulan"))
+    available_months = {month["value"] for month in month_options if month.get("value")}
+    if month_options:
+        if not selected_month or selected_month not in available_months:
+            selected_month = month_options[0]["value"]
+
     laporan_cushion_gum = fetch_laporan_cushion_gum(selected_month)
     laporan_gum_cord = fetch_laporan_gum_cord(selected_month)
     laporan_msc = fetch_laporan_msc(selected_month)
@@ -4109,5 +4114,4 @@ def logout():
 
 if __name__ == "__main__":
     app.run(debug=True)
-
 
