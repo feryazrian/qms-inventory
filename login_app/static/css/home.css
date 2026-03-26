@@ -97,7 +97,7 @@ body {
 .quick-menu-trigger {
     width: 42px;
     height: 42px;
-    border-radius: 999px;
+    border-radius: 14px;
     border: 1.5px solid #E4AAB1;
     background: #FFFFFF;
     box-shadow: 0 10px 24px rgba(17, 24, 39, 0.06);
@@ -105,7 +105,7 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: 0.25s ease;
+    transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, border-radius 0.25s ease;
 }
 
 .quick-menu-trigger:hover,
@@ -115,90 +115,52 @@ body {
     box-shadow: 0 14px 28px rgba(215, 38, 56, 0.14);
 }
 
+.quick-menu[open] .quick-menu-trigger {
+    border-radius: 999px;
+}
+
 .quick-menu-icon {
     position: relative;
-    width: 22px;
-    height: 18px;
+    width: 20px;
+    height: 16px;
     display: block;
 }
 
-.quick-menu-chevron {
+.quick-menu-line {
     position: absolute;
-    left: 50%;
-    width: 13px;
-    height: 13px;
-    border-top: 2.5px solid #D72638;
-    border-left: 2.5px solid #D72638;
+    left: 0;
+    width: 100%;
+    height: 2.5px;
+    border-radius: 999px;
+    background: #D72638;
     transform-origin: center;
-    animation-duration: 0.28s;
-    animation-timing-function: ease;
-    animation-fill-mode: forwards;
+    transition: transform 0.28s ease, opacity 0.2s ease, top 0.28s ease;
 }
 
-.quick-menu-chevron-top {
+.quick-menu-line-top {
     top: 0;
-    transform: translateX(-50%) rotate(45deg);
-    animation-name: quick-menu-close-top;
 }
 
-.quick-menu-chevron-bottom {
-    top: 6px;
-    transform: translateX(-50%) rotate(45deg);
-    animation-name: quick-menu-close-bottom;
+.quick-menu-line-middle {
+    top: 6.75px;
 }
 
-.quick-menu[open] .quick-menu-chevron-top {
-    top: -3px;
-    animation-name: quick-menu-open-top;
+.quick-menu-line-bottom {
+    top: 13.5px;
 }
 
-.quick-menu[open] .quick-menu-chevron-bottom {
-    top: 5px;
-    animation-name: quick-menu-open-bottom;
+.quick-menu[open] .quick-menu-line-top {
+    top: 6.75px;
+    transform: rotate(45deg);
 }
 
-@keyframes quick-menu-open-top {
-    from {
-        top: 0;
-        transform: translateX(-50%) rotate(45deg);
-    }
-    to {
-        top: -3px;
-        transform: translateX(-50%) rotate(225deg);
-    }
+.quick-menu[open] .quick-menu-line-middle {
+    opacity: 0;
 }
 
-@keyframes quick-menu-open-bottom {
-    from {
-        top: 6px;
-        transform: translateX(-50%) rotate(45deg);
-    }
-    to {
-        top: 4px;
-        transform: translateX(-50%) rotate(225deg);
-    }
-}
-
-@keyframes quick-menu-close-top {
-    from {
-        top: -3px;
-        transform: translateX(-50%) rotate(225deg);
-    }
-    to {
-        top: 0;
-        transform: translateX(-50%) rotate(45deg);
-    }
-}
-
-@keyframes quick-menu-close-bottom {
-    from {
-        top: 4px;
-        transform: translateX(-50%) rotate(225deg);
-    }
-    to {
-        top: 6px;
-        transform: translateX(-50%) rotate(45deg);
-    }
+.quick-menu[open] .quick-menu-line-bottom {
+    top: 6.75px;
+    transform: rotate(-45deg);
 }
 
 .quick-menu-panel {
