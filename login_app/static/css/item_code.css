@@ -314,11 +314,57 @@ td select {
 }
 
 @media (max-width: 768px) {
+    .page-head {
+        margin-bottom: 12px;
+    }
+
+    .form-card,
+    .table-card {
+        padding: 12px;
+        border-radius: 10px;
+    }
+
     .field-row {
         grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .field-code label,
+    .field-grow label,
+    .field-check label {
+        font-size: 11px;
+    }
+
+    .field-code input,
+    .field-grow input,
+    .field-check select,
+    .field-action .save-btn {
+        height: 40px;
+        font-size: 13px;
     }
 
     .field-action-label {
         display: none;
+    }
+
+    th,
+    td {
+        padding: 8px;
+        font-size: 11px;
+    }
+
+    .action-group {
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .btn-edit,
+    .btn-delete {
+        height: 32px;
+        font-size: 12px;
+    }
+
+    .modal-card {
+        padding: 14px;
     }
 }
