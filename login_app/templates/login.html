@@ -5,9 +5,23 @@
     <title>My Inventory</title>
 
  <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+ <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}">
+ <script src="{{ url_for('static', filename='js/splash.js') }}" defer></script>
+ <noscript><style>.page-splash{display:none !important;}</style></noscript>
 
 </head>
-<body>
+<body class="is-splash-visible">
+
+    <div class="page-splash" id="page-splash" aria-hidden="true">
+        <div class="page-splash__panel">
+            <div class="page-splash__brand">
+                <img src="{{ url_for('static', filename='img/kartindo-loading-logo.png') }}" alt="Kartindo Logo">
+            </div>
+            <h1 class="page-splash__title">My Inventory</h1>
+            <p class="page-splash__text">Menyiapkan halaman, mohon tunggu sebentar.</p>
+            <div class="page-splash__bar"></div>
+        </div>
+    </div>
 
     <div class="login-box">
 

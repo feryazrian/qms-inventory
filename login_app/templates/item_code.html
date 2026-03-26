@@ -6,8 +6,21 @@
     <title>Item Code Produk</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/item_code.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}">
+    <script src="{{ url_for('static', filename='js/splash.js') }}" defer></script>
+    <noscript><style>.page-splash{display:none !important;}</style></noscript>
 </head>
-<body>
+<body class="is-splash-visible">
+<div class="page-splash" id="page-splash" aria-hidden="true">
+    <div class="page-splash__panel">
+        <div class="page-splash__brand">
+            <img src="{{ url_for('static', filename='img/kartindo-loading-logo.png') }}" alt="Kartindo Logo">
+        </div>
+        <h1 class="page-splash__title">Item Code Produk</h1>
+        <p class="page-splash__text">Memuat master produk dan form input kode item.</p>
+        <div class="page-splash__bar"></div>
+    </div>
+</div>
 <div class="header">
     <div class="header-inner">
         <a href="/home" aria-label="Ke halaman Home">
@@ -37,18 +50,21 @@
                     <input id="kode_produk" type="text" name="kode_produk" placeholder="Contoh: BJ-CG-0001" required>
                 </div>
                 <div class="field-grow">
-                    <label for="nama_produk" class="label-bold">Input Nama Produk Baru</label>
+                    <label for="nama_produk" class="label-bold">Item Produk</label>
                     <input id="nama_produk" type="text" name="nama_produk" placeholder="Contoh: CUSHION GUM 180 mm x 1.2 mm B" required>
                 </div>
                 <div class="field-check">
-                    <label for="aktif">Status</label>
+                    <label class="label-bold" for="aktif">Status</label>
                     <select id="aktif" name="aktif">
                         <option value="1" selected>Aktif</option>
                         <option value="0">Nonaktif</option>
                     </select>
                 </div>
+                <div class="field-action">
+                    <label class="field-action-label" aria-hidden="true">&nbsp;</label>
+                    <button type="submit" class="save-btn">Simpan Item</button>
+                </div>
             </div>
-            <button type="submit" class="save-btn">Simpan Produk</button>
         </form>
     </div>
 
@@ -59,7 +75,7 @@
                 <thead>
                     <tr>
                         <th>Kode Produk</th>
-                        <th>Nama Produk</th>
+                        <th>Item Produk</th>
                         <th>Status</th>
                         <th>Action</th>
                     </tr>

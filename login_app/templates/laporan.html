@@ -6,8 +6,21 @@
     <title>Laporan</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/laporan.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}">
+    <script src="{{ url_for('static', filename='js/splash.js') }}" defer></script>
+    <noscript><style>.page-splash{display:none !important;}</style></noscript>
 </head>
-<body>
+<body class="is-splash-visible">
+<div class="page-splash" id="page-splash" aria-hidden="true">
+    <div class="page-splash__panel">
+        <div class="page-splash__brand">
+            <img src="{{ url_for('static', filename='img/kartindo-loading-logo.png') }}" alt="Kartindo Logo">
+        </div>
+        <h1 class="page-splash__title">Laporan Produksi</h1>
+        <p class="page-splash__text">Mengambil histori produksi dan menyiapkan data laporan.</p>
+        <div class="page-splash__bar"></div>
+    </div>
+</div>
 <div class="header">
     <div class="header-inner">
         <a href="/home" aria-label="Ke halaman Home">
@@ -33,6 +46,15 @@
             <button type="button" class="laporan-tab {% if active_tab == 'msc' %}is-active{% endif %}" role="tab" aria-selected="{% if active_tab == 'msc' %}true{% else %}false{% endif %}" data-tab-target="tab-msc">
                 MSC
             </button>
+            <form method="GET" action="{{ url_for('laporan') }}" class="laporan-month-filter" data-skip-splash>
+                <input type="hidden" name="tab" value="{{ active_tab }}">
+                <select id="laporan-bulan" name="bulan" class="laporan-month-select">
+                    <option value="" {% if not selected_month %}selected{% endif %} disabled>Pilih Bulan Produksi</option>
+                    {% for month in month_options %}
+                    <option value="{{ month.value }}" {% if selected_month == month.value %}selected{% endif %}>{{ month.label }}</option>
+                    {% endfor %}
+                </select>
+            </form>
         </div>
     </div>
 
@@ -65,6 +87,7 @@
                                     <form method="POST" action="{{ url_for('laporan_delete') }}" onsubmit="return confirm('Yakin hapus data ini?');">
                                         <input type="hidden" name="id" value="{{ row[0] }}">
                                         <input type="hidden" name="sumber" value="cushion-gum">
+                                        <input type="hidden" name="bulan" value="{{ selected_month }}">
                                         <button type="submit" class="aksi-btn aksi-delete">Delete</button>
                                     </form>
                                     <button type="button" class="aksi-btn aksi-cetak cg-cetak-btn" data-batch-uid="{{ row[6] or '' }}">Cetak</button>
@@ -120,6 +143,7 @@
                                     <form method="POST" action="{{ url_for('laporan_delete') }}" onsubmit="return confirm('Yakin hapus data ini?');">
                                         <input type="hidden" name="id" value="{{ row[0] }}">
                                         <input type="hidden" name="sumber" value="gum-cord">
+                                        <input type="hidden" name="bulan" value="{{ selected_month }}">
                                         <button type="submit" class="aksi-btn aksi-delete">Delete</button>
                                     </form>
                                     <button
@@ -183,6 +207,7 @@
                                     <form method="POST" action="{{ url_for('laporan_delete') }}" onsubmit="return confirm('Yakin hapus data ini?');">
                                         <input type="hidden" name="id" value="{{ row[0] }}">
                                         <input type="hidden" name="sumber" value="msc">
+                                        <input type="hidden" name="bulan" value="{{ selected_month }}">
                                         <button type="submit" class="aksi-btn aksi-delete">Delete</button>
                                     </form>
                                     <button
@@ -576,30 +601,50 @@
 document.addEventListener("DOMContentLoaded", function () {
     const tabs = document.querySelectorAll(".laporan-tab");
     const panels = document.querySelectorAll(".laporan-panel");
+    const monthSelect = document.getElementById("laporan-bulan");
+    const monthFilterForm = document.querySelector(".laporan-month-filter");
+
+    function buildLaporanUrl(tabValue) {
+        const params = new URLSearchParams(window.location.search);
+        params.set("tab", tabValue);
+        const selectedMonthValue = monthSelect ? monthSelect.value.trim() : "";
+        if (selectedMonthValue) {
+            params.set("bulan", selectedMonthValue);
+        } else {
+            params.delete("bulan");
+        }
+        return `/laporan?${params.toString()}`;
+    }
+
+    function setActiveTab(tabValue) {
+        tabs.forEach((tab) => {
+            const isActive = tab.dataset.tabTarget === `tab-${tabValue}`;
+            tab.classList.toggle("is-active", isActive);
+            tab.setAttribute("aria-selected", isActive ? "true" : "false");
+        });
+
+        panels.forEach((panel) => {
+            const isActive = panel.id === `tab-${tabValue}`;
+            panel.classList.toggle("is-active", isActive);
+            panel.hidden = !isActive;
+        });
+    }
 
     tabs.forEach((tab) => {
         tab.addEventListener("click", function () {
             const targetId = tab.dataset.tabTarget;
             if (!targetId) return;
-
-            tabs.forEach((t) => {
-                t.classList.remove("is-active");
-                t.setAttribute("aria-selected", "false");
-            });
-            panels.forEach((p) => {
-                p.classList.remove("is-active");
-                p.hidden = true;
-            });
-
-            tab.classList.add("is-active");
-            tab.setAttribute("aria-selected", "true");
-            const targetPanel = document.getElementById(targetId);
-            if (targetPanel) {
-                targetPanel.classList.add("is-active");
-                targetPanel.hidden = false;
-            }
+            const tabValue = targetId.replace("tab-", "");
+            setActiveTab(tabValue);
+            window.history.replaceState({}, "", buildLaporanUrl(tabValue));
         });
     });
+
+    if (monthSelect && monthFilterForm) {
+        monthSelect.addEventListener("change", function () {
+            monthFilterForm.submit();
+        });
+    }
 
     const cgModal = document.getElementById("cg-modal");
     const cgModalBody = document.getElementById("cg-modal-body");
@@ -919,7 +964,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 throw new Error(json.message || "Gagal update data Cushion Gum.");
             }
             alert("Data Cushion Gum berhasil diupdate.");
-            window.location.href = "/laporan?tab=cushion-gum";
+            window.location.href = buildLaporanUrl("cushion-gum");
         } catch (err) {
             alert(err.message || "Gagal update data Cushion Gum.");
         }
@@ -1208,7 +1253,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 throw new Error(json.message || "Gagal update data Gum Cord.");
             }
             alert("Data Gum Cord berhasil diupdate.");
-            window.location.href = "/laporan?tab=gum-cord";
+            window.location.href = buildLaporanUrl("gum-cord");
         } catch (err) {
             alert(err.message || "Gagal update data Gum Cord.");
         }
@@ -1502,7 +1547,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 throw new Error(json.message || "Gagal update data MSC.");
             }
             alert("Data MSC berhasil diupdate.");
-            window.location.href = "/laporan?tab=msc";
+            window.location.href = buildLaporanUrl("msc");
         } catch (err) {
             alert(err.message || "Gagal update data MSC.");
         }

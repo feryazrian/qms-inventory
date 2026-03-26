@@ -115,7 +115,10 @@ def fetch_master_produk_all():
             """
             SELECT id, kode_produk, nama_produk, aktif
             FROM master_produk
-            ORDER BY aktif DESC, nama_produk ASC
+            ORDER BY
+                COALESCE(NULLIF(SUBSTRING(kode_produk FROM '(\d+)$'), ''), '999999999')::BIGINT ASC,
+                kode_produk ASC NULLS LAST,
+                nama_produk ASC
             """
         )
         return cur.fetchall()
@@ -145,7 +148,70 @@ def fetch_master_bahan_msc():
             conn.close()
 
 
-def fetch_laporan_cushion_gum():
+def normalize_laporan_month(raw_value):
+    value = (raw_value or "").strip()
+    if not value:
+        return ""
+    try:
+        return datetime.strptime(value, "%Y-%m").strftime("%Y-%m")
+    except ValueError:
+        return ""
+
+
+def format_laporan_month_label(month_value):
+    month_names = [
+        "Januari",
+        "Februari",
+        "Maret",
+        "April",
+        "Mei",
+        "Juni",
+        "Juli",
+        "Agustus",
+        "September",
+        "Oktober",
+        "November",
+        "Desember",
+    ]
+    try:
+        dt = datetime.strptime(month_value, "%Y-%m")
+    except ValueError:
+        return month_value
+    return f"{month_names[dt.month - 1]} {dt.year}"
+
+
+def fetch_laporan_month_options():
+    conn = None
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT DISTINCT TO_CHAR(src.tanggal_produksi, 'YYYY-MM') AS bulan
+            FROM (
+                SELECT tanggal_produksi FROM grand_total
+                UNION ALL
+                SELECT tanggal_produksi FROM production_gum_cord
+                UNION ALL
+                SELECT tanggal_produksi FROM grand_total_msc
+            ) AS src
+            WHERE src.tanggal_produksi IS NOT NULL
+            ORDER BY bulan DESC
+            """
+        )
+        return [
+            {"value": row[0], "label": format_laporan_month_label(row[0])}
+            for row in cur.fetchall()
+            if row and row[0]
+        ]
+    except Exception:
+        return []
+    finally:
+        if conn:
+            conn.close()
+
+
+def fetch_laporan_cushion_gum(selected_month=""):
     conn = None
     try:
         conn = get_db_conn()
@@ -162,8 +228,7 @@ def fetch_laporan_cushion_gum():
             ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
             """
         )
-        cur.execute(
-            """
+        query = """
             SELECT
                 id,
                 tanggal_produksi,
@@ -173,9 +238,13 @@ def fetch_laporan_cushion_gum():
                 berat_kg_total,
                 batch_uid
             FROM grand_total
-            ORDER BY tanggal_produksi DESC, id DESC
-            """
-        )
+        """
+        params = []
+        if selected_month:
+            query += " WHERE TO_CHAR(tanggal_produksi, 'YYYY-MM') = %s"
+            params.append(selected_month)
+        query += " ORDER BY tanggal_produksi DESC, id DESC"
+        cur.execute(query, params)
         return cur.fetchall()
     except Exception:
         return []
@@ -184,7 +253,7 @@ def fetch_laporan_cushion_gum():
             conn.close()
 
 
-def fetch_laporan_gum_cord():
+def fetch_laporan_gum_cord(selected_month=""):
     conn = None
     try:
         conn = get_db_conn()
@@ -201,8 +270,7 @@ def fetch_laporan_gum_cord():
             ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
             """
         )
-        cur.execute(
-            """
+        query = """
             SELECT
                 ctid::text AS row_token,
                 tanggal_produksi,
@@ -210,9 +278,13 @@ def fetch_laporan_gum_cord():
                 aktual_kotak,
                 persentase
             FROM production_gum_cord
-            ORDER BY tanggal_produksi DESC
-            """
-        )
+        """
+        params = []
+        if selected_month:
+            query += " WHERE TO_CHAR(tanggal_produksi, 'YYYY-MM') = %s"
+            params.append(selected_month)
+        query += " ORDER BY tanggal_produksi DESC"
+        cur.execute(query, params)
         return cur.fetchall()
     except Exception:
         return []
@@ -220,13 +292,12 @@ def fetch_laporan_gum_cord():
         if conn:
             conn.close()
 
-def fetch_laporan_msc():
+def fetch_laporan_msc(selected_month=""):
     conn = None
     try:
         conn = get_db_conn()
         cur = conn.cursor()
-        cur.execute(
-            """
+        query = """
             SELECT
                 id,
                 tanggal_produksi,
@@ -236,9 +307,13 @@ def fetch_laporan_msc():
                 total_persentase,
                 batch_uid
             FROM grand_total_msc
-            ORDER BY tanggal_produksi DESC, id DESC
-            """
-        )
+        """
+        params = []
+        if selected_month:
+            query += " WHERE TO_CHAR(tanggal_produksi, 'YYYY-MM') = %s"
+            params.append(selected_month)
+        query += " ORDER BY tanggal_produksi DESC, id DESC"
+        cur.execute(query, params)
         return cur.fetchall()
     except Exception:
         return []
@@ -2734,13 +2809,17 @@ def laporan():
     if active_tab not in ["cushion-gum", "gum-cord", "msc"]:
         active_tab = "cushion-gum"
 
-    laporan_cushion_gum = fetch_laporan_cushion_gum()
-    laporan_gum_cord = fetch_laporan_gum_cord()
-    laporan_msc = fetch_laporan_msc()
+    selected_month = normalize_laporan_month(request.args.get("bulan"))
+    month_options = fetch_laporan_month_options()
+    laporan_cushion_gum = fetch_laporan_cushion_gum(selected_month)
+    laporan_gum_cord = fetch_laporan_gum_cord(selected_month)
+    laporan_msc = fetch_laporan_msc(selected_month)
     return render_template(
         "laporan.html",
         user=session["user"],
         active_tab=active_tab,
+        selected_month=selected_month,
+        month_options=month_options,
         laporan_cushion_gum=laporan_cushion_gum,
         laporan_gum_cord=laporan_gum_cord,
         laporan_msc=laporan_msc,
@@ -3255,6 +3334,7 @@ def laporan_delete():
 
     data_key = (request.form.get("id") or "").strip()
     sumber = (request.form.get("sumber") or "").strip()
+    selected_month = normalize_laporan_month(request.form.get("bulan"))
 
     table_map = {
         "cushion-gum": "grand_total",
@@ -3263,7 +3343,7 @@ def laporan_delete():
     }
     table_name = table_map.get(sumber)
     if not table_name or not data_key:
-        return redirect(url_for("laporan"))
+        return redirect(url_for("laporan", bulan=selected_month or None))
 
     conn = None
     try:
@@ -3276,7 +3356,7 @@ def laporan_delete():
         if sumber == "cushion-gum":
             data_id = parse_int(data_key)
             if data_id is None:
-                return redirect(url_for("laporan", tab=sumber))
+                return redirect(url_for("laporan", tab=sumber, bulan=selected_month or None))
 
             cur.execute(
                 """
@@ -3328,7 +3408,7 @@ def laporan_delete():
         elif sumber == "msc":
             data_id = parse_int(data_key)
             if data_id is None:
-                return redirect(url_for("laporan", tab=sumber))
+                return redirect(url_for("laporan", tab=sumber, bulan=selected_month or None))
 
             cur.execute(
                 """
@@ -3353,7 +3433,7 @@ def laporan_delete():
         else:
             data_id = parse_int(data_key)
             if data_id is None:
-                return redirect(url_for("laporan", tab=sumber))
+                return redirect(url_for("laporan", tab=sumber, bulan=selected_month or None))
             cur.execute(f"DELETE FROM {table_name} WHERE id = %s", (data_id,))
         conn.commit()
     except Exception:
@@ -3364,7 +3444,7 @@ def laporan_delete():
         if conn:
             conn.close()
 
-    return redirect(url_for("laporan", tab=sumber))
+    return redirect(url_for("laporan", tab=sumber, bulan=selected_month or None))
 
 @app.route("/cushion-gum", methods=["GET", "POST"])
 def cushion_gum():

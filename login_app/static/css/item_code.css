@@ -79,30 +79,51 @@
 
 .field-row {
     display: grid;
-    grid-template-columns: 160px 1fr 200px;
+    grid-template-columns: 160px minmax(320px, 1fr) 130px 150px;
     gap: 12px;
-    margin-bottom: 12px;
 }
 
 .field-code,
 .field-grow,
-.field-check {
+.field-check,
+.field-action {
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
 
+.field-code label,
+.field-grow label,
+.field-check label {
+    font-size: 12px;
+    line-height: 1.2;
+}
+
+.field-code input,
+.field-grow input,
+.field-check select,
+.field-action .save-btn {
+    height: 38px;
+}
+
 .field-code input,
 .field-grow input,
 .field-check select {
-    height: 38px;
     border: 1px solid #cfd4dd;
     border-radius: 8px;
     padding: 0 10px;
 }
 
+.field-action {
+    justify-content: flex-end;
+}
+
+.field-action-label {
+    visibility: hidden;
+    user-select: none;
+}
+
 .save-btn {
-    height: 38px;
     border: 0;
     border-radius: 8px;
     background: #d72638;
@@ -110,6 +131,12 @@
     font-weight: 700;
     padding: 0 14px;
     cursor: pointer;
+    width: 100%;
+}
+
+.field-check select,
+.field-action .save-btn {
+    min-width: 0;
 }
 
 .table-card h3 {
@@ -289,5 +316,9 @@ td select {
 @media (max-width: 768px) {
     .field-row {
         grid-template-columns: 1fr;
+    }
+
+    .field-action-label {
+        display: none;
     }
 }

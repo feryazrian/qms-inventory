@@ -6,6 +6,7 @@
 .laporan-tabs {
     display: flex;
     flex-wrap: wrap;
+    align-items: stretch;
     gap: 0;
     border: 1px solid #d7dde6;
     border-bottom: none;
@@ -30,7 +31,7 @@
 }
 
 .laporan-tab:last-child {
-    border-right: none;
+    border-right: 1px solid #d7dde6;
 }
 
 .laporan-tab:hover {
@@ -52,6 +53,34 @@
 /* Hilangkan seam border di sisi kiri tab aktif secara natural */
 .laporan-tab:has(+ .laporan-tab.is-active) {
     border-right-color: transparent;
+}
+
+.laporan-month-filter {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px 10px 18px;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.laporan-month-select {
+    min-width: 180px;
+    height: 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 0 12px;
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 14px;
+    font-weight: 600;
+    outline: none;
+    cursor: pointer;
+}
+
+.laporan-month-select:focus {
+    border-color: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.15);
 }
 
 .laporan-panel {
@@ -902,6 +931,10 @@ body.modal-open {
 }
 
 @media (max-width: 768px) {
+    .laporan-tabs {
+        flex-direction: column;
+    }
+
     .laporan-tab {
         flex: 1 1 100%;
         border-right: none;
@@ -913,6 +946,18 @@ body.modal-open {
 
     .laporan-tab:last-child {
         border-bottom: none;
+    }
+
+    .laporan-month-filter {
+        margin-left: 0;
+        border-left: none;
+        border-top: 1px solid #d7dde6;
+        justify-content: space-between;
+    }
+
+    .laporan-month-select {
+        min-width: 0;
+        width: 100%;
     }
 
     .laporan-panel {
