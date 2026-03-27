@@ -2536,6 +2536,14 @@ def gum_cord():
     return render_template("gum_cord.html", user=session["user"])
 
 
+@app.route("/akses")
+def akses():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    return render_template("akses.html", user=session["user"])
+
+
 @app.route("/item-code", methods=["GET", "POST"])
 def item_code():
     is_ajax = (
@@ -3365,7 +3373,7 @@ def laporan_delete():
 
             cur.execute(
                 """
-                SELECT batch_uid
+                SELECT batch_uid, tanggal_produksi
                 FROM grand_total
                 WHERE id = %s
                 """,
@@ -3374,6 +3382,7 @@ def laporan_delete():
             row = cur.fetchone()
             if row:
                 batch_uid = row[0]
+                tanggal_produksi = row[1]
                 cur.execute("DELETE FROM grand_total WHERE id = %s", (data_id,))
                 if batch_uid:
                     cur.execute(
@@ -3404,6 +3413,51 @@ def laporan_delete():
                         """,
                         (batch_uid,),
                     )
+                if tanggal_produksi:
+                    cur.execute(
+                        """
+                        SELECT COUNT(*)
+                        FROM grand_total
+                        WHERE tanggal_produksi = %s
+                        """,
+                        (tanggal_produksi,),
+                    )
+                    remaining_same_date = cur.fetchone()[0] or 0
+                    if remaining_same_date == 0:
+                        # Bersihkan data lama yang belum memiliki batch_uid agar tidak tertinggal
+                        # setelah rekap tanggal tersebut dihapus dari aplikasi.
+                        cur.execute(
+                            """
+                            DELETE FROM production_cushion_gum
+                            WHERE tanggal_produksi = %s
+                              AND (batch_uid IS NULL OR batch_uid = '')
+                            """,
+                            (tanggal_produksi,),
+                        )
+                        cur.execute(
+                            """
+                            DELETE FROM pemakaian_plastik
+                            WHERE tanggal_produksi = %s
+                              AND (batch_uid IS NULL OR batch_uid = '')
+                            """,
+                            (tanggal_produksi,),
+                        )
+                        cur.execute(
+                            """
+                            DELETE FROM pemakaian_kotak
+                            WHERE tanggal_produksi = %s
+                              AND (batch_uid IS NULL OR batch_uid = '')
+                            """,
+                            (tanggal_produksi,),
+                        )
+                        cur.execute(
+                            """
+                            DELETE FROM pemakaian_tungkul
+                            WHERE tanggal_produksi = %s
+                              AND (batch_uid IS NULL OR batch_uid = '')
+                            """,
+                            (tanggal_produksi,),
+                        )
         elif sumber == "gum-cord":
             # production_gum_cord tidak punya kolom id, jadi pakai row token PostgreSQL (ctid).
             cur.execute(
@@ -4114,4 +4168,3 @@ def logout():
 
 if __name__ == "__main__":
     app.run(debug=True)
-

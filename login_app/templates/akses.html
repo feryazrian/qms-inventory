@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akses User</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/akses.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}">
+    <script src="{{ url_for('static', filename='js/splash.js') }}" defer></script>
+    <noscript><style>.page-splash{display:none !important;}</style></noscript>
+</head>
+<body class="is-splash-visible">
+    <div class="page-splash" id="page-splash" aria-hidden="true">
+        <div class="page-splash__panel">
+            <div class="page-splash__brand">
+                <img src="{{ url_for('static', filename='img/kartindo-loading-logo.png') }}" alt="Kartindo Logo">
+            </div>
+            <h1 class="page-splash__title">Akses User</h1>
+            <p class="page-splash__text">Menyiapkan halaman pengaturan akun dan hak akses.</p>
+            <div class="page-splash__bar"></div>
+        </div>
+    </div>
+
+    <div class="header">
+        <div class="header-inner">
+            <a href="/home" aria-label="Ke halaman Home">
+                <img
+                    src="https://www.kartindorubber.com/assets/img/logo/logo2.png"
+                    alt="Kartindo Rubber"
+                    class="header-logo"
+                >
+            </a>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+
+    <main class="container akses-page">
+        <div class="page-head">
+            <a href="/home" class="back-link">Kembali</a>
+            <span class="head-kicker">Pengaturan Pengguna</span>
+        </div>
+
+        <section class="akses-hero">
+            <div class="akses-hero-copy">
+                <p class="section-eyebrow">Akses User</p>
+                <h1>Kelola akun, peran, dan status akses dalam satu halaman.</h1>
+                <p class="section-intro">
+                    Halaman ini disiapkan untuk pengaturan user aplikasi QMS Inventory.
+                    Struktur tampilannya sudah siap untuk dihubungkan ke backend nanti.
+                </p>
+                <div class="hero-actions">
+                    <button type="button" class="primary-btn">Tambah User</button>
+                    <button type="button" class="ghost-btn">Atur Role</button>
+                </div>
+            </div>
+            <div class="akses-hero-panel" aria-hidden="true">
+                <div class="hero-panel-card hero-panel-card-main">
+                    <span class="hero-panel-label">Role Aktif</span>
+                    <strong>Administrator</strong>
+                    <p>Akses penuh ke data master, laporan, dan pengaturan user.</p>
+                </div>
+                <div class="hero-panel-grid">
+                    <div class="hero-panel-card">
+                        <span class="hero-panel-label">Total User</span>
+                        <strong>12</strong>
+                    </div>
+                    <div class="hero-panel-card">
+                        <span class="hero-panel-label">Sedang Aktif</span>
+                        <strong>10</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="summary-grid">
+            <article class="summary-card">
+                <p class="summary-label">Administrator</p>
+                <strong>3 User</strong>
+                <span>Kelola seluruh menu dan pengaturan sistem.</span>
+            </article>
+            <article class="summary-card">
+                <p class="summary-label">Supervisor</p>
+                <strong>4 User</strong>
+                <span>Memantau laporan dan validasi data produksi.</span>
+            </article>
+            <article class="summary-card">
+                <p class="summary-label">Operator</p>
+                <strong>5 User</strong>
+                <span>Input data harian sesuai menu yang diizinkan.</span>
+            </article>
+        </section>
+
+        <section class="content-grid">
+            <div class="panel-card">
+                <div class="panel-head">
+                    <div>
+                        <p class="panel-kicker">Daftar User</p>
+                        <h2>Data akun yang terdaftar</h2>
+                    </div>
+                    <button type="button" class="small-ghost-btn">Filter</button>
+                </div>
+
+                <div class="table-wrap">
+                    <table class="akses-table">
+                        <thead>
+                            <tr>
+                                <th>Nama User</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Andi Saputra</td>
+                                <td>andi.spv</td>
+                                <td><span class="role-badge role-admin">Administrator</span></td>
+                                <td><span class="status-badge status-active">Aktif</span></td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button type="button" class="table-btn">Detail</button>
+                                        <button type="button" class="table-btn">Edit</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Rina Prasetyo</td>
+                                <td>rina.qc</td>
+                                <td><span class="role-badge role-supervisor">Supervisor</span></td>
+                                <td><span class="status-badge status-active">Aktif</span></td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button type="button" class="table-btn">Detail</button>
+                                        <button type="button" class="table-btn">Edit</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Budi Hartono</td>
+                                <td>budi.opr</td>
+                                <td><span class="role-badge role-operator">Operator</span></td>
+                                <td><span class="status-badge status-inactive">Nonaktif</span></td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button type="button" class="table-btn">Detail</button>
+                                        <button type="button" class="table-btn">Edit</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>Siska Permata</td>
+                                <td>siska.gd</td>
+                                <td><span class="role-badge role-operator">Operator</span></td>
+                                <td><span class="status-badge status-active">Aktif</span></td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button type="button" class="table-btn">Detail</button>
+                                        <button type="button" class="table-btn">Edit</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <aside class="side-stack">
+                <div class="panel-card">
+                    <div class="panel-head">
+                        <div>
+                            <p class="panel-kicker">Hak Akses</p>
+                            <h2>Role dan cakupan menu</h2>
+                        </div>
+                    </div>
+
+                    <div class="permission-list">
+                        <div class="permission-item">
+                            <div>
+                                <strong>Administrator</strong>
+                                <p>Item Code, seluruh input produksi, laporan, dan akses user.</p>
+                            </div>
+                            <span class="permission-dot admin"></span>
+                        </div>
+                        <div class="permission-item">
+                            <div>
+                                <strong>Supervisor</strong>
+                                <p>Input produksi, lihat laporan, dan approval data tertentu.</p>
+                            </div>
+                            <span class="permission-dot supervisor"></span>
+                        </div>
+                        <div class="permission-item">
+                            <div>
+                                <strong>Operator</strong>
+                                <p>Input data sesuai bagian kerja tanpa akses pengaturan.</p>
+                            </div>
+                            <span class="permission-dot operator"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-card">
+                    <div class="panel-head">
+                        <div>
+                            <p class="panel-kicker">Catatan</p>
+                            <h2>Status halaman</h2>
+                        </div>
+                    </div>
+
+                    <div class="note-card">
+                        <p>
+                            Halaman ini masih berupa tampilan antarmuka. Tombol dan data belum
+                            dihubungkan ke proses backend atau navigasi menu.
+                        </p>
+                    </div>
+                </div>
+            </aside>
+        </section>
+    </main>
+</body>
+</html>
