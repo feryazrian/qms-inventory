@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Master Batch</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/stok_mb.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}">
+    <script src="{{ url_for('static', filename='js/splash.js') }}" defer></script>
+    <noscript><style>.page-splash{display:none !important;}</style></noscript>
+</head>
+<body class="is-splash-visible">
+    <div class="page-splash" id="page-splash" aria-hidden="true">
+        <div class="page-splash__panel">
+            <div class="page-splash__brand">
+                <img src="{{ url_for('static', filename='img/kartindo-loading-logo.png') }}" alt="Kartindo Logo">
+            </div>
+            <h1 class="page-splash__title">Stock Master Batch</h1>
+            <p class="page-splash__text">Menyiapkan dashboard stok pallet, lot, dan kereta untuk kebutuhan produksi.</p>
+            <div class="page-splash__bar"></div>
+        </div>
+    </div>
+
+    <div class="header">
+        <div class="header-inner">
+            <a href="/home" aria-label="Ke halaman Home">
+                <img
+                    src="https://www.kartindorubber.com/assets/img/logo/logo2.png"
+                    alt="Kartindo Rubber"
+                    class="header-logo"
+                >
+            </a>
+            <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+
+    <main class="container stok-page">
+        <div class="stok-topbar">
+            <a href="/home" class="stok-back-link">Kembali</a>
+            <span class="stok-kicker">Persediaan Master Batch</span>
+        </div>
+
+        <section class="stok-hero">
+            <div class="stok-hero-copy">
+                <p class="hero-eyebrow">Surat Perintah Kerja</p>
+                <h1>Input order yang akan diproduksi.</h1>
+                <p class="hero-text">Tanggal: 28 Maret 2026</p>
+
+                <form class="spk-inline-form" action="#" method="post" onsubmit="return false;">
+                    <div class="spk-grid">
+                        <label class="spk-item">
+                            <span class="spk-type">Cushion Gum</span>
+                            <input type="number" min="0" value="5" placeholder="Jumlah kereta">
+                        </label>
+                        <label class="spk-item">
+                            <span class="spk-type">Gum Cord</span>
+                            <input type="number" min="0" value="0" placeholder="Jumlah kereta">
+                        </label>
+                        <label class="spk-item">
+                            <span class="spk-type">1/8MM</span>
+                            <input type="number" min="0" value="0" placeholder="Jumlah kereta">
+                        </label>
+                        <label class="spk-item">
+                            <span class="spk-type">1/8B</span>
+                            <input type="number" min="0" value="0" placeholder="Jumlah kereta">
+                        </label>
+                    </div>
+                    <button type="button" class="spk-save-btn">Simpan</button>
+                </form>
+            </div>
+
+            <div class="stok-hero-panel">
+                <form class="hero-input-card" action="#" method="post" onsubmit="return false;">
+                    <div class="hero-input-head">
+                        <span>Form Penerimaan MB</span>
+                        <strong>Input Master Batch</strong>
+                    </div>
+
+                    <label class="hero-field">
+                        <span>Jenis Master Batch</span>
+                        <select>
+                            <option selected>Cushion Gum</option>
+                            <option>Gum Cord</option>
+                            <option>1/8MM</option>
+                            <option>1/8B</option>
+                        </select>
+                    </label>
+
+                    <label class="hero-field">
+                        <span>Tanggal Ambil / Terima</span>
+                        <input type="date" value="2026-03-28">
+                    </label>
+
+                    <label class="hero-field">
+                        <span>Nomor Kerata</span>
+                        <input type="text" value="001-010" placeholder="Contoh: 001-010">
+                    </label>
+
+                    <label class="hero-field">
+                        <span>Nomor Lot</span>
+                        <input type="text" value="KR-001 s.d KR-020" placeholder="Contoh: KR-001 s.d KR-020">
+                    </label>
+
+                    <button type="button" class="hero-save-btn">Simpan</button>
+                </form>
+            </div>
+        </section>
+
+        <section class="jenis-grid">
+            <article class="jenis-card jenis-cg">
+                <p class="jenis-label">Cushion Gum</p>
+                <strong>6 Pallet</strong>
+                <span>120 kereta tersedia</span>
+            </article>
+            <article class="jenis-card jenis-gc">
+                <p class="jenis-label">Gum Cord</p>
+                <strong>4 Pallet</strong>
+                <span>80 kereta tersedia</span>
+            </article>
+            <article class="jenis-card jenis-mm">
+                <p class="jenis-label">1/8MM</p>
+                <strong>5 Pallet</strong>
+                <span>100 kereta tersedia</span>
+            </article>
+            <article class="jenis-card jenis-b">
+                <p class="jenis-label">1/8B</p>
+                <strong>3 Pallet</strong>
+                <span>60 kereta tersedia</span>
+            </article>
+        </section>
+
+        <section class="workflow-grid">
+            <div class="panel-card">
+                <div class="panel-head">
+                    <div>
+                        <p class="panel-kicker">Penerimaan Pallet</p>
+                        <h2>Input stock masuk Master Batch</h2>
+                    </div>
+                    <button type="button" class="ghost-btn">Simpan Draft</button>
+                </div>
+
+                <form class="stock-form" action="#" method="post" onsubmit="return false;">
+                    <div class="field-grid field-grid-main">
+                        <label class="field-block">
+                            <span>Jenis Master Batch</span>
+                            <select>
+                                <option selected>Cushion Gum</option>
+                                <option>Gum Cord</option>
+                                <option>1/8MM</option>
+                                <option>1/8B</option>
+                            </select>
+                        </label>
+                        <label class="field-block">
+                            <span>Tanggal Terima</span>
+                            <input type="date" value="2026-03-28">
+                        </label>
+                        <label class="field-block">
+                            <span>Nomor Pallet</span>
+                            <input type="text" value="PLT-CG-0328-01" placeholder="Contoh: PLT-CG-0328-01">
+                        </label>
+                        <label class="field-block">
+                            <span>Supplier / Asal</span>
+                            <input type="text" value="Internal Mixing" placeholder="Asal material">
+                        </label>
+                    </div>
+
+                    <div class="field-grid field-grid-secondary">
+                        <label class="field-block">
+                            <span>Lot Awal</span>
+                            <input type="text" value="001" placeholder="001">
+                        </label>
+                        <label class="field-block">
+                            <span>Lot Akhir</span>
+                            <input type="text" value="020" placeholder="020">
+                        </label>
+                        <label class="field-block">
+                            <span>Jumlah Kereta</span>
+                            <input type="number" value="20" min="1" max="20">
+                        </label>
+                        <label class="field-block">
+                            <span>Jumlah Lot</span>
+                            <input type="number" value="20" min="1" max="20">
+                        </label>
+                    </div>
+
+                    <div class="formula-strip">
+                        <div class="formula-item">
+                            <strong>Aturan Pallet</strong>
+                            <span>1 pallet diterima = 20 kereta atau batch.</span>
+                        </div>
+                        <div class="formula-item">
+                            <strong>Aturan Lot</strong>
+                            <span>Input nomor lot mengikuti label pallet, contoh 001-010 atau 011-020.</span>
+                        </div>
+                        <div class="formula-item">
+                            <strong>Aturan Trace</strong>
+                            <span>Setiap pengeluaran produksi harus tetap membawa referensi lot dan kereta.</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <div class="panel-card panel-accent">
+                <div class="panel-head">
+                    <div>
+                        <p class="panel-kicker">Simulasi Pemakaian</p>
+                        <h2>Potong saldo otomatis untuk produksi</h2>
+                    </div>
+                </div>
+
+                <form class="stock-form compact-form" action="#" method="post" onsubmit="return false;">
+                    <label class="field-block">
+                        <span>Jenis Produksi</span>
+                        <select>
+                            <option selected>Cushion Gum</option>
+                            <option>Gum Cord</option>
+                            <option>1/8MM</option>
+                            <option>1/8B</option>
+                        </select>
+                    </label>
+                    <label class="field-block">
+                        <span>Jalan Produksi di SPK</span>
+                        <input type="number" value="5" min="1" placeholder="Masukkan jalan produksi">
+                    </label>
+                    <label class="field-block">
+                        <span>Pallet Sumber</span>
+                        <select>
+                            <option selected>PLT-CG-0328-01</option>
+                            <option>PLT-CG-0327-02</option>
+                        </select>
+                    </label>
+                </form>
+
+                <div class="usage-summary">
+                    <div class="usage-box">
+                        <span>Saldo Sebelum Produksi</span>
+                        <strong>20 kereta</strong>
+                    </div>
+                    <div class="usage-box usage-box-danger">
+                        <span>Terpakai untuk Jalan Produksi 5</span>
+                        <strong>-5 kereta</strong>
+                    </div>
+                    <div class="usage-box usage-box-success">
+                        <span>Saldo Setelah Produksi</span>
+                        <strong>15 kereta</strong>
+                    </div>
+                </div>
+
+                <div class="allocation-card">
+                    <h3>Urutan pemotongan yang disarankan</h3>
+                    <p>
+                        Sistem nantinya dapat mengambil saldo dari kereta paling awal pada pallet aktif,
+                        lalu menandai nomor lot dan kereta yang sudah dipakai agar histori tetap jelas.
+                    </p>
+                    <div class="allocation-tags">
+                        <span>Lot 001</span>
+                        <span>Lot 002</span>
+                        <span>Lot 003</span>
+                        <span>Lot 004</span>
+                        <span>Lot 005</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel-card">
+            <div class="panel-head">
+                <div>
+                    <p class="panel-kicker">Detail Pallet</p>
+                    <h2>Pemetaan lot dan kereta per pallet</h2>
+                </div>
+                <div class="legend-wrap">
+                    <span class="legend-pill is-ready">Ready</span>
+                    <span class="legend-pill is-used">Terpakai</span>
+                    <span class="legend-pill is-partial">Sebagian</span>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table class="stock-table">
+                    <thead>
+                        <tr>
+                            <th>Jenis</th>
+                            <th>Nomor Pallet</th>
+                            <th>Range Lot</th>
+                            <th>Nomor Kereta</th>
+                            <th>Jumlah Kereta</th>
+                            <th>Terpakai</th>
+                            <th>Sisa</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Cushion Gum</td>
+                            <td>PLT-CG-0328-01</td>
+                            <td>001-020</td>
+                            <td>KR-001 s.d KR-020</td>
+                            <td>20</td>
+                            <td>5</td>
+                            <td>15</td>
+                            <td><span class="status-pill partial">Sebagian</span></td>
+                        </tr>
+                        <tr>
+                            <td>Gum Cord</td>
+                            <td>PLT-GC-0328-02</td>
+                            <td>021-040</td>
+                            <td>KR-021 s.d KR-040</td>
+                            <td>20</td>
+                            <td>0</td>
+                            <td>20</td>
+                            <td><span class="status-pill ready">Ready</span></td>
+                        </tr>
+                        <tr>
+                            <td>1/8MM</td>
+                            <td>PLT-MM-0327-01</td>
+                            <td>011-030</td>
+                            <td>KR-011 s.d KR-030</td>
+                            <td>20</td>
+                            <td>12</td>
+                            <td>8</td>
+                            <td><span class="status-pill partial">Sebagian</span></td>
+                        </tr>
+                        <tr>
+                            <td>1/8B</td>
+                            <td>PLT-1B-0326-01</td>
+                            <td>031-050</td>
+                            <td>KR-031 s.d KR-050</td>
+                            <td>20</td>
+                            <td>20</td>
+                            <td>0</td>
+                            <td><span class="status-pill used">Terpakai</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="bottom-grid">
+            <div class="panel-card">
+                <div class="panel-head">
+                    <div>
+                        <p class="panel-kicker">Histori Transaksi</p>
+                        <h2>Masuk dan keluar stock Master Batch</h2>
+                    </div>
+                </div>
+
+                <div class="history-list">
+                    <div class="history-item">
+                        <div class="history-date">28 Mar 2026</div>
+                        <div class="history-body">
+                            <strong>Penerimaan pallet Cushion Gum</strong>
+                            <p>PLT-CG-0328-01 dengan lot 001-020 dan 20 kereta masuk ke stock.</p>
+                        </div>
+                        <span class="history-type in">Masuk</span>
+                    </div>
+                    <div class="history-item">
+                        <div class="history-date">28 Mar 2026</div>
+                        <div class="history-body">
+                            <strong>Pemakaian untuk SPK Cushion Gum</strong>
+                            <p>Jalan produksi 5 otomatis memotong 5 kereta dari pallet PLT-CG-0328-01.</p>
+                        </div>
+                        <span class="history-type out">Keluar</span>
+                    </div>
+                    <div class="history-item">
+                        <div class="history-date">27 Mar 2026</div>
+                        <div class="history-body">
+                            <strong>Penerimaan pallet 1/8MM</strong>
+                            <p>PLT-MM-0327-01 dengan lot 011-030 diterima lengkap dan siap produksi.</p>
+                        </div>
+                        <span class="history-type in">Masuk</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <div class="panel-head">
+                    <div>
+                        <p class="panel-kicker">Catatan Sistem</p>
+                        <h2>Logika yang perlu dipertahankan</h2>
+                    </div>
+                </div>
+
+                <div class="note-list">
+                    <div class="note-item">
+                        <strong>Unit utama stock adalah pallet</strong>
+                        <p>Namun detail pelacakan tetap turun ke nomor lot dan nomor kereta.</p>
+                    </div>
+                    <div class="note-item">
+                        <strong>Pengurangan stock berdasarkan produksi</strong>
+                        <p>Jika jalan produksi 5, maka sistem mengurangi 5 kereta dari pallet yang dipilih.</p>
+                    </div>
+                    <div class="note-item">
+                        <strong>Traceability wajib terlihat</strong>
+                        <p>Setiap transaksi keluar harus tetap menunjukkan pallet, lot, dan kereta asal.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

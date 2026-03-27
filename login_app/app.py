@@ -2544,6 +2544,14 @@ def akses():
     return render_template("akses.html", user=session["user"])
 
 
+@app.route("/stok_mb")
+def stok_mb():
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    return render_template("stok_mb.html", user=session["user"])
+
+
 @app.route("/item-code", methods=["GET", "POST"])
 def item_code():
     is_ajax = (
