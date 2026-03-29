@@ -1120,7 +1120,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 alert("Row token Gum Cord tidak tersedia.");
                 return;
             }
-            window.open(`/laporan/gum-cord/cetak/${encodeURIComponent(rowToken)}`, "_blank");
+            const safeRowToken = rowToken.replace(/[()]/g, "").replace(",", "-");
+            window.open(`/laporan/gum-cord/cetak/${encodeURIComponent(safeRowToken)}`, "_blank");
         });
     });
     document.querySelectorAll("[data-close-cg='1']").forEach((el) => {

@@ -1628,6 +1628,8 @@ def laporan_gum_cord_read(row_token):
     if "user" not in session:
         return jsonify({"ok": False, "message": "Unauthorized"}), 401
 
+    row_token = normalize_gum_cord_row_token(row_token)
+
     conn = None
     try:
         conn = get_db_conn()
@@ -1703,6 +1705,8 @@ def laporan_gum_cord_read(row_token):
 def laporan_gum_cord_update(row_token):
     if "user" not in session:
         return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    row_token = normalize_gum_cord_row_token(row_token)
 
     payload = request.get_json(silent=True) or {}
     header = payload.get("header") or {}
@@ -1990,6 +1994,47 @@ def parse_decimal(value):
         return Decimal(value)
     except (InvalidOperation, ValueError):
         return None
+
+
+def normalize_gum_cord_row_token(row_token):
+    token = (row_token or "").strip()
+    if not token:
+        return ""
+    if token.startswith("(,"):
+        token = f"(0{token[1:]}"
+    elif token.startswith(","):
+        token = f"0{token}"
+    elif token.startswith("(-"):
+        token = token.replace("(-", "(0-", 1)
+    if token.startswith("(") and token.endswith(")"):
+        inner = token[1:-1]
+        if "," in inner:
+            left, right = inner.split(",", 1)
+            left = left.strip() or "0"
+            right = right.strip()
+            if left.isdigit() and right.isdigit():
+                return f"({left},{right})"
+        return token
+    if "," in token:
+        left, right = token.split(",", 1)
+        left = left.strip() or "0"
+        right = right.strip()
+        if left.isdigit() and right.isdigit():
+            return f"({left},{right})"
+    if "-" in token:
+        left, right = token.split("-", 1)
+        left = left.strip() or "0"
+        right = right.strip()
+        if left.isdigit() and right.isdigit():
+            return f"({left},{right})"
+    if token.isdigit():
+        return f"(0,{token})"
+    return token
+
+
+def make_safe_gum_cord_row_token(row_token):
+    normalized = normalize_gum_cord_row_token(row_token)
+    return normalized.replace("(", "").replace(")", "").replace(",", "-")
 
 
 def format_number_display(value):
@@ -2951,6 +2996,8 @@ def fetch_gum_cord_by_row_token(row_token):
             "berat_per_kotak": row[13] if len(row) > 13 else None,
             "berat_total": row[14] if len(row) > 14 else None,
         }
+    except Exception:
+        return None
     finally:
         if conn:
             conn.close()
@@ -3240,6 +3287,8 @@ def laporan_gum_cord_cetak(row_token):
     if "user" not in session:
         return redirect(url_for("login"))
 
+    row_token = normalize_gum_cord_row_token(row_token)
+
     gum_cord_row = fetch_gum_cord_by_row_token(row_token)
     if not gum_cord_row:
         return "Data Gum Cord tidak ditemukan.", 404
@@ -3257,7 +3306,7 @@ def laporan_gum_cord_cetak(row_token):
         cushion_result,
         gum_cord_row,
         batch_uid,
-        url_for("laporan_gum_cord_download", row_token=row_token),
+        url_for("laporan_gum_cord_download", row_token=make_safe_gum_cord_row_token(row_token)),
     )
 
 
@@ -3288,6 +3337,8 @@ def laporan_gum_cord_download(row_token):
     if "user" not in session:
         return redirect(url_for("login"))
 
+    row_token = normalize_gum_cord_row_token(row_token)
+
     gum_cord_row = fetch_gum_cord_by_row_token(row_token)
     if not gum_cord_row:
         return "Data Gum Cord tidak ditemukan.", 404
@@ -3303,7 +3354,7 @@ def laporan_gum_cord_download(row_token):
 
     context = build_print_laporan_combined_context(cushion_result, gum_cord_row, batch_uid, "")
     pdf_buffer = render_template_to_pdf_bytes("print_laporan.html", context, "print.css")
-    safe_token = row_token.replace("(", "").replace(")", "").replace(",", "-")
+    safe_token = make_safe_gum_cord_row_token(row_token)
     return send_file(
         pdf_buffer,
         mimetype="application/pdf",

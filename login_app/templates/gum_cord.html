@@ -167,7 +167,7 @@
             if (!perKotakInput) return;
 
             if (e.target.value.trim() !== "") {
-                perKotakInput.value = "8";
+                perKotakInput.value = "10";
             } else {
                 perKotakInput.value = "";
             }
@@ -206,8 +206,8 @@
 
         const targetPerMenit = parseFloat(targetMenitInput.value);
         if (!isNaN(targetPerMenit)) {
-            const total = pakai * targetPerMenit;
-            targetTotalInput.value = total.toFixed(2);
+            const total = (pakai * targetPerMenit) / 10;
+            targetTotalInput.value = total.toFixed(1);
             const aktualInput = row.querySelector(".aktual-c");
             if (aktualInput && aktualInput.value) {
                 hitungPersentaseC(aktualInput);
@@ -233,10 +233,10 @@
         }
 
         if (Math.abs(aktual - totalTarget) < 0.01) {
-            persentaseInput.value = "100.00";
+            persentaseInput.value = "100.0";
         } else {
             const persen = (aktual / totalTarget) * 100;
-            persentaseInput.value = persen.toFixed(2);
+            persentaseInput.value = persen.toFixed(1);
         }
 
         if (totalBeratInput && perKotakInput) {
