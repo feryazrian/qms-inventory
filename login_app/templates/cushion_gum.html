@@ -62,6 +62,7 @@
     <div class="section-header production-header">
     <h3 class="section-title mobile-title-center"><span class="section-prefix">A.</span> Hasil Produksi Cushion Gum</h3>
     <div class="section-actions">
+        <button type="button" class="delete-mode-btn" onclick="toggleModeHapus(this)">Hapus Baris</button>
         <button type="button" class="add-row-btn" onclick="confirmResetAB()">Reset Form</button>
         <button
             type="button"
@@ -416,6 +417,7 @@ window.addEventListener("resize", fitTablesToCard);
 
 const INITIAL_A_ROWS = 6;
 const CUSHION_DRAFT_KEY = "cushion-gum:draft:v1";
+let deleteModeAktif = false;
 
 function debounce(fn, waitMs) {
     let timer = null;
@@ -979,6 +981,44 @@ function tambahBaris() {
     fitTablesToCard();
     saveCushionDraft();
 }
+
+function hapusBaris(row) {
+    const tbody = row?.parentElement;
+    if (!row || !tbody) return;
+
+    row.remove();
+    hitungGrandTotal();
+    hitungTotalAktual();
+    hitungGrandBeratA();
+    fitTablesToCard();
+    saveCushionDraft();
+}
+
+function toggleModeHapus(button) {
+    deleteModeAktif = !deleteModeAktif;
+    document.body.classList.toggle('delete-row-mode', deleteModeAktif);
+
+    if (button) {
+        button.textContent = deleteModeAktif ? 'Batal Hapus' : 'Hapus Baris';
+        button.classList.toggle('is-active', deleteModeAktif);
+    }
+}
+
+document.addEventListener('click', function (event) {
+    if (!deleteModeAktif) return;
+
+    const clickedButton = event.target.closest('.delete-mode-btn');
+    if (clickedButton) return;
+
+    const row = event.target.closest('.table-a-reset tbody tr');
+    if (!row) return;
+
+    const isConfirmed = confirm('Hapus baris ini?');
+    if (!isConfirmed) return;
+
+    hapusBaris(row);
+    toggleModeHapus(document.querySelector('.delete-mode-btn'));
+});
 
 function confirmResetAB() {
     const isConfirmed = confirm("Yakin ingin menghapus semua input?");

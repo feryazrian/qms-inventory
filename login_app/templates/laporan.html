@@ -266,7 +266,10 @@
     <div class="cg-modal-card" role="dialog" aria-modal="true" aria-labelledby="cg-modal-title">
         <div class="cg-modal-head">
             <h3 id="cg-modal-title">Detail Produksi Cushion Gum</h3>
-            <button type="button" class="cg-modal-close" data-close-cg="1">Tutup</button>
+            <div class="cg-modal-head-actions">
+                <button type="button" class="cg-modal-delete-btn" id="cg-modal-delete-row-btn" hidden>Hapus Baris</button>
+                <button type="button" class="cg-modal-close" data-close-cg="1">Tutup</button>
+            </div>
         </div>
         <div class="cg-modal-meta">
             <div>
@@ -738,6 +741,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const cgModal = document.getElementById("cg-modal");
     const cgModalBody = document.getElementById("cg-modal-body");
     const cgUpdateBtn = document.getElementById("cg-modal-update-btn");
+    const cgDeleteRowBtn = document.getElementById("cg-modal-delete-row-btn");
     const cgNamaOperator = document.getElementById("cg-modal-nama-operator");
     const cgNoMesin = document.getElementById("cg-modal-no-mesin");
     const cgTanggal = document.getElementById("cg-modal-tanggal");
@@ -749,6 +753,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const cgKotakRoot = cgModal.querySelector(".cg-helper-block:nth-of-type(2)");
     const cgTungkulRoot = cgModal.querySelector(".cg-helper-block:nth-of-type(3)");
     let activeCgBatchUid = "";
+    let cgDeleteMode = false;
+
+    function setCgDeleteMode(active) {
+        cgDeleteMode = !!active;
+        cgModal.classList.toggle("delete-row-mode", cgDeleteMode);
+        if (cgDeleteRowBtn) {
+            cgDeleteRowBtn.textContent = cgDeleteMode ? "Batal Hapus" : "Hapus Baris";
+            cgDeleteRowBtn.classList.toggle("is-active", cgDeleteMode);
+        }
+    }
 
     function setCgModalEditable(editable) {
         [cgNamaOperator, cgNoMesin, cgTanggal].forEach((el) => {
@@ -772,6 +786,10 @@ document.addEventListener("DOMContentLoaded", function () {
             el.disabled = false;
         });
         cgUpdateBtn.hidden = !editable;
+        if (cgDeleteRowBtn) {
+            cgDeleteRowBtn.hidden = !editable;
+        }
+        setCgDeleteMode(false);
     }
 
     function buildCgTargetPerMenitSelect(value) {
@@ -819,6 +837,7 @@ document.addEventListener("DOMContentLoaded", function () {
         cgModal.hidden = true;
         document.body.classList.remove("modal-open");
         activeCgBatchUid = "";
+        setCgDeleteMode(false);
     }
 
     function parseNum(value) {
@@ -1027,6 +1046,25 @@ document.addEventListener("DOMContentLoaded", function () {
         });
         return rows;
     }
+
+    cgDeleteRowBtn?.addEventListener("click", function () {
+        if (cgDeleteRowBtn.hidden) return;
+        setCgDeleteMode(!cgDeleteMode);
+    });
+
+    cgModalBody?.addEventListener("click", function (event) {
+        if (!cgDeleteMode) return;
+
+        const row = event.target.closest("tr");
+        if (!row) return;
+
+        const isConfirmed = confirm("Hapus baris ini?");
+        if (!isConfirmed) return;
+
+        row.remove();
+        recalcCgGrandTotals();
+        setCgDeleteMode(false);
+    });
 
     async function submitCgUpdate() {
         if (!activeCgBatchUid) return;

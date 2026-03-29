@@ -631,6 +631,12 @@ body.modal-open {
     margin-bottom: 10px;
 }
 
+.cg-modal-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .cg-modal-head h3 {
     margin: 0;
     font-size: 18px;
@@ -647,6 +653,28 @@ body.modal-open {
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
+}
+
+.cg-modal-delete-btn {
+    border: 1px dashed #cbd5e1;
+    background: #fff;
+    color: #334155;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.cg-modal-delete-btn:hover {
+    background: #f8fafc;
+}
+
+.cg-modal-delete-btn.is-active {
+    border-style: solid;
+    border-color: #d72638;
+    background: #d72638;
+    color: #fff;
 }
 
 .cg-modal-meta {
@@ -819,6 +847,14 @@ body.modal-open {
     padding: 0;
     text-align: center;
     vertical-align: middle;
+}
+
+.cg-modal.delete-row-mode .cg-modal-prod-table tbody tr {
+    cursor: pointer;
+}
+
+.cg-modal.delete-row-mode .cg-modal-prod-table tbody tr:hover td {
+    background: #ffe7eb;
 }
 
 .cg-modal-prod-table td input[type="number"],
@@ -1157,6 +1193,16 @@ body.modal-open {
 
     .cg-modal-meta {
         grid-template-columns: 1fr;
+    }
+
+    .cg-modal-head {
+        gap: 8px;
+        align-items: flex-start;
+    }
+
+    .cg-modal-head-actions {
+        flex-wrap: wrap;
+        justify-content: flex-end;
     }
 
     .cg-modal-prod-table {

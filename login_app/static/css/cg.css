@@ -332,6 +332,28 @@
     background: #eee;
 }
 
+.delete-mode-btn {
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px dashed #aaa;
+    background: #f9f9f9;
+    color: #000;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.delete-mode-btn:hover {
+    background: #eee;
+}
+
+.delete-mode-btn.is-active {
+    border-style: solid;
+    background: #d72638;
+    color: #fff;
+}
+
 .save-btn {
     padding: 7px 14px;
     font-size: 13px;
@@ -347,6 +369,14 @@
 .save-btn:hover {
     background: #b91f2f;
     border-color: #b91f2f;
+}
+
+body.delete-row-mode .table-a-reset tbody tr {
+    cursor: pointer;
+}
+
+body.delete-row-mode .table-a-reset tbody tr:hover td {
+    background: #ffe1e5;
 }
 
 /* =========================
@@ -652,6 +682,7 @@
     }
 
     .add-row-btn,
+    .delete-mode-btn,
     .save-btn {
         max-width: 100%;
     }
@@ -672,6 +703,7 @@
     }
 
     .production-header .section-actions .add-row-btn,
+    .production-header .section-actions .delete-mode-btn,
     .production-header .section-actions .save-btn {
         flex: 0 0 auto;
         padding: 6px 10px;
