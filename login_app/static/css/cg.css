@@ -465,6 +465,12 @@ body.delete-row-mode .table-a-reset tbody tr:hover td {
     font-size: 12px;
 }
 
+.helper-table input.gumcord-sync-field {
+    background: #f8fafc;
+    color: #475569;
+    cursor: default;
+}
+
 /* tinggi baris konsisten */
 .helper-table tbody tr {
     height: 38px;
@@ -706,8 +712,8 @@ body.delete-row-mode .table-a-reset tbody tr:hover td {
     .production-header .section-actions .delete-mode-btn,
     .production-header .section-actions .save-btn {
         flex: 0 0 auto;
-        padding: 6px 10px;
-        font-size: 12px;
+        padding: 5px 8px;
+        font-size: 11px;
     }
 
     .auto-total-kotak,

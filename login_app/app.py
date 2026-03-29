@@ -625,6 +625,121 @@ def ensure_pemakaian_tungkul_table(conn):
         ADD COLUMN IF NOT EXISTS tp_195 INTEGER
         """
     )
+
+
+def fetch_gum_cord_helper_by_date(tanggal_produksi):
+    if not tanggal_produksi:
+        return {"plastik_gumcord": None, "box_gumcord": None}
+
+    conn = None
+    try:
+        conn = get_db_conn()
+        ensure_pemakaian_plastik_table(conn)
+        ensure_pemakaian_kotak_table(conn)
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            SELECT plastik_gumcord
+            FROM pemakaian_plastik
+            WHERE tanggal_produksi = %s
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (tanggal_produksi,),
+        )
+        plastik = cur.fetchone()
+
+        cur.execute(
+            """
+            SELECT box_gumcord
+            FROM pemakaian_kotak
+            WHERE tanggal_produksi = %s
+            ORDER BY id DESC
+            LIMIT 1
+            """,
+            (tanggal_produksi,),
+        )
+        kotak = cur.fetchone()
+
+        return {
+            "plastik_gumcord": float(plastik[0]) if plastik and plastik[0] is not None else None,
+            "box_gumcord": kotak[0] if kotak and kotak[0] is not None else None,
+        }
+    finally:
+        if conn:
+            conn.close()
+
+
+def upsert_gum_cord_helper_by_date(conn, tanggal_produksi, plastik_gumcord, box_gumcord):
+    if not conn or not tanggal_produksi:
+        return
+
+    ensure_pemakaian_plastik_table(conn)
+    ensure_pemakaian_kotak_table(conn)
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT id
+        FROM pemakaian_plastik
+        WHERE tanggal_produksi = %s
+        ORDER BY id DESC
+        LIMIT 1
+        """,
+        (tanggal_produksi,),
+    )
+    plastik_row = cur.fetchone()
+    if plastik_row:
+        cur.execute(
+            """
+            UPDATE pemakaian_plastik
+            SET plastik_gumcord = %s
+            WHERE id = %s
+            """,
+            (plastik_gumcord, plastik_row[0]),
+        )
+    elif plastik_gumcord is not None:
+        cur.execute(
+            """
+            INSERT INTO pemakaian_plastik (
+                tanggal_produksi,
+                plastik_gumcord
+            ) VALUES (%s, %s)
+            """,
+            (tanggal_produksi, plastik_gumcord),
+        )
+
+    cur.execute(
+        """
+        SELECT id
+        FROM pemakaian_kotak
+        WHERE tanggal_produksi = %s
+        ORDER BY id DESC
+        LIMIT 1
+        """,
+        (tanggal_produksi,),
+    )
+    kotak_row = cur.fetchone()
+    if kotak_row:
+        cur.execute(
+            """
+            UPDATE pemakaian_kotak
+            SET box_gumcord = %s
+            WHERE id = %s
+            """,
+            (box_gumcord, kotak_row[0]),
+        )
+    elif box_gumcord is not None:
+        cur.execute(
+            """
+            INSERT INTO pemakaian_kotak (
+                tanggal_produksi,
+                box_gumcord
+            ) VALUES (%s, %s)
+            """,
+            (tanggal_produksi, box_gumcord),
+        )
     cur.execute(
         """
         ALTER TABLE pemakaian_tungkul
@@ -1051,6 +1166,22 @@ def fetch_cushion_batch(batch_uid):
                 (header[1],),
             )
             plastik = cur.fetchone()
+        elif plastik and header[1]:
+            cur.execute(
+                """
+                SELECT plastik_gumcord
+                FROM pemakaian_plastik
+                WHERE tanggal_produksi = %s
+                ORDER BY id DESC
+                LIMIT 1
+                """,
+                (header[1],),
+            )
+            latest_plastik_gumcord = cur.fetchone()
+            if latest_plastik_gumcord:
+                plastik = list(plastik)
+                plastik[7] = latest_plastik_gumcord[0]
+                plastik = tuple(plastik)
         if not plastik and header[1]:
             cur.execute(
                 """
@@ -1116,6 +1247,22 @@ def fetch_cushion_batch(batch_uid):
                 (header[1],),
             )
             kotak = cur.fetchone()
+        elif kotak and header[1]:
+            cur.execute(
+                """
+                SELECT box_gumcord
+                FROM pemakaian_kotak
+                WHERE tanggal_produksi = %s
+                ORDER BY id DESC
+                LIMIT 1
+                """,
+                (header[1],),
+            )
+            latest_box_gumcord = cur.fetchone()
+            if latest_box_gumcord:
+                kotak = list(kotak)
+                kotak[6] = latest_box_gumcord[0]
+                kotak = tuple(kotak)
         if not kotak and header[1]:
             cur.execute(
                 """
@@ -2581,6 +2728,18 @@ def gum_cord():
     return render_template("gum_cord.html", user=session["user"])
 
 
+@app.route("/gum-cord/helper-values", methods=["GET"])
+def gum_cord_helper_values():
+    if "user" not in session:
+        return jsonify({"ok": False, "message": "Unauthorized"}), 401
+
+    tanggal_produksi = (request.args.get("tanggal") or "").strip()
+    if not tanggal_produksi:
+        return jsonify({"ok": True, "data": {"plastik_gumcord": None, "box_gumcord": None}})
+
+    return jsonify({"ok": True, "data": fetch_gum_cord_helper_by_date(tanggal_produksi)})
+
+
 @app.route("/akses")
 def akses():
     if "user" not in session:
@@ -2880,6 +3039,8 @@ def laporan():
     laporan_cushion_gum = fetch_laporan_cushion_gum(selected_month)
     laporan_gum_cord = fetch_laporan_gum_cord(selected_month)
     laporan_msc = fetch_laporan_msc(selected_month)
+    master_produk = fetch_master_produk()
+    master_bahan_msc = fetch_master_bahan_msc()
     return render_template(
         "laporan.html",
         user=session["user"],
@@ -2889,6 +3050,8 @@ def laporan():
         laporan_cushion_gum=laporan_cushion_gum,
         laporan_gum_cord=laporan_gum_cord,
         laporan_msc=laporan_msc,
+        master_produk_options=[produk[1] for produk in master_produk],
+        master_bahan_msc_options=master_bahan_msc,
     )
 
 
@@ -3953,10 +4116,14 @@ def cushion_gum_cord():
     persentase = parse_decimal(request.form.get("persentase"))
     berat_per_kotak = parse_decimal(request.form.get("berat_per_kotak"))
     berat_total = parse_decimal(request.form.get("berat_total"))
+    plastik_gumcord = parse_decimal(request.form.get("plastik_gumcord"))
+    box_gumcord = parse_int(request.form.get("box_gumcord"))
 
     conn = None
     try:
         conn = get_db_conn()
+        ensure_pemakaian_plastik_table(conn)
+        ensure_pemakaian_kotak_table(conn)
         cur = conn.cursor()
         cur.execute(
             """
@@ -4009,6 +4176,8 @@ def cushion_gum_cord():
                 berat_total,
             ),
         )
+
+        upsert_gum_cord_helper_by_date(conn, tanggal_produksi, plastik_gumcord, box_gumcord)
         conn.commit()
     except Exception:
         if conn:

@@ -66,6 +66,13 @@
     background: #ececec;
 }
 
+#delete-msc-row-btn.is-active {
+    border-style: solid;
+    border-color: #dc2626;
+    background: #dc2626;
+    color: #fff;
+}
+
 .save-btn {
     padding: 7px 14px;
     font-size: 13px;
@@ -260,6 +267,14 @@
 
 .production-table tbody td:nth-child(9) {
     background: #b8cee4;
+}
+
+body.msc-delete-mode .production-table tbody tr {
+    cursor: pointer;
+}
+
+body.msc-delete-mode .production-table tbody tr:hover td {
+    background: #ffe7eb;
 }
 
 .total-row td {
@@ -484,15 +499,24 @@
 
     .section-actions {
         width: 100%;
-        justify-content: center;
-        flex-wrap: wrap;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
         gap: 6px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+    }
+
+    .section-actions::-webkit-scrollbar {
+        display: none;
     }
 
     .add-row-btn,
     .save-btn {
-        padding: 6px 10px;
-        font-size: 12px;
+        padding: 6px 9px;
+        font-size: 11px;
+        flex: 0 0 auto;
     }
 
     .section-title-cell,

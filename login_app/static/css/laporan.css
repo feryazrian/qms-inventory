@@ -323,6 +323,12 @@ body.modal-open {
     margin-bottom: 12px;
 }
 
+.msc-modal-head-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .msc-modal-head h3 {
     margin: 0;
     font-size: 20px;
@@ -338,6 +344,28 @@ body.modal-open {
     font-size: 13px;
     font-weight: 600;
     cursor: pointer;
+}
+
+.msc-modal-delete-btn {
+    border: 1px dashed #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.msc-modal-delete-btn:hover {
+    background: #f8fafc;
+}
+
+.msc-modal-delete-btn.is-active {
+    border-style: solid;
+    border-color: #d72638;
+    background: #d72638;
+    color: #fff;
 }
 
 .msc-modal-meta {
@@ -385,6 +413,10 @@ body.modal-open {
 .msc-modal-table-wrap {
     width: 100%;
     overflow-x: auto;
+}
+
+.msc-modal-fixed-table-title {
+    display: none;
 }
 
 .msc-modal-prod-table {
@@ -462,6 +494,14 @@ body.modal-open {
     padding: 0;
     text-align: center;
     vertical-align: middle;
+}
+
+.msc-modal.delete-row-mode .msc-modal-prod-table tbody tr {
+    cursor: pointer;
+}
+
+.msc-modal.delete-row-mode .msc-modal-prod-table tbody tr:hover td {
+    background: #ffe7eb;
 }
 
 .msc-modal-prod-table .num-cell {
@@ -615,7 +655,8 @@ body.modal-open {
     z-index: 2;
     width: min(1200px, calc(100% - 32px));
     max-height: calc(100vh - 40px);
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     margin: 20px auto;
     background: #ffffff;
     border-radius: 16px;
@@ -954,8 +995,16 @@ body.modal-open {
     color: #1f2937;
 }
 
+.cg-helper-fixed-title {
+    display: none;
+}
+
 .cg-helper-table-wrap {
+    display: block;
+    width: 100%;
+    max-width: 100%;
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 .cg-helper-table {
@@ -1168,27 +1217,106 @@ body.modal-open {
     }
 
     .msc-modal-card {
-        width: calc(100% - 12px);
+        width: calc(100% - 20px);
         margin: 6px auto;
         max-height: calc(100vh - 12px);
-        padding: 10px;
+        padding: 12px;
         border-radius: 10px;
+        box-sizing: border-box;
     }
 
     .msc-modal-meta {
         grid-template-columns: 1fr;
     }
 
+    .msc-modal-head {
+        gap: 8px;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .msc-modal-head-actions {
+        width: 100%;
+        flex-wrap: nowrap;
+        justify-content: center;
+        gap: 6px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .msc-modal-head-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .msc-modal-head h3 {
+        width: 100%;
+        text-align: center;
+    }
+
     .msc-modal-prod-table {
         min-width: 1080px;
     }
 
+    .msc-modal-fixed-table-title {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 10px 8px;
+        text-align: center;
+        font-size: 18px;
+        font-weight: 700;
+        color: #0f172a;
+        background: #d9d9d9;
+        border: 1px solid #666;
+        border-bottom: none;
+    }
+
+    .msc-modal-prod-table .section-title-cell {
+        text-align: center;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .msc-modal-prod-table thead tr:first-child {
+        display: none;
+    }
+
+    .msc-modal-table-wrap,
+    .msc-modal-meta,
+    .msc-modal-actions {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .msc-modal-table-wrap {
+        padding: 0 2px 2px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .msc-modal-head-actions .msc-modal-delete-btn,
+    .msc-modal-head-actions .msc-modal-close,
+    .msc-modal-head-actions .aksi-btn {
+        flex: 0 0 auto;
+        min-height: 30px;
+        padding: 5px 10px;
+        font-size: 11px;
+        line-height: 1;
+    }
+
     .cg-modal-card {
-        width: calc(100% - 12px);
+        width: calc(100% - 20px);
         margin: 6px auto;
         max-height: calc(100vh - 12px);
-        padding: 10px;
+        padding: 12px;
         border-radius: 10px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        box-sizing: border-box;
     }
 
     .cg-modal-meta {
@@ -1197,15 +1325,84 @@ body.modal-open {
 
     .cg-modal-head {
         gap: 8px;
-        align-items: flex-start;
+        align-items: center;
+        flex-direction: column;
     }
 
     .cg-modal-head-actions {
-        flex-wrap: wrap;
-        justify-content: flex-end;
+        width: 100%;
+        flex-wrap: nowrap;
+        justify-content: center;
+        gap: 6px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+
+    .cg-modal-head-actions::-webkit-scrollbar {
+        display: none;
+    }
+
+    .cg-modal-head h3 {
+        width: 100%;
+        text-align: center;
+    }
+
+    .cg-modal-head-actions .cg-modal-delete-btn,
+    .cg-modal-head-actions .cg-modal-close,
+    .cg-modal-head-actions .aksi-btn {
+        flex: 0 0 auto;
+        min-height: 30px;
+        padding: 5px 10px;
+        font-size: 11px;
+        line-height: 1;
     }
 
     .cg-modal-prod-table {
         min-width: 1120px;
+    }
+
+    .cg-modal-table-wrap,
+    .cg-modal-helper-wrap,
+    .cg-helper-block,
+    .cg-helper-table-wrap {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .cg-helper-block {
+        overflow: hidden;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background: #ffffff;
+    }
+
+    .cg-helper-fixed-title {
+        display: block;
+        padding: 8px 10px;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 700;
+        color: #111827;
+        background: #e6e6e6;
+        border-bottom: 1px solid #666;
+    }
+
+    .cg-helper-table-wrap {
+        padding: 0 2px 2px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .cg-helper-table {
+        min-width: 980px;
+        margin-top: 0;
+    }
+
+    .cg-helper-table thead tr:first-child {
+        display: none;
     }
 }

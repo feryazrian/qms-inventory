@@ -1,9 +1,10 @@
 .page-head {
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
     align-items: center;
     gap: 12px;
-    margin-bottom: 16px;
+    margin-top: -20px;
+    margin-bottom: 10px;
 }
 
 .page-head h2 {
@@ -17,8 +18,21 @@
 
 .back-link {
     text-decoration: none;
-    color: #1f4b99;
+    color: #D72638;
     font-weight: 600;
+    font-size: 14px;
+    background: #ffffff;
+    border: 1.5px solid #D72638;
+    border-radius: 20px;
+    padding: 6px 14px;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.back-link:hover {
+    background: #D72638;
+    border-color: #D72638;
+    color: #ffffff;
+    transform: translateY(-1px);
 }
 
 .label-bold {
@@ -141,6 +155,34 @@
 
 .table-card h3 {
     margin: 0 0 10px 0;
+}
+
+.table-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.table-search-wrap {
+    width: min(320px, 100%);
+}
+
+.table-search-input {
+    width: 100%;
+    height: 38px;
+    border: 1px solid #cfd4dd;
+    border-radius: 10px;
+    padding: 0 12px;
+    box-sizing: border-box;
+    font-size: 14px;
+}
+
+.table-search-input:focus {
+    outline: none;
+    border-color: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.14);
 }
 
 .table-wrap {
@@ -393,7 +435,9 @@ td select {
 
 @media (max-width: 768px) {
     .page-head {
+        margin-top: 0;
         margin-bottom: 12px;
+        padding-top: 4px;
     }
 
     .form-card,
@@ -433,6 +477,16 @@ td select {
         text-align: center;
     }
 
+    .table-card-head {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+
+    .table-search-wrap {
+        width: 100%;
+    }
+
     .table-wrap {
         overflow: visible;
     }
@@ -458,6 +512,10 @@ td select {
         background: #ffffff;
         box-shadow: 0 8px 18px rgba(15, 23, 42, 0.05);
         overflow: hidden;
+    }
+
+    tbody tr[hidden] {
+        display: none !important;
     }
 
     tbody td {

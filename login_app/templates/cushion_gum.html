@@ -264,7 +264,7 @@
                     <td><input class="plastik-item" name="270_red"></td>
                     <td><input class="plastik-item" name="240_red"></td>
 
-                    <td><input class="plastik-item" name="plastik_gumcord"></td>
+                    <td><input class="plastik-item gumcord-sync-field" name="plastik_gumcord" readonly tabindex="-1"></td>
                     <td><input></td>
 
                     <td class="bg-grey"><input class="auto-total-plastik" name="total_plastik" readonly></td>
@@ -308,7 +308,7 @@
                 <td><input class="kotak-item" name="box_220"></td>
                 <td><input class="kotak-item" name="box_310"></td>
                 <td><input class="kotak-item" name="box_350"></td>
-                <td><input class="kotak-item" name="box_gumcord"></td>
+                <td><input class="kotak-item gumcord-sync-field" name="box_gumcord" readonly tabindex="-1"></td>
                 <td><input></td>
                 <td class="bg-grey"><input class="auto-total-kotak" name="total" readonly tabindex="-1"></td>
                 <td class="bg-pink"><input name="terbuang"></td>
@@ -389,8 +389,16 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    const tanggalInput = document.getElementById("tanggal");
+    if (tanggalInput) {
+        tanggalInput.addEventListener("change", function () {
+            syncGumCordHelperFields();
+        });
+    }
+
     applyDraftStateFromUrl();
     restoreCushionDraft();
+    syncGumCordHelperFields();
     fitTablesToCard();
 
     const formA = document.querySelector('form[action="/cushion-gum"]');
@@ -571,6 +579,34 @@ function recalculateAfterDraftRestore() {
     hitungTotalPlastik();
     hitungTotalKotak();
     hitungTotalTungkul();
+}
+
+async function syncGumCordHelperFields() {
+    const tanggalInput = document.getElementById("tanggal");
+    const tanggalProduksi = tanggalInput?.value || "";
+    if (!tanggalProduksi) return;
+
+    try {
+        const res = await fetch(`/gum-cord/helper-values?tanggal=${encodeURIComponent(tanggalProduksi)}`);
+        const json = await res.json();
+        if (!res.ok || !json.ok) return;
+
+        const plastikGumCordInput = document.querySelector('input[name="plastik_gumcord"]');
+        const boxGumCordInput = document.querySelector('input[name="box_gumcord"]');
+
+        if (plastikGumCordInput) {
+            plastikGumCordInput.value = json.data?.plastik_gumcord ?? "";
+        }
+
+        if (boxGumCordInput) {
+            boxGumCordInput.value = json.data?.box_gumcord ?? "";
+        }
+
+        hitungTotalPlastik();
+        hitungTotalKotak();
+    } catch (err) {
+        console.warn("Gagal sinkron data Gum Cord ke Cushion Gum:", err);
+    }
 }
 
 function applyDraftStateFromUrl() {

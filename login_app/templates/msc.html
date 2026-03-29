@@ -57,6 +57,7 @@
             <div class="section-header msc-section-header">
                 <h3 class="section-title"><span class="section-prefix">Laporan Produksi Harian MSC</span></h3>
                 <div class="section-actions">
+                    <button type="button" id="delete-msc-row-btn" class="add-row-btn">Hapus Baris</button>
                     <button type="button" id="reset-msc-btn" class="add-row-btn">Reset Form</button>
                     <button type="button" id="add-msc-row-btn" class="add-row-btn">+ Tambah Baris</button>
                     <button type="submit" class="save-btn">Simpan</button>
@@ -196,6 +197,7 @@
 <script>
 let initialTbodyMSC = "";
 const MSC_DRAFT_KEY = "msc:draft:v1";
+let deleteModeMSC = false;
 
 function debounce(fn, waitMs) {
     let timer = null;
@@ -415,6 +417,25 @@ function tambahBarisMSC() {
     saveMscDraft();
 }
 
+function renumberBarisMSC() {
+    document.querySelectorAll(".production-table tbody tr").forEach((row, index) => {
+        const numCell = row.querySelector(".num-cell");
+        if (numCell) {
+            numCell.textContent = String(index + 1);
+        }
+    });
+}
+
+function setDeleteModeMSC(active) {
+    deleteModeMSC = !!active;
+    document.body.classList.toggle("msc-delete-mode", deleteModeMSC);
+    const deleteBtn = document.getElementById("delete-msc-row-btn");
+    if (deleteBtn) {
+        deleteBtn.textContent = deleteModeMSC ? "Batal Hapus" : "Hapus Baris";
+        deleteBtn.classList.toggle("is-active", deleteModeMSC);
+    }
+}
+
 function resetFormMSC() {
     const tbody = document.querySelector(".production-table tbody");
     if (tbody && initialTbodyMSC) {
@@ -427,6 +448,7 @@ function resetFormMSC() {
     setTanggalHariIniMSC(true);
     hitungTotalFooterMSC();
     clearMscDraft();
+    setDeleteModeMSC(false);
 }
 
 function confirmResetMSC() {
@@ -591,6 +613,13 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    const deleteBtn = document.getElementById("delete-msc-row-btn");
+    if (deleteBtn) {
+        deleteBtn.addEventListener("click", function () {
+            setDeleteModeMSC(!deleteModeMSC);
+        });
+    }
+
     const form = document.querySelector(".msc-form");
     if (form) {
         form.addEventListener("submit", function () {
@@ -622,6 +651,25 @@ document.addEventListener("DOMContentLoaded", function () {
         hitungPersentaseMSC(row);
     });
     hitungTotalFooterMSC();
+});
+
+document.addEventListener("click", function (event) {
+    if (!deleteModeMSC) return;
+
+    const deleteBtn = event.target.closest("#delete-msc-row-btn");
+    if (deleteBtn) return;
+
+    const row = event.target.closest(".production-table tbody tr");
+    if (!row) return;
+
+    const isConfirmed = confirm("Hapus baris ini?");
+    if (!isConfirmed) return;
+
+    row.remove();
+    renumberBarisMSC();
+    hitungTotalFooterMSC();
+    saveMscDraft();
+    setDeleteModeMSC(false);
 });
 </script>
 </body>

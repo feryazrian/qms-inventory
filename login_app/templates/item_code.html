@@ -69,7 +69,18 @@
     </div>
 
     <div class="table-card">
-        <h3>Daftar Master Produk</h3>
+        <div class="table-card-head">
+            <h3>Daftar Master Produk</h3>
+            <div class="table-search-wrap">
+                <input
+                    type="search"
+                    id="product-search"
+                    class="table-search-input"
+                    placeholder="Cari kode, item, atau status..."
+                    aria-label="Cari master produk"
+                >
+            </div>
+        </div>
         <div class="table-wrap">
             <table>
                 <thead>
@@ -82,7 +93,10 @@
                 </thead>
                 <tbody>
                     {% for row in products %}
-                    <tr data-product-row="{{ row[0] }}">
+                    <tr
+                        data-product-row="{{ row[0] }}"
+                        data-search-text="{{ ((row[1] or '') ~ ' ' ~ row[2] ~ ' ' ~ ('aktif' if row[3] else 'nonaktif'))|lower }}"
+                    >
                         <td class="cell-code">{{ row[1] or '-' }}</td>
                         <td class="cell-name">{{ row[2] }}</td>
                         <td class="cell-status">
@@ -289,6 +303,26 @@ document.addEventListener("DOMContentLoaded", function () {
     const customTrigger = document.getElementById("modal-aktif-trigger");
     const customMenu = document.getElementById("modal-aktif-menu");
     const customOptions = customMenu ? Array.from(customMenu.querySelectorAll(".custom-select-option")) : [];
+    const searchInput = document.getElementById("product-search");
+    const productRows = Array.from(document.querySelectorAll("tbody tr[data-product-row]"));
+    const emptyRow = document.querySelector(".empty-cell")?.closest("tr") || null;
+
+    function applyProductSearch() {
+        if (!searchInput) return;
+        const keyword = searchInput.value.trim().toLowerCase();
+        let visibleCount = 0;
+
+        productRows.forEach((row) => {
+            const haystack = row.getAttribute("data-search-text") || "";
+            const isMatch = !keyword || haystack.includes(keyword);
+            row.hidden = !isMatch;
+            if (isMatch) visibleCount += 1;
+        });
+
+        if (emptyRow) {
+            emptyRow.hidden = visibleCount !== 0;
+        }
+    }
 
     if (customSelect && customTrigger && customMenu) {
         customTrigger.addEventListener("click", function () {
@@ -323,6 +357,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    if (searchInput) {
+        searchInput.addEventListener("input", applyProductSearch);
+    }
+
     if (!successAlert) {
         return;
     }
@@ -334,6 +372,7 @@ document.addEventListener("DOMContentLoaded", function () {
             successAlert.remove();
         }, 700);
     }, 2200);
+
 });
 </script>
 </body>

@@ -268,6 +268,7 @@
             <h3 id="cg-modal-title">Detail Produksi Cushion Gum</h3>
             <div class="cg-modal-head-actions">
                 <button type="button" class="cg-modal-delete-btn" id="cg-modal-delete-row-btn" hidden>Hapus Baris</button>
+                <button type="button" class="aksi-btn aksi-edit" id="cg-modal-update-btn" hidden>Update</button>
                 <button type="button" class="cg-modal-close" data-close-cg="1">Tutup</button>
             </div>
         </div>
@@ -343,6 +344,7 @@
         </div>
         <div class="cg-modal-helper-wrap">
             <div class="cg-helper-block">
+                <div class="cg-helper-fixed-title" aria-hidden="true">Plastik</div>
                 <div class="cg-helper-table-wrap">
                     <table class="cg-helper-table">
                         <thead>
@@ -390,6 +392,7 @@
             </div>
 
             <div class="cg-helper-block">
+                <div class="cg-helper-fixed-title" aria-hidden="true">Kotak</div>
                 <div class="cg-helper-table-wrap">
                     <table class="cg-helper-table">
                         <thead>
@@ -430,6 +433,7 @@
             </div>
 
             <div class="cg-helper-block">
+                <div class="cg-helper-fixed-title" aria-hidden="true">Tungkul Paralon &amp; Lakban</div>
                 <div class="cg-helper-table-wrap">
                     <table class="cg-helper-table">
                         <thead>
@@ -470,9 +474,6 @@
                 </div>
             </div>
         </div>
-        <div class="cg-modal-actions">
-            <button type="button" class="aksi-btn aksi-edit" id="cg-modal-update-btn" hidden>Update</button>
-        </div>
     </div>
 </div>
 
@@ -481,7 +482,10 @@
     <div class="cg-modal-card" role="dialog" aria-modal="true" aria-labelledby="gc-modal-title">
         <div class="cg-modal-head">
             <h3 id="gc-modal-title">Detail Produksi Gum Cord</h3>
-            <button type="button" class="cg-modal-close" data-close-gc="1">Tutup</button>
+            <div class="cg-modal-head-actions">
+                <button type="button" class="aksi-btn aksi-edit" id="gc-modal-update-btn" hidden>Update</button>
+                <button type="button" class="cg-modal-close" data-close-gc="1">Tutup</button>
+            </div>
         </div>
         <div class="cg-modal-meta">
             <div>
@@ -536,9 +540,6 @@
                 </tbody>
             </table>
         </div>
-        <div class="cg-modal-actions">
-            <button type="button" class="aksi-btn aksi-edit" id="gc-modal-update-btn" hidden>Update</button>
-        </div>
     </div>
 </div>
 
@@ -547,7 +548,11 @@
     <div class="msc-modal-card" role="dialog" aria-modal="true" aria-labelledby="msc-modal-title">
         <div class="msc-modal-head">
             <h3 id="msc-modal-title">Detail Produksi MSC</h3>
-            <button type="button" class="msc-modal-close" data-close-modal="1">Tutup</button>
+            <div class="msc-modal-head-actions">
+                <button type="button" class="msc-modal-delete-btn" id="msc-modal-delete-row-btn" hidden>Hapus Baris</button>
+                <button type="button" class="aksi-btn aksi-edit" id="msc-modal-update-btn" hidden>Update</button>
+                <button type="button" class="msc-modal-close" data-close-modal="1">Tutup</button>
+            </div>
         </div>
         <div class="msc-modal-meta">
             <div>
@@ -567,6 +572,7 @@
                 <input type="date" id="msc-modal-tanggal">
             </div>
         </div>
+        <div class="msc-modal-fixed-table-title" aria-hidden="true">Hasil Produksi</div>
         <div class="msc-modal-table-wrap">
             <table class="msc-modal-prod-table">
                 <colgroup>
@@ -624,15 +630,14 @@
                 </tfoot>
             </table>
         </div>
-        <div class="msc-modal-actions">
-            <button type="button" class="aksi-btn aksi-edit" id="msc-modal-update-btn" hidden>Update</button>
-        </div>
     </div>
 </div>
 <script>
 document.addEventListener("DOMContentLoaded", function () {
     const tabs = document.querySelectorAll(".laporan-tab");
     const panels = document.querySelectorAll(".laporan-panel");
+    const masterProdukOptions = {{ master_produk_options|tojson }};
+    const masterBahanMscOptions = {{ master_bahan_msc_options|tojson }};
     const monthSelect = document.getElementById("laporan-bulan");
     const monthFilterForm = document.querySelector(".laporan-month-filter");
     const monthDropdown = document.querySelector("[data-month-dropdown]");
@@ -809,10 +814,23 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
     }
 
+    function buildCgNamaProdukSelect(value) {
+        const currentValue = String(value ?? "");
+        const options = ["", ...masterProdukOptions];
+        if (currentValue && !options.includes(currentValue)) {
+            options.push(currentValue);
+        }
+        return `
+            <select data-field="nama_produk">
+                ${options.map((opt) => `<option value="${opt}" ${opt === currentValue ? "selected" : ""}>${opt}</option>`).join("")}
+            </select>
+        `;
+    }
+
     function buildCgRow(index, row) {
         return `
             <tr>
-                <td><input type="text" data-field="nama_produk" value="${row.nama_produk ?? ""}"></td>
+                <td>${buildCgNamaProdukSelect(row.nama_produk)}</td>
                 <td><input type="number" step="1" data-field="order_roll" value="${row.order_roll ?? ""}"></td>
                 <td><input type="time" data-field="waktu_awal" value="${row.waktu_awal ?? ""}"></td>
                 <td><input type="time" data-field="waktu_akhir" value="${row.waktu_akhir ?? ""}"></td>
@@ -1431,6 +1449,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const mscModal = document.getElementById("msc-modal");
     const mscModalBody = document.getElementById("msc-modal-body");
     const mscUpdateBtn = document.getElementById("msc-modal-update-btn");
+    const mscDeleteRowBtn = document.getElementById("msc-modal-delete-row-btn");
     const mscNamaOperator = document.getElementById("msc-modal-nama-operator");
     const mscNoMesin = document.getElementById("msc-modal-no-mesin");
     const mscRegu = document.getElementById("msc-modal-regu");
@@ -1441,6 +1460,16 @@ document.addEventListener("DOMContentLoaded", function () {
     const mscGrandPersentase = document.getElementById("msc-modal-grand-persentase");
     let activeBatchUid = "";
     let modalMode = "read";
+    let mscDeleteMode = false;
+
+    function setMscDeleteMode(active) {
+        mscDeleteMode = !!active;
+        mscModal.classList.toggle("delete-row-mode", mscDeleteMode);
+        if (mscDeleteRowBtn) {
+            mscDeleteRowBtn.textContent = mscDeleteMode ? "Batal Hapus" : "Hapus Baris";
+            mscDeleteRowBtn.classList.toggle("is-active", mscDeleteMode);
+        }
+    }
 
     function setModalEditable(editable) {
         [mscNamaOperator, mscNoMesin, mscRegu, mscTanggal].forEach((el) => {
@@ -1456,6 +1485,10 @@ document.addEventListener("DOMContentLoaded", function () {
             el.disabled = false;
         });
         mscUpdateBtn.hidden = !editable;
+        if (mscDeleteRowBtn) {
+            mscDeleteRowBtn.hidden = !editable;
+        }
+        setMscDeleteMode(false);
     }
 
     function buildMscTargetPerMenitSelect(value) {
@@ -1482,11 +1515,24 @@ document.addEventListener("DOMContentLoaded", function () {
         `;
     }
 
+    function buildMscNamaBahanSelect(value) {
+        const currentValue = String(value ?? "");
+        const options = ["", ...masterBahanMscOptions];
+        if (currentValue && !options.includes(currentValue)) {
+            options.push(currentValue);
+        }
+        return `
+            <select data-field="nama_bahan">
+                ${options.map((opt) => `<option value="${opt}" ${opt === currentValue ? "selected" : ""}>${opt}</option>`).join("")}
+            </select>
+        `;
+    }
+
     function buildMscRow(index, row) {
         return `
             <tr>
                 <td class="num-cell">${index + 1}</td>
-                <td><input type="text" data-field="nama_bahan" value="${row.nama_bahan ?? ""}"></td>
+                <td>${buildMscNamaBahanSelect(row.nama_bahan)}</td>
                 <td><input type="time" data-field="jam_awal" value="${row.jam_awal ?? ""}"></td>
                 <td><input type="time" data-field="jam_akhir" value="${row.jam_akhir ?? ""}"></td>
                 <td><input type="number" step="1" data-field="pakai_menit" value="${row.pakai_menit ?? ""}"></td>
@@ -1510,6 +1556,7 @@ document.addEventListener("DOMContentLoaded", function () {
         mscModal.hidden = true;
         document.body.classList.remove("modal-open");
         activeBatchUid = "";
+        setMscDeleteMode(false);
     }
 
     function parseMscNum(value) {
@@ -1604,6 +1651,25 @@ document.addEventListener("DOMContentLoaded", function () {
         mscModalBody.querySelectorAll("tr").forEach((tr) => recalcMscRow(tr));
         recalcMscTotals();
     }
+
+    mscDeleteRowBtn?.addEventListener("click", function () {
+        if (mscDeleteRowBtn.hidden) return;
+        setMscDeleteMode(!mscDeleteMode);
+    });
+
+    mscModalBody?.addEventListener("click", function (event) {
+        if (!mscDeleteMode) return;
+
+        const row = event.target.closest("tr");
+        if (!row) return;
+
+        const isConfirmed = confirm("Hapus baris ini?");
+        if (!isConfirmed) return;
+
+        row.remove();
+        recalcMscTotals();
+        setMscDeleteMode(false);
+    });
 
     async function loadMscBatch(batchUid, mode) {
         if (!batchUid) {

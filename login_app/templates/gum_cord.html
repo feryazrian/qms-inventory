@@ -55,13 +55,14 @@
             <div class="section-header gum-cord-header">
                 <h3 class="section-title"><span class="section-prefix">C.</span> Hasil Produksi Gum Cord</h3>
                 <div class="section-actions">
+                    <button type="button" class="add-row-btn" onclick="confirmResetGc()">Reset Form</button>
                     <button type="submit" class="save-btn" form="gum-cord-form">Simpan</button>
                 </div>
             </div>
 
-            <div class="table-wrapper">
-                <form id="gum-cord-form" method="POST" action="/cushion-gum-cord" autocomplete="off">
-                    <input type="hidden" name="tanggal_produksi" id="tanggal_c">
+            <form id="gum-cord-form" method="POST" action="/cushion-gum-cord" autocomplete="off">
+                <input type="hidden" name="tanggal_produksi" id="tanggal_c">
+                <div class="table-wrapper">
                     <table class="production-table helper-table">
                         <colgroup>
                             <col>
@@ -118,8 +119,42 @@
                             </tr>
                         </tbody>
                     </table>
-                </form>
-            </div>
+                </div>
+
+                <div class="gum-cord-mini-table-wrap">
+                    <div class="gum-cord-helper-card">
+                        <div class="gum-cord-helper-title">Pemakaian Bahan Penolong</div>
+                        <div class="gum-cord-helper-grid">
+                            <div class="gum-cord-helper-box plastik-box">
+                                <div class="gum-cord-helper-box-head">Plastik</div>
+                                <div class="gum-cord-helper-box-body">
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        name="plastik_gumcord"
+                                        class="gum-cord-helper-input"
+                                    >
+                                </div>
+                            </div>
+                            <div class="gum-cord-helper-box kotak-box">
+                                <div class="gum-cord-helper-box-head">Kotak</div>
+                                <div class="gum-cord-helper-box-body">
+                                    <input
+                                        type="number"
+                                        step="1"
+                                        min="0"
+                                        name="box_gumcord"
+                                        class="gum-cord-helper-input"
+                                        readonly
+                                        tabindex="-1"
+                                    >
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -142,6 +177,7 @@
                 if (tanggalC) {
                     tanggalC.value = tanggalDisplay.value;
                 }
+                loadGcHelperValues(tanggalDisplay.value);
             });
         }
 
@@ -157,7 +193,34 @@
                 }
             });
         }
+
+        loadGcHelperValues(formatted);
     });
+
+    async function loadGcHelperValues(tanggalProduksi) {
+        if (!tanggalProduksi) return;
+
+        try {
+            const res = await fetch(`/gum-cord/helper-values?tanggal=${encodeURIComponent(tanggalProduksi)}`);
+            const json = await res.json();
+            if (!res.ok || !json.ok) return;
+
+            const plastikInput = document.querySelector("input[name='plastik_gumcord']");
+            if (plastikInput) {
+                plastikInput.value = json.data?.plastik_gumcord ?? "";
+            }
+            syncKotakHelperFromAktual();
+        } catch (err) {
+            console.warn("Gagal memuat helper Gum Cord:", err);
+        }
+    }
+
+    function syncKotakHelperFromAktual() {
+        const aktualInput = document.querySelector(".aktual-c");
+        const kotakHelperInput = document.querySelector("input[name='box_gumcord']");
+        if (!kotakHelperInput) return;
+        kotakHelperInput.value = aktualInput?.value?.trim() || "";
+    }
 
     document.addEventListener("input", function (e) {
         if (e.target.classList.contains("order-c")) {
@@ -175,6 +238,10 @@
             if (aktualInput && aktualInput.value) {
                 hitungPersentaseC(aktualInput);
             }
+        }
+
+        if (e.target.classList.contains("aktual-c")) {
+            syncKotakHelperFromAktual();
         }
     });
 
@@ -247,6 +314,32 @@
                 totalBeratInput.value = "";
             }
         }
+    }
+
+    function confirmResetGc() {
+        const isConfirmed = confirm("Yakin ingin menghapus semua input form Gum Cord?");
+        if (!isConfirmed) return;
+        resetFormGc();
+    }
+
+    function resetFormGc() {
+        const form = document.getElementById("gum-cord-form");
+        if (!form) return;
+
+        form.querySelectorAll("input").forEach((input) => {
+            const name = input.name || "";
+            if (name === "nama_produk" || name === "target_per_menit" || name === "tanggal_produksi") {
+                return;
+            }
+            input.value = "";
+        });
+
+        const tanggalDisplay = document.getElementById("tanggal_display");
+        const tanggalC = document.getElementById("tanggal_c");
+        if (tanggalDisplay && tanggalC) {
+            tanggalC.value = tanggalDisplay.value;
+        }
+        syncKotakHelperFromAktual();
     }
     </script>
 </body>
