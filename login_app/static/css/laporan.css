@@ -304,6 +304,10 @@ body.modal-open {
     font-weight: 600;
 }
 
+.modal-fetching-banner[hidden] {
+    display: none !important;
+}
+
 .modal-fetching-banner::before {
     content: "";
     width: 14px;
