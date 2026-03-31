@@ -403,8 +403,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const formA = document.querySelector('form[action="/cushion-gum"]');
     if (formA) {
-        formA.addEventListener("submit", function () {
-            saveCushionDraft();
+        formA.addEventListener("submit", function (event) {
+            event.preventDefault();
+            submitCushionForm(formA);
         });
     }
 
@@ -426,6 +427,7 @@ window.addEventListener("resize", fitTablesToCard);
 const INITIAL_A_ROWS = 6;
 const CUSHION_DRAFT_KEY = "cushion-gum:draft:v1";
 let deleteModeAktif = false;
+let isSubmittingCushionForm = false;
 
 function debounce(fn, waitMs) {
     let timer = null;
@@ -618,6 +620,65 @@ function applyDraftStateFromUrl() {
         url.searchParams.delete("saved");
         const nextUrl = `${url.pathname}${url.searchParams.toString() ? `?${url.searchParams.toString()}` : ""}${url.hash || ""}`;
         window.history.replaceState({}, "", nextUrl);
+    }
+}
+
+async function parseJsonResponse(res, fallbackMessage) {
+    const text = await res.text();
+    try {
+        return JSON.parse(text);
+    } catch (error) {
+        throw new Error(fallbackMessage);
+    }
+}
+
+async function submitCushionForm(form) {
+    if (!form || isSubmittingCushionForm) return;
+
+    const saveButton = form.querySelector('.save-btn');
+    const originalButtonText = saveButton?.textContent || 'Simpan';
+
+    isSubmittingCushionForm = true;
+    saveCushionDraft();
+
+    if (saveButton) {
+        saveButton.disabled = true;
+        saveButton.textContent = 'Menyimpan...';
+    }
+
+    try {
+        const formData = new FormData(form);
+        formData.set("ajax", "1");
+
+        const res = await fetch(form.action, {
+            method: "POST",
+            headers: {
+                "Accept": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            },
+            body: formData,
+        });
+        const json = await parseJsonResponse(
+            res,
+            "Gagal menyimpan data Cushion Gum. Server mengembalikan respons yang tidak valid."
+        );
+
+        if (!res.ok || !json.ok) {
+            throw new Error(json.message || "Gagal menyimpan data Cushion Gum.");
+        }
+
+        clearCushionDraft();
+        resetFormAB();
+        await syncGumCordHelperFields();
+        alert(json.message || "Data Cushion Gum berhasil disimpan.");
+    } catch (err) {
+        alert(err.message || "Gagal menyimpan data Cushion Gum.");
+    } finally {
+        isSubmittingCushionForm = false;
+        if (saveButton) {
+            saveButton.disabled = false;
+            saveButton.textContent = originalButtonText;
+        }
     }
 }
 

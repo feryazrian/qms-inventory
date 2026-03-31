@@ -3744,12 +3744,21 @@ def laporan_delete():
 
 @app.route("/cushion-gum", methods=["GET", "POST"])
 def cushion_gum():
+    is_ajax = (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or (request.form.get("ajax") or "").strip() == "1"
+        or "application/json" in (request.headers.get("Accept") or "")
+    )
     if "user" not in session:
+        if is_ajax:
+            return jsonify({"ok": False, "message": "Session berakhir. Silakan login lagi."}), 401
         return redirect(url_for("login"))
 
     if request.method == "POST":
         tanggal_produksi = request.form.get("tanggal_produksi")
         if not tanggal_produksi:
+            if is_ajax:
+                return jsonify({"ok": False, "message": "Tanggal produk wajib diisi."}), 400
             return "Tanggal produk wajib diisi.", 400
         nama_operator = (request.form.get("nama_operator") or "").strip()
         no_mesin = (request.form.get("no_mesin") or "").strip()
@@ -4082,14 +4091,24 @@ def cushion_gum():
                 )
 
             conn.commit()
-        except Exception:
+        except Exception as e:
             if conn:
                 conn.rollback()
+            if is_ajax:
+                return jsonify({"ok": False, "message": f"Gagal menyimpan data Cushion Gum: {e}"}), 500
             raise
         finally:
             if conn:
                 conn.close()
 
+        if is_ajax:
+            return jsonify(
+                {
+                    "ok": True,
+                    "message": "Data Cushion Gum berhasil disimpan.",
+                    "batch_uid": batch_uid,
+                }
+            )
         return redirect(url_for("cushion_gum", saved="1"))
 
     master_produk = fetch_master_produk()
