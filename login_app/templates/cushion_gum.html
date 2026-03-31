@@ -39,7 +39,7 @@
 </div>
 
 <div class="container">
-<form method="POST" action="/cushion-gum" autocomplete="off">
+<form method="POST" action="/cushion-gum" autocomplete="off" data-skip-splash>
 
     <!-- INFO HEADER -->
     <div class="cg-info">
@@ -674,6 +674,7 @@ async function submitCushionForm(form) {
     } catch (err) {
         alert(err.message || "Gagal menyimpan data Cushion Gum.");
     } finally {
+        document.body.classList.remove("is-splash-visible");
         isSubmittingCushionForm = false;
         if (saveButton) {
             saveButton.disabled = false;
