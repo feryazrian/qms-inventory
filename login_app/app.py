@@ -3740,6 +3740,8 @@ def laporan_delete():
         conn = get_db_conn()
         if sumber == "cushion-gum":
             ensure_cushion_schema_once(conn)
+        elif sumber == "gum-cord":
+            ensure_gum_cord_columns(conn)
         cur = conn.cursor()
         if sumber == "cushion-gum":
             data_id = parse_int(data_key)
