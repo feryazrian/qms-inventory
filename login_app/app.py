@@ -140,6 +140,78 @@ def fetch_master_produk_all():
             conn.close()
 
 
+def ensure_users_table(conn):
+    cur = conn.cursor()
+    cur.execute(
+        """
+        CREATE TABLE IF NOT EXISTS qms_users (
+            id BIGSERIAL PRIMARY KEY,
+            nama_user VARCHAR(150) NOT NULL,
+            username VARCHAR(100) NOT NULL UNIQUE,
+            password VARCHAR(255) NOT NULL,
+            role VARCHAR(50) NOT NULL DEFAULT 'Operator',
+            status_aktif BOOLEAN NOT NULL DEFAULT TRUE,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE qms_users
+        ADD COLUMN IF NOT EXISTS nama_user VARCHAR(150)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE qms_users
+        ADD COLUMN IF NOT EXISTS username VARCHAR(100)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE qms_users
+        ADD COLUMN IF NOT EXISTS password VARCHAR(255)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE qms_users
+        ADD COLUMN IF NOT EXISTS role VARCHAR(50)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE qms_users
+        ADD COLUMN IF NOT EXISTS status_aktif BOOLEAN
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE qms_users
+        ADD COLUMN IF NOT EXISTS created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        """
+    )
+
+
+def fetch_all_users():
+    conn = None
+    try:
+        conn = get_db_conn()
+        ensure_users_table(conn)
+        cur = conn.cursor()
+        cur.execute(
+            """
+            SELECT id, nama_user, username, role, status_aktif
+            FROM qms_users
+            ORDER BY id DESC
+            """
+        )
+        return cur.fetchall()
+    finally:
+        if conn:
+            conn.close()
+
+
 def fetch_master_bahan_msc():
     conn = None
     try:
@@ -2800,7 +2872,35 @@ def login():
         # LOGIN BENAR
         if username == USERNAME and password == PASSWORD:
             session["user"] = username
+            session["user_role"] = "Administrator"
             return redirect(url_for("home"))
+
+        conn = None
+        try:
+            conn = get_db_conn()
+            ensure_users_table(conn)
+            cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT nama_user, username, password, role, status_aktif
+                FROM qms_users
+                WHERE username = %s
+                LIMIT 1
+                """,
+                (username,),
+            )
+            row = cur.fetchone()
+            if row:
+                if not row[4]:
+                    error = "User nonaktif"
+                    return render_template("login.html", error=error)
+                if password == (row[2] or ""):
+                    session["user"] = row[1]
+                    session["user_role"] = row[3] or "Operator"
+                    return redirect(url_for("home"))
+        finally:
+            if conn:
+                conn.close()
 
         # KEDUANYA SALAH
         if username != USERNAME and password != PASSWORD:
@@ -2848,11 +2948,83 @@ def gum_cord_helper_values():
 
 
 @app.route("/akses")
+@app.route("/akses", methods=["GET", "POST"])
 def akses():
     if "user" not in session:
         return redirect(url_for("login"))
 
-    return render_template("akses.html", user=session["user"])
+    notice = (request.args.get("notice") or "").strip()
+    error = (request.args.get("error") or "").strip()
+
+    if request.method == "POST":
+        nama_user = (request.form.get("nama_user") or "").strip()
+        username = (request.form.get("username") or "").strip()
+        password = (request.form.get("password") or "").strip()
+        role = (request.form.get("role") or "Operator").strip() or "Operator"
+        status_aktif = (request.form.get("status_aktif") or "1").strip() == "1"
+
+        if not nama_user or not username or not password:
+            error = "Nama user, username, dan password wajib diisi."
+        else:
+            conn = None
+            try:
+                conn = get_db_conn()
+                ensure_users_table(conn)
+                cur = conn.cursor()
+                cur.execute(
+                    """
+                    SELECT 1
+                    FROM qms_users
+                    WHERE username = %s
+                    LIMIT 1
+                    """,
+                    (username,),
+                )
+                if cur.fetchone():
+                    error = "Username sudah dipakai."
+                else:
+                    cur.execute(
+                        """
+                        INSERT INTO qms_users (
+                            nama_user,
+                            username,
+                            password,
+                            role,
+                            status_aktif
+                        ) VALUES (%s, %s, %s, %s, %s)
+                        """,
+                        (nama_user, username, password, role, status_aktif),
+                    )
+                    conn.commit()
+                    return redirect(url_for("akses", notice="User berhasil ditambahkan."))
+            except Exception as e:
+                if conn:
+                    conn.rollback()
+                error = f"Gagal menambah user: {e}"
+            finally:
+                if conn:
+                    conn.close()
+
+    users = fetch_all_users()
+    total_user = len(users)
+    active_user = sum(1 for row in users if row[4])
+    role_counts = {
+        "Administrator": sum(1 for row in users if (row[3] or "").lower() == "administrator"),
+        "Supervisor": sum(1 for row in users if (row[3] or "").lower() == "supervisor"),
+        "Operator": sum(1 for row in users if (row[3] or "").lower() == "operator"),
+    }
+
+    return render_template(
+        "akses.html",
+        user=session["user"],
+        user_role=session.get("user_role", "Administrator"),
+        users=users,
+        total_user=total_user,
+        active_user=active_user,
+        role_counts=role_counts,
+        notice=notice,
+        error=error,
+    )
 
 
 @app.route("/stok_mb")

@@ -46,47 +46,54 @@
                 <p class="section-eyebrow">Akses User</p>
                 <h1>Kelola akun, peran, dan status akses dalam satu halaman.</h1>
                 <p class="section-intro">
-                    Halaman ini disiapkan untuk pengaturan user aplikasi QMS Inventory.
-                    Struktur tampilannya sudah siap untuk dihubungkan ke backend nanti.
+                    Tambahkan user baru, lihat role aktif, dan pantau status akses user aplikasi
+                    QMS Inventory dalam satu halaman.
                 </p>
                 <div class="hero-actions">
-                    <button type="button" class="primary-btn">Tambah User</button>
+                    <button type="button" class="primary-btn" id="open-user-modal-btn">Tambah User</button>
                     <button type="button" class="ghost-btn">Atur Role</button>
                 </div>
             </div>
             <div class="akses-hero-panel" aria-hidden="true">
                 <div class="hero-panel-card hero-panel-card-main">
                     <span class="hero-panel-label">Role Aktif</span>
-                    <strong>Administrator</strong>
+                    <strong>{{ user_role }}</strong>
                     <p>Akses penuh ke data master, laporan, dan pengaturan user.</p>
                 </div>
                 <div class="hero-panel-grid">
                     <div class="hero-panel-card">
                         <span class="hero-panel-label">Total User</span>
-                        <strong>12</strong>
+                        <strong>{{ total_user }}</strong>
                     </div>
                     <div class="hero-panel-card">
                         <span class="hero-panel-label">Sedang Aktif</span>
-                        <strong>10</strong>
+                        <strong>{{ active_user }}</strong>
                     </div>
                 </div>
             </div>
         </section>
 
+        {% if notice %}
+        <div class="alert-box alert-success">{{ notice }}</div>
+        {% endif %}
+        {% if error %}
+        <div class="alert-box alert-error">{{ error }}</div>
+        {% endif %}
+
         <section class="summary-grid">
             <article class="summary-card">
                 <p class="summary-label">Administrator</p>
-                <strong>3 User</strong>
+                <strong>{{ role_counts["Administrator"] }} User</strong>
                 <span>Kelola seluruh menu dan pengaturan sistem.</span>
             </article>
             <article class="summary-card">
                 <p class="summary-label">Supervisor</p>
-                <strong>4 User</strong>
+                <strong>{{ role_counts["Supervisor"] }} User</strong>
                 <span>Memantau laporan dan validasi data produksi.</span>
             </article>
             <article class="summary-card">
                 <p class="summary-label">Operator</p>
-                <strong>5 User</strong>
+                <strong>{{ role_counts["Operator"] }} User</strong>
                 <span>Input data harian sesuai menu yang diizinkan.</span>
             </article>
         </section>
@@ -113,54 +120,34 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>Andi Saputra</td>
-                                <td>andi.spv</td>
-                                <td><span class="role-badge role-admin">Administrator</span></td>
-                                <td><span class="status-badge status-active">Aktif</span></td>
-                                <td>
-                                    <div class="table-actions">
-                                        <button type="button" class="table-btn">Detail</button>
-                                        <button type="button" class="table-btn">Edit</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Rina Prasetyo</td>
-                                <td>rina.qc</td>
-                                <td><span class="role-badge role-supervisor">Supervisor</span></td>
-                                <td><span class="status-badge status-active">Aktif</span></td>
-                                <td>
-                                    <div class="table-actions">
-                                        <button type="button" class="table-btn">Detail</button>
-                                        <button type="button" class="table-btn">Edit</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Budi Hartono</td>
-                                <td>budi.opr</td>
-                                <td><span class="role-badge role-operator">Operator</span></td>
-                                <td><span class="status-badge status-inactive">Nonaktif</span></td>
-                                <td>
-                                    <div class="table-actions">
-                                        <button type="button" class="table-btn">Detail</button>
-                                        <button type="button" class="table-btn">Edit</button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td>Siska Permata</td>
-                                <td>siska.gd</td>
-                                <td><span class="role-badge role-operator">Operator</span></td>
-                                <td><span class="status-badge status-active">Aktif</span></td>
-                                <td>
-                                    <div class="table-actions">
-                                        <button type="button" class="table-btn">Detail</button>
-                                        <button type="button" class="table-btn">Edit</button>
-                                    </div>
-                                </td>
-                            </tr>
+                            {% if users %}
+                                {% for row in users %}
+                                <tr>
+                                    <td>{{ row[1] }}</td>
+                                    <td>{{ row[2] }}</td>
+                                    <td>
+                                        <span class="role-badge {% if row[3] == 'Administrator' %}role-admin{% elif row[3] == 'Supervisor' %}role-supervisor{% else %}role-operator{% endif %}">
+                                            {{ row[3] }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge {% if row[4] %}status-active{% else %}status-inactive{% endif %}">
+                                            {% if row[4] %}Aktif{% else %}Nonaktif{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <button type="button" class="table-btn">Detail</button>
+                                            <button type="button" class="table-btn">Edit</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5">Belum ada user yang terdaftar.</td>
+                                </tr>
+                            {% endif %}
                         </tbody>
                     </table>
                 </div>
@@ -210,13 +197,80 @@
 
                     <div class="note-card">
                         <p>
-                            Halaman ini masih berupa tampilan antarmuka. Tombol dan data belum
-                            dihubungkan ke proses backend atau navigasi menu.
+                            Tambah user sudah terhubung ke backend. Tombol edit, detail, dan atur role
+                            bisa kita lanjutkan berikutnya.
                         </p>
                     </div>
                 </div>
             </aside>
         </section>
     </main>
+
+    <div class="user-modal" id="user-modal" hidden>
+        <div class="user-modal-backdrop" data-close-user-modal="1"></div>
+        <div class="user-modal-card" role="dialog" aria-modal="true" aria-labelledby="user-modal-title">
+            <div class="user-modal-head">
+                <h2 id="user-modal-title">Tambah User</h2>
+                <button type="button" class="user-modal-close" data-close-user-modal="1">Tutup</button>
+            </div>
+            <form method="POST" action="{{ url_for('akses') }}" class="user-form" data-skip-splash>
+                <div class="user-form-grid">
+                    <div class="field-group">
+                        <label for="nama_user">Nama User</label>
+                        <input type="text" id="nama_user" name="nama_user" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="username">Username</label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="password">Password</label>
+                        <input type="text" id="password" name="password" required>
+                    </div>
+                    <div class="field-group">
+                        <label for="role">Role</label>
+                        <select id="role" name="role">
+                            <option value="Administrator">Administrator</option>
+                            <option value="Supervisor">Supervisor</option>
+                            <option value="Operator" selected>Operator</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="status_aktif">Status</label>
+                        <select id="status_aktif" name="status_aktif">
+                            <option value="1" selected>Aktif</option>
+                            <option value="0">Nonaktif</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="user-form-actions">
+                    <button type="submit" class="primary-btn">Simpan User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const modal = document.getElementById("user-modal");
+        const openBtn = document.getElementById("open-user-modal-btn");
+        const closeEls = document.querySelectorAll("[data-close-user-modal='1']");
+
+        function openModal() {
+            if (!modal) return;
+            modal.hidden = false;
+            document.body.classList.add("modal-open");
+        }
+
+        function closeModal() {
+            if (!modal) return;
+            modal.hidden = true;
+            document.body.classList.remove("modal-open");
+        }
+
+        openBtn?.addEventListener("click", openModal);
+        closeEls.forEach((el) => el.addEventListener("click", closeModal));
+    });
+    </script>
 </body>
 </html>
