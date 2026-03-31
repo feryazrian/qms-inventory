@@ -13,6 +13,11 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv("SECRET_KEY", "dev-only-change-me")
 
+SCHEMA_READY = {
+    "master_produk": False,
+    "cushion": False,
+}
+
 # DATA LOGIN
 USERNAME = "admin"
 PASSWORD = "778899"
@@ -85,11 +90,19 @@ def ensure_master_produk_columns(conn):
     )
 
 
+def ensure_master_produk_columns_once(conn):
+    if SCHEMA_READY["master_produk"]:
+        return
+    ensure_master_produk_columns(conn)
+    conn.commit()
+    SCHEMA_READY["master_produk"] = True
+
+
 def fetch_master_produk():
     conn = None
     try:
         conn = get_db_conn()
-        ensure_master_produk_columns(conn)
+        ensure_master_produk_columns_once(conn)
         cur = conn.cursor()
         cur.execute(
             """
@@ -109,7 +122,7 @@ def fetch_master_produk_all():
     conn = None
     try:
         conn = get_db_conn()
-        ensure_master_produk_columns(conn)
+        ensure_master_produk_columns_once(conn)
         cur = conn.cursor()
         cur.execute(
             """
@@ -772,6 +785,17 @@ def upsert_gum_cord_helper_by_date(conn, tanggal_produksi, plastik_gumcord, box_
     )
 
 
+def ensure_cushion_schema_once(conn):
+    if SCHEMA_READY["cushion"]:
+        return
+    ensure_cushion_batch_columns(conn)
+    ensure_pemakaian_plastik_table(conn)
+    ensure_pemakaian_kotak_table(conn)
+    ensure_pemakaian_tungkul_table(conn)
+    conn.commit()
+    SCHEMA_READY["cushion"] = True
+
+
 def generate_batch_uid(conn, tanggal_produksi, kode_utama, table_name):
     allowed_tables = {"grand_total", "grand_total_msc"}
     if table_name not in allowed_tables:
@@ -1071,10 +1095,7 @@ def fetch_cushion_batch(batch_uid):
     conn = None
     try:
         conn = get_db_conn()
-        ensure_cushion_batch_columns(conn)
-        ensure_pemakaian_plastik_table(conn)
-        ensure_pemakaian_kotak_table(conn)
-        ensure_pemakaian_tungkul_table(conn)
+        ensure_cushion_schema_once(conn)
         cur = conn.cursor()
         cur.execute(
             """
@@ -1603,10 +1624,7 @@ def laporan_cushion_update(batch_uid):
     conn = None
     try:
         conn = get_db_conn()
-        ensure_cushion_batch_columns(conn)
-        ensure_pemakaian_plastik_table(conn)
-        ensure_pemakaian_kotak_table(conn)
-        ensure_pemakaian_tungkul_table(conn)
+        ensure_cushion_schema_once(conn)
         cur = conn.cursor()
         cur.execute(
             """
@@ -3583,10 +3601,7 @@ def laporan_delete():
     conn = None
     try:
         conn = get_db_conn()
-        ensure_cushion_batch_columns(conn)
-        ensure_pemakaian_plastik_table(conn)
-        ensure_pemakaian_kotak_table(conn)
-        ensure_pemakaian_tungkul_table(conn)
+        ensure_cushion_schema_once(conn)
         cur = conn.cursor()
         if sumber == "cushion-gum":
             data_id = parse_int(data_key)
@@ -3731,17 +3746,6 @@ def laporan_delete():
 def cushion_gum():
     if "user" not in session:
         return redirect(url_for("login"))
-
-    init_conn = None
-    try:
-        init_conn = get_db_conn()
-        ensure_pemakaian_plastik_table(init_conn)
-        ensure_pemakaian_kotak_table(init_conn)
-        ensure_pemakaian_tungkul_table(init_conn)
-        init_conn.commit()
-    finally:
-        if init_conn:
-            init_conn.close()
 
     if request.method == "POST":
         tanggal_produksi = request.form.get("tanggal_produksi")
@@ -3902,10 +3906,7 @@ def cushion_gum():
         conn = None
         try:
             conn = get_db_conn()
-            ensure_cushion_batch_columns(conn)
-            ensure_pemakaian_plastik_table(conn)
-            ensure_pemakaian_kotak_table(conn)
-            ensure_pemakaian_tungkul_table(conn)
+            ensure_cushion_schema_once(conn)
             batch_uid = generate_batch_uid(conn, tanggal_produksi, "CG", "grand_total")
             rows = [row[:-1] + (batch_uid,) for row in rows]
             cur = conn.cursor()
