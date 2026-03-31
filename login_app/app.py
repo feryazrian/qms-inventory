@@ -280,6 +280,12 @@ def ensure_gum_cord_columns(conn):
         ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
         """
     )
+    cur.execute(
+        """
+        ALTER TABLE production_gum_cord
+        ALTER COLUMN target_per_menit TYPE NUMERIC(10,3)
+        """
+    )
 
 
 def fetch_laporan_gum_cord(selected_month=""):
@@ -3307,13 +3313,24 @@ def build_print_laporan_combined_context(cushion_result, gum_cord_row, batch_uid
             page_rows.extend([empty_row() for _ in range(rows_per_page - len(page_rows))])
         pages.append({"rows": page_rows, "is_last": index == (total_pages - 1)})
 
+    gum_cord_target_per_menit = (gum_cord_row or {}).get("target_per_menit")
+    gum_cord_pakai_menit = (gum_cord_row or {}).get("pakai_menit")
+    gum_cord_target_total = (gum_cord_row or {}).get("target_total")
+    if gum_cord_pakai_menit and gum_cord_target_total:
+        try:
+            gum_cord_target_per_menit = (
+                Decimal(str(gum_cord_target_total)) / Decimal(str(gum_cord_pakai_menit))
+            ).quantize(Decimal("0.001"))
+        except (InvalidOperation, ZeroDivisionError, TypeError, ValueError):
+            gum_cord_target_per_menit = (gum_cord_row or {}).get("target_per_menit")
+
     gum_cord_print = {
         "nama_produk": (gum_cord_row or {}).get("nama_produk") or "Gum Cord",
         "order_kotak": format_number_display((gum_cord_row or {}).get("order_kotak")),
         "waktu_awal": ((gum_cord_row or {}).get("waktu_awal").strftime("%H:%M") if (gum_cord_row or {}).get("waktu_awal") else ""),
         "waktu_akhir": ((gum_cord_row or {}).get("waktu_akhir").strftime("%H:%M") if (gum_cord_row or {}).get("waktu_akhir") else ""),
         "pakai_menit": format_number_display((gum_cord_row or {}).get("pakai_menit")),
-        "target_per_menit": format_number_display((gum_cord_row or {}).get("target_per_menit")),
+        "target_per_menit": format_number_display(gum_cord_target_per_menit),
         "target_total": format_number_display((gum_cord_row or {}).get("target_total")),
         "aktual_kotak": format_number_display((gum_cord_row or {}).get("aktual_kotak")),
         "persentase": format_number_display((gum_cord_row or {}).get("persentase")),

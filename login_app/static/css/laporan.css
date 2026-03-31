@@ -983,24 +983,24 @@ body.modal-open {
 }
 
 .gc-modal-helper-wrap {
-    margin-top: 22px;
+    margin-top: 16px;
     display: flex;
     justify-content: center;
 }
 
 .gc-modal-helper-card {
-    width: min(100%, 350px);
+    width: min(100%, 300px);
     border: 1px solid #d7dee9;
-    border-radius: 22px;
+    border-radius: 18px;
     background: linear-gradient(180deg, #fdfefe 0%, #f4f7fb 100%);
-    padding: 16px;
-    box-shadow: 0 14px 28px rgba(15, 23, 42, 0.08);
+    padding: 12px;
+    box-shadow: 0 10px 20px rgba(15, 23, 42, 0.07);
 }
 
 .gc-modal-helper-title {
-    margin-bottom: 14px;
+    margin-bottom: 10px;
     text-align: center;
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 800;
     color: #111827;
 }
@@ -1013,15 +1013,15 @@ body.modal-open {
 
 .gc-modal-helper-box {
     overflow: hidden;
-    border-radius: 16px;
+    border-radius: 14px;
     border: 1px solid #d7dee9;
     background: #ffffff;
 }
 
 .gc-modal-helper-box-head {
-    padding: 12px 10px;
+    padding: 10px 8px;
     text-align: center;
-    font-size: 14px;
+    font-size: 12px;
     font-weight: 800;
     color: #0f172a;
 }
@@ -1035,7 +1035,7 @@ body.modal-open {
 }
 
 .gc-modal-helper-box-body {
-    padding: 16px 14px;
+    padding: 12px 10px;
 }
 
 .gc-modal-helper-box-body input {
@@ -1043,7 +1043,7 @@ body.modal-open {
     border: none;
     background: transparent;
     text-align: center;
-    font-size: 22px;
+    font-size: 16px;
     font-weight: 700;
     color: #0f172a;
     outline: none;
