@@ -640,6 +640,7 @@ async function submitCushionForm(form) {
 
     isSubmittingCushionForm = true;
     saveCushionDraft();
+    document.body.classList.add("is-splash-visible");
 
     if (saveButton) {
         saveButton.disabled = true;
@@ -670,11 +671,12 @@ async function submitCushionForm(form) {
         clearCushionDraft();
         resetFormAB();
         await syncGumCordHelperFields();
+        document.body.classList.remove("is-splash-visible");
         alert(json.message || "Data Cushion Gum berhasil disimpan.");
     } catch (err) {
+        document.body.classList.remove("is-splash-visible");
         alert(err.message || "Gagal menyimpan data Cushion Gum.");
     } finally {
-        document.body.classList.remove("is-splash-visible");
         isSubmittingCushionForm = false;
         if (saveButton) {
             saveButton.disabled = false;
