@@ -540,6 +540,25 @@
                 </tbody>
             </table>
         </div>
+        <div class="gc-modal-helper-wrap">
+            <div class="gc-modal-helper-card">
+                <div class="gc-modal-helper-title">Pemakaian Bahan Penolong</div>
+                <div class="gc-modal-helper-grid">
+                    <div class="gc-modal-helper-box gc-modal-helper-box--plastik">
+                        <div class="gc-modal-helper-box-head">Plastik</div>
+                        <div class="gc-modal-helper-box-body">
+                            <input type="number" step="0.01" min="0" id="gc-modal-plastik-gumcord">
+                        </div>
+                    </div>
+                    <div class="gc-modal-helper-box gc-modal-helper-box--kotak">
+                        <div class="gc-modal-helper-box-head">Kotak</div>
+                        <div class="gc-modal-helper-box-body">
+                            <input type="number" step="1" min="0" id="gc-modal-box-gumcord" readonly tabindex="-1">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -672,6 +691,35 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    async function parseJsonResponse(res, fallbackMessage) {
+        const text = await res.text();
+        try {
+            return JSON.parse(text);
+        } catch (error) {
+            throw new Error(fallbackMessage);
+        }
+    }
+
+    function getLaporanEmptyMessage(sumber) {
+        if (sumber === "cushion-gum") return "Belum ada data laporan Cushion Gum.";
+        if (sumber === "gum-cord") return "Belum ada data laporan Gum Cord.";
+        if (sumber === "msc") return "Belum ada data laporan MSC.";
+        return "Belum ada data laporan.";
+    }
+
+    function ensureLaporanEmptyRow(tbody, sumber) {
+        if (!tbody || tbody.querySelector("tr")) return;
+        const table = tbody.closest("table");
+        const colspan = table?.querySelectorAll("thead th").length || 1;
+        const tr = document.createElement("tr");
+        const td = document.createElement("td");
+        td.colSpan = colspan;
+        td.className = "laporan-empty";
+        td.textContent = getLaporanEmptyMessage(sumber);
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+    }
+
     tabs.forEach((tab) => {
         tab.addEventListener("click", function () {
             const targetId = tab.dataset.tabTarget;
@@ -742,6 +790,58 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     }
+
+    document.querySelectorAll("form[action='{{ url_for(\"laporan_delete\") }}']").forEach((form) => {
+        form.setAttribute("data-skip-splash", "1");
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            if (!confirm("Yakin hapus data ini?")) {
+                return;
+            }
+
+            const submitButton = form.querySelector("button[type='submit']");
+            const originalLabel = submitButton?.textContent || "Delete";
+
+            if (submitButton) {
+                submitButton.disabled = true;
+                submitButton.textContent = "Menghapus...";
+            }
+
+            try {
+                const formData = new FormData(form);
+                formData.set("ajax", "1");
+                const res = await fetch(form.action, {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json",
+                        "X-Requested-With": "XMLHttpRequest",
+                    },
+                    body: formData,
+                });
+                const json = await parseJsonResponse(
+                    res,
+                    "Gagal menghapus data. Server mengembalikan respons yang tidak valid."
+                );
+                if (!res.ok || !json.ok) {
+                    throw new Error(json.message || "Gagal menghapus data.");
+                }
+
+                const row = form.closest("tr");
+                const tbody = row?.parentElement;
+                const sumber = form.querySelector("input[name='sumber']")?.value || "";
+                row?.remove();
+                ensureLaporanEmptyRow(tbody, sumber);
+                alert(json.message || "Data berhasil dihapus.");
+            } catch (err) {
+                alert(err.message || "Gagal menghapus data.");
+            } finally {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                    submitButton.textContent = originalLabel;
+                }
+            }
+        });
+    });
 
     const cgModal = document.getElementById("cg-modal");
     const cgModalBody = document.getElementById("cg-modal-body");
@@ -1207,6 +1307,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const gcNoMesin = document.getElementById("gc-modal-no-mesin");
     const gcTanggal = document.getElementById("gc-modal-tanggal");
     const gcRow = document.getElementById("gc-modal-row");
+    const gcPlastikGumcord = document.getElementById("gc-modal-plastik-gumcord");
+    const gcBoxGumcord = document.getElementById("gc-modal-box-gumcord");
     let activeGcRowToken = "";
 
     function getGcField(field) {
@@ -1222,6 +1324,14 @@ document.addEventListener("DOMContentLoaded", function () {
             el.readOnly = !editable;
             el.disabled = !editable;
         });
+        if (gcPlastikGumcord) {
+            gcPlastikGumcord.readOnly = !editable;
+            gcPlastikGumcord.disabled = !editable;
+        }
+        if (gcBoxGumcord) {
+            gcBoxGumcord.readOnly = true;
+            gcBoxGumcord.disabled = true;
+        }
         gcUpdateBtn.hidden = !editable;
     }
 
@@ -1343,6 +1453,14 @@ document.addEventListener("DOMContentLoaded", function () {
             const input = getGcField(field);
             if (input) input.value = formatGcDisplayValue(field, data?.[field]);
         });
+        if (gcPlastikGumcord) {
+            gcPlastikGumcord.value = formatGcDisplayValue("plastik_gumcord", data?.helper?.plastik_gumcord);
+        }
+        if (gcBoxGumcord) {
+            const helperBox = data?.helper?.box_gumcord;
+            gcBoxGumcord.value = helperBox === null || helperBox === undefined ? "" : String(helperBox);
+        }
+        syncGcHelperValues();
     }
 
     function collectGcRowValues() {
@@ -1351,6 +1469,19 @@ document.addEventListener("DOMContentLoaded", function () {
             obj[input.dataset.field] = input.value;
         });
         return obj;
+    }
+
+    function collectGcHelperValues() {
+        return {
+            plastik_gumcord: gcPlastikGumcord?.value || "",
+            box_gumcord: gcBoxGumcord?.value || "",
+        };
+    }
+
+    function syncGcHelperValues() {
+        if (!gcBoxGumcord) return;
+        const aktualKotak = getGcField("aktual_kotak");
+        gcBoxGumcord.value = aktualKotak?.value?.trim() || "";
     }
 
     function makeSafeGcRowToken(rowToken) {
@@ -1406,6 +1537,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 tanggal_produksi: gcTanggal.value,
             },
             row: collectGcRowValues(),
+            helper: collectGcHelperValues(),
         };
         try {
             const res = await fetch(`/laporan/gum-cord/update/${encodeURIComponent(activeGcRowToken)}`, {
@@ -1468,6 +1600,7 @@ document.addEventListener("DOMContentLoaded", function () {
             field === "berat_per_kotak"
         ) {
             recalcGcRow(field);
+            syncGcHelperValues();
         }
     });
 

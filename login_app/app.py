@@ -1839,6 +1839,8 @@ def laporan_gum_cord_read(row_token):
         if not row:
             return jsonify({"ok": False, "message": "Data Gum Cord tidak ditemukan."}), 404
 
+        helper = fetch_gum_cord_helper_by_date(str(row[1]) if row[1] else "")
+
         return jsonify(
             {
                 "ok": True,
@@ -1858,6 +1860,10 @@ def laporan_gum_cord_read(row_token):
                     "persentase": float(row[12]) if row[12] is not None else None,
                     "berat_per_kotak": float(row[13]) if row[13] is not None else None,
                     "berat_total": float(row[14]) if row[14] is not None else None,
+                    "helper": {
+                        "plastik_gumcord": helper.get("plastik_gumcord") if helper else None,
+                        "box_gumcord": helper.get("box_gumcord") if helper else None,
+                    },
                 },
             }
         )
@@ -1876,6 +1882,7 @@ def laporan_gum_cord_update(row_token):
     payload = request.get_json(silent=True) or {}
     header = payload.get("header") or {}
     row = payload.get("row") or {}
+    helper_payload = payload.get("helper") or {}
 
     tanggal_produksi = (header.get("tanggal_produksi") or "").strip()
     if not tanggal_produksi:
@@ -1894,6 +1901,8 @@ def laporan_gum_cord_update(row_token):
     persentase = parse_decimal(str(row.get("persentase") or ""))
     berat_per_kotak = parse_decimal(str(row.get("berat_per_kotak") or ""))
     berat_total = parse_decimal(str(row.get("berat_total") or ""))
+    plastik_gumcord = parse_decimal(str(helper_payload.get("plastik_gumcord") or ""))
+    box_gumcord = parse_int(str(helper_payload.get("box_gumcord") or ""))
 
     if pakai_menit is None and waktu_awal and waktu_akhir:
         try:
@@ -1970,6 +1979,7 @@ def laporan_gum_cord_update(row_token):
                 row_token,
             ),
         )
+        upsert_gum_cord_helper_by_date(conn, tanggal_produksi, plastik_gumcord, box_gumcord)
         if cur.rowcount == 0:
             conn.rollback()
             return jsonify({"ok": False, "message": "Data Gum Cord tidak ditemukan."}), 404
@@ -3582,7 +3592,14 @@ def laporan_msc_download(batch_uid):
 
 @app.route("/laporan/delete", methods=["POST"])
 def laporan_delete():
+    is_ajax = (
+        request.headers.get("X-Requested-With") == "XMLHttpRequest"
+        or (request.form.get("ajax") or "").strip() == "1"
+        or "application/json" in (request.headers.get("Accept") or "")
+    )
     if "user" not in session:
+        if is_ajax:
+            return jsonify({"ok": False, "message": "Session berakhir. Silakan login lagi."}), 401
         return redirect(url_for("login"))
 
     data_key = (request.form.get("id") or "").strip()
@@ -3596,16 +3613,21 @@ def laporan_delete():
     }
     table_name = table_map.get(sumber)
     if not table_name or not data_key:
+        if is_ajax:
+            return jsonify({"ok": False, "message": "Data hapus tidak valid."}), 400
         return redirect(url_for("laporan", bulan=selected_month or None))
 
     conn = None
     try:
         conn = get_db_conn()
-        ensure_cushion_schema_once(conn)
+        if sumber == "cushion-gum":
+            ensure_cushion_schema_once(conn)
         cur = conn.cursor()
         if sumber == "cushion-gum":
             data_id = parse_int(data_key)
             if data_id is None:
+                if is_ajax:
+                    return jsonify({"ok": False, "message": "ID data Cushion Gum tidak valid."}), 400
                 return redirect(url_for("laporan", tab=sumber, bulan=selected_month or None))
 
             cur.execute(
@@ -3704,6 +3726,8 @@ def laporan_delete():
         elif sumber == "msc":
             data_id = parse_int(data_key)
             if data_id is None:
+                if is_ajax:
+                    return jsonify({"ok": False, "message": "ID data MSC tidak valid."}), 400
                 return redirect(url_for("laporan", tab=sumber, bulan=selected_month or None))
 
             cur.execute(
@@ -3729,17 +3753,23 @@ def laporan_delete():
         else:
             data_id = parse_int(data_key)
             if data_id is None:
+                if is_ajax:
+                    return jsonify({"ok": False, "message": "ID data tidak valid."}), 400
                 return redirect(url_for("laporan", tab=sumber, bulan=selected_month or None))
             cur.execute(f"DELETE FROM {table_name} WHERE id = %s", (data_id,))
         conn.commit()
-    except Exception:
+    except Exception as e:
         if conn:
             conn.rollback()
+        if is_ajax:
+            return jsonify({"ok": False, "message": f"Gagal menghapus data: {e}"}), 500
         raise
     finally:
         if conn:
             conn.close()
 
+    if is_ajax:
+        return jsonify({"ok": True, "message": "Data berhasil dihapus.", "sumber": sumber})
     return redirect(url_for("laporan", tab=sumber, bulan=selected_month or None))
 
 @app.route("/cushion-gum", methods=["GET", "POST"])
