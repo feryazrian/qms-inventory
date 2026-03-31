@@ -51,7 +51,7 @@
                 </p>
                 <div class="hero-actions">
                     <button type="button" class="primary-btn" id="open-user-modal-btn">Tambah User</button>
-                    <button type="button" class="ghost-btn">Atur Role</button>
+                    <button type="button" class="ghost-btn" id="open-role-modal-btn">Atur Role</button>
                 </div>
             </div>
             <div class="akses-hero-panel" aria-hidden="true">
@@ -250,26 +250,81 @@
         </div>
     </div>
 
+    <div class="user-modal" id="role-modal" hidden>
+        <div class="user-modal-backdrop" data-close-role-modal="1"></div>
+        <div class="user-modal-card" role="dialog" aria-modal="true" aria-labelledby="role-modal-title">
+            <div class="user-modal-head">
+                <h2 id="role-modal-title">Atur Role User</h2>
+                <button type="button" class="user-modal-close" data-close-role-modal="1">Tutup</button>
+            </div>
+            <form method="POST" action="{{ url_for('akses') }}" class="user-form" data-skip-splash>
+                <input type="hidden" name="action" value="update_role">
+                <div class="user-form-grid">
+                    <div class="field-group">
+                        <label for="role_user_id">Pilih User</label>
+                        <select id="role_user_id" name="user_id" required>
+                            <option value="">Pilih user</option>
+                            {% for row in users %}
+                            <option value="{{ row[0] }}">{{ row[1] }} ({{ row[2] }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="role_update">Role Baru</label>
+                        <select id="role_update" name="role">
+                            <option value="Administrator">Administrator</option>
+                            <option value="Supervisor">Supervisor</option>
+                            <option value="Operator" selected>Operator</option>
+                        </select>
+                    </div>
+                    <div class="field-group">
+                        <label for="status_update">Status</label>
+                        <select id="status_update" name="status_aktif">
+                            <option value="1" selected>Aktif</option>
+                            <option value="0">Nonaktif</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="user-form-actions">
+                    <button type="submit" class="primary-btn">Simpan Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const modal = document.getElementById("user-modal");
-        const openBtn = document.getElementById("open-user-modal-btn");
-        const closeEls = document.querySelectorAll("[data-close-user-modal='1']");
+        const userModal = document.getElementById("user-modal");
+        const roleModal = document.getElementById("role-modal");
+        const openUserBtn = document.getElementById("open-user-modal-btn");
+        const openRoleBtn = document.getElementById("open-role-modal-btn");
+        const closeUserEls = document.querySelectorAll("[data-close-user-modal='1']");
+        const closeRoleEls = document.querySelectorAll("[data-close-role-modal='1']");
 
-        function openModal() {
+        function openModal(modal) {
             if (!modal) return;
             modal.hidden = false;
             document.body.classList.add("modal-open");
         }
 
-        function closeModal() {
+        function closeModal(modal) {
             if (!modal) return;
             modal.hidden = true;
             document.body.classList.remove("modal-open");
         }
 
-        openBtn?.addEventListener("click", openModal);
-        closeEls.forEach((el) => el.addEventListener("click", closeModal));
+        openUserBtn?.addEventListener("click", function () {
+            openModal(userModal);
+        });
+        openRoleBtn?.addEventListener("click", function () {
+            openModal(roleModal);
+        });
+        closeUserEls.forEach((el) => el.addEventListener("click", function () {
+            closeModal(userModal);
+        }));
+        closeRoleEls.forEach((el) => el.addEventListener("click", function () {
+            closeModal(roleModal);
+        }));
     });
     </script>
 </body>

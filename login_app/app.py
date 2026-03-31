@@ -16,6 +16,7 @@ app.secret_key = os.getenv("SECRET_KEY", "dev-only-change-me")
 SCHEMA_READY = {
     "master_produk": False,
     "cushion": False,
+    "gum_cord": False,
 }
 
 # DATA LOGIN
@@ -384,12 +385,20 @@ def ensure_gum_cord_columns(conn):
     )
 
 
+def ensure_gum_cord_columns_once(conn):
+    if SCHEMA_READY["gum_cord"]:
+        return
+    ensure_gum_cord_columns(conn)
+    conn.commit()
+    SCHEMA_READY["gum_cord"] = True
+
+
 def fetch_laporan_gum_cord(selected_month=""):
     conn = None
     try:
         conn = get_db_conn()
         cur = conn.cursor()
-        ensure_gum_cord_columns(conn)
+        ensure_gum_cord_columns_once(conn)
         query = """
             SELECT
                 row_id::text AS row_token,
@@ -1905,7 +1914,7 @@ def laporan_gum_cord_read(row_token):
     conn = None
     try:
         conn = get_db_conn()
-        ensure_gum_cord_columns(conn)
+        ensure_gum_cord_columns_once(conn)
         cur = conn.cursor()
         if row_token.isdigit():
             cur.execute(
@@ -2050,7 +2059,7 @@ def laporan_gum_cord_update(row_token):
     conn = None
     try:
         conn = get_db_conn()
-        ensure_gum_cord_columns(conn)
+        ensure_gum_cord_columns_once(conn)
         cur = conn.cursor()
         if row_token.isdigit():
             cur.execute(
@@ -2957,53 +2966,74 @@ def akses():
     error = (request.args.get("error") or "").strip()
 
     if request.method == "POST":
+        action = (request.form.get("action") or "add_user").strip()
         nama_user = (request.form.get("nama_user") or "").strip()
         username = (request.form.get("username") or "").strip()
         password = (request.form.get("password") or "").strip()
         role = (request.form.get("role") or "Operator").strip() or "Operator"
         status_aktif = (request.form.get("status_aktif") or "1").strip() == "1"
+        conn = None
+        try:
+            conn = get_db_conn()
+            ensure_users_table(conn)
+            cur = conn.cursor()
 
-        if not nama_user or not username or not password:
-            error = "Nama user, username, dan password wajib diisi."
-        else:
-            conn = None
-            try:
-                conn = get_db_conn()
-                ensure_users_table(conn)
-                cur = conn.cursor()
-                cur.execute(
-                    """
-                    SELECT 1
-                    FROM qms_users
-                    WHERE username = %s
-                    LIMIT 1
-                    """,
-                    (username,),
-                )
-                if cur.fetchone():
-                    error = "Username sudah dipakai."
+            if action == "update_role":
+                user_id = parse_int(request.form.get("user_id"))
+                if user_id is None:
+                    error = "User yang dipilih tidak valid."
                 else:
                     cur.execute(
                         """
-                        INSERT INTO qms_users (
-                            nama_user,
-                            username,
-                            password,
-                            role,
-                            status_aktif
-                        ) VALUES (%s, %s, %s, %s, %s)
+                        UPDATE qms_users
+                        SET role = %s,
+                            status_aktif = %s
+                        WHERE id = %s
                         """,
-                        (nama_user, username, password, role, status_aktif),
+                        (role, status_aktif, user_id),
                     )
                     conn.commit()
-                    return redirect(url_for("akses", notice="User berhasil ditambahkan."))
-            except Exception as e:
-                if conn:
-                    conn.rollback()
+                    return redirect(url_for("akses", notice="Role user berhasil diperbarui."))
+            else:
+                if not nama_user or not username or not password:
+                    error = "Nama user, username, dan password wajib diisi."
+                else:
+                    cur.execute(
+                        """
+                        SELECT 1
+                        FROM qms_users
+                        WHERE username = %s
+                        LIMIT 1
+                        """,
+                        (username,),
+                    )
+                    if cur.fetchone():
+                        error = "Username sudah dipakai."
+                    else:
+                        cur.execute(
+                            """
+                            INSERT INTO qms_users (
+                                nama_user,
+                                username,
+                                password,
+                                role,
+                                status_aktif
+                            ) VALUES (%s, %s, %s, %s, %s)
+                            """,
+                            (nama_user, username, password, role, status_aktif),
+                        )
+                        conn.commit()
+                        return redirect(url_for("akses", notice="User berhasil ditambahkan."))
+        except Exception as e:
+            if conn:
+                conn.rollback()
+            if action == "update_role":
+                error = f"Gagal memperbarui role user: {e}"
+            else:
                 error = f"Gagal menambah user: {e}"
-            finally:
-                if conn:
-                    conn.close()
+        finally:
+            if conn:
+                conn.close()
 
     users = fetch_all_users()
     total_user = len(users)
@@ -3338,7 +3368,7 @@ def fetch_latest_gum_cord_by_date(tanggal_produksi):
     conn = None
     try:
         conn = get_db_conn()
-        ensure_gum_cord_columns(conn)
+        ensure_gum_cord_columns_once(conn)
         cur = conn.cursor()
         cur.execute(
             """
@@ -3394,7 +3424,7 @@ def fetch_gum_cord_by_row_token(row_token):
     conn = None
     try:
         conn = get_db_conn()
-        ensure_gum_cord_columns(conn)
+        ensure_gum_cord_columns_once(conn)
         cur = conn.cursor()
         if row_token.isdigit():
             cur.execute(
@@ -3913,7 +3943,7 @@ def laporan_delete():
         if sumber == "cushion-gum":
             ensure_cushion_schema_once(conn)
         elif sumber == "gum-cord":
-            ensure_gum_cord_columns(conn)
+            ensure_gum_cord_columns_once(conn)
         cur = conn.cursor()
         if sumber == "cushion-gum":
             data_id = parse_int(data_key)
@@ -4471,19 +4501,8 @@ def cushion_gum_cord():
         conn = get_db_conn()
         ensure_pemakaian_plastik_table(conn)
         ensure_pemakaian_kotak_table(conn)
+        ensure_gum_cord_columns_once(conn)
         cur = conn.cursor()
-        cur.execute(
-            """
-            ALTER TABLE production_gum_cord
-            ADD COLUMN IF NOT EXISTS nama_operator VARCHAR(150)
-            """
-        )
-        cur.execute(
-            """
-            ALTER TABLE production_gum_cord
-            ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
-            """
-        )
         insert_sql = """
             INSERT INTO production_gum_cord (
                 tanggal_produksi,
