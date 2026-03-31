@@ -270,6 +270,30 @@ def ensure_gum_cord_columns(conn):
     cur = conn.cursor()
     cur.execute(
         """
+        CREATE SEQUENCE IF NOT EXISTS production_gum_cord_row_id_seq
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE production_gum_cord
+        ADD COLUMN IF NOT EXISTS row_id BIGINT
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE production_gum_cord
+        ALTER COLUMN row_id SET DEFAULT nextval('production_gum_cord_row_id_seq')
+        """
+    )
+    cur.execute(
+        """
+        UPDATE production_gum_cord
+        SET row_id = nextval('production_gum_cord_row_id_seq')
+        WHERE row_id IS NULL
+        """
+    )
+    cur.execute(
+        """
         ALTER TABLE production_gum_cord
         ADD COLUMN IF NOT EXISTS nama_operator VARCHAR(150)
         """
@@ -296,7 +320,7 @@ def fetch_laporan_gum_cord(selected_month=""):
         ensure_gum_cord_columns(conn)
         query = """
             SELECT
-                ctid::text AS row_token,
+                row_id::text AS row_token,
                 tanggal_produksi,
                 target_total,
                 aktual_kotak,
@@ -1809,43 +1833,58 @@ def laporan_gum_cord_read(row_token):
     conn = None
     try:
         conn = get_db_conn()
+        ensure_gum_cord_columns(conn)
         cur = conn.cursor()
-        cur.execute(
-            """
-            ALTER TABLE production_gum_cord
-            ADD COLUMN IF NOT EXISTS nama_operator VARCHAR(150)
-            """
-        )
-        cur.execute(
-            """
-            ALTER TABLE production_gum_cord
-            ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
-            """
-        )
-        cur.execute(
-            """
-            SELECT
-                ctid::text AS row_token,
-                tanggal_produksi,
-                nama_operator,
-                no_mesin,
-                nama_produk,
-                order_kotak,
-                waktu_awal,
-                waktu_akhir,
-                pakai_menit,
-                target_per_menit,
-                target_total,
-                aktual_kotak,
-                persentase,
-                berat_per_kotak,
-                berat_total
-            FROM production_gum_cord
-            WHERE ctid = %s::tid
-            LIMIT 1
-            """,
-            (row_token,),
-        )
+        if row_token.isdigit():
+            cur.execute(
+                """
+                SELECT
+                    row_id::text AS row_token,
+                    tanggal_produksi,
+                    nama_operator,
+                    no_mesin,
+                    nama_produk,
+                    order_kotak,
+                    waktu_awal,
+                    waktu_akhir,
+                    pakai_menit,
+                    target_per_menit,
+                    target_total,
+                    aktual_kotak,
+                    persentase,
+                    berat_per_kotak,
+                    berat_total
+                FROM production_gum_cord
+                WHERE row_id = %s
+                LIMIT 1
+                """,
+                (int(row_token),),
+            )
+        else:
+            cur.execute(
+                """
+                SELECT
+                    row_id::text AS row_token,
+                    tanggal_produksi,
+                    nama_operator,
+                    no_mesin,
+                    nama_produk,
+                    order_kotak,
+                    waktu_awal,
+                    waktu_akhir,
+                    pakai_menit,
+                    target_per_menit,
+                    target_total,
+                    aktual_kotak,
+                    persentase,
+                    berat_per_kotak,
+                    berat_total
+                FROM production_gum_cord
+                WHERE ctid = %s::tid
+                LIMIT 1
+                """,
+                (row_token,),
+            )
         row = cur.fetchone()
         if not row:
             return jsonify({"ok": False, "message": "Data Gum Cord tidak ditemukan."}), 404
@@ -1939,57 +1978,86 @@ def laporan_gum_cord_update(row_token):
     conn = None
     try:
         conn = get_db_conn()
+        ensure_gum_cord_columns(conn)
         cur = conn.cursor()
-        cur.execute(
-            """
-            ALTER TABLE production_gum_cord
-            ADD COLUMN IF NOT EXISTS nama_operator VARCHAR(150)
-            """
-        )
-        cur.execute(
-            """
-            ALTER TABLE production_gum_cord
-            ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
-            """
-        )
-        cur.execute(
-            """
-            UPDATE production_gum_cord
-            SET
-                tanggal_produksi = %s,
-                nama_operator = %s,
-                no_mesin = %s,
-                nama_produk = %s,
-                order_kotak = %s,
-                waktu_awal = %s,
-                waktu_akhir = %s,
-                pakai_menit = %s,
-                target_per_menit = %s,
-                target_total = %s,
-                aktual_kotak = %s,
-                persentase = %s,
-                berat_per_kotak = %s,
-                berat_total = %s
-            WHERE ctid = %s::tid
-            """,
-            (
-                tanggal_produksi,
-                nama_operator,
-                no_mesin,
-                nama_produk,
-                order_kotak,
-                waktu_awal,
-                waktu_akhir,
-                pakai_menit,
-                target_per_menit,
-                target_total,
-                aktual_kotak,
-                persentase,
-                berat_per_kotak,
-                berat_total,
-                row_token,
-            ),
-        )
+        if row_token.isdigit():
+            cur.execute(
+                """
+                UPDATE production_gum_cord
+                SET
+                    tanggal_produksi = %s,
+                    nama_operator = %s,
+                    no_mesin = %s,
+                    nama_produk = %s,
+                    order_kotak = %s,
+                    waktu_awal = %s,
+                    waktu_akhir = %s,
+                    pakai_menit = %s,
+                    target_per_menit = %s,
+                    target_total = %s,
+                    aktual_kotak = %s,
+                    persentase = %s,
+                    berat_per_kotak = %s,
+                    berat_total = %s
+                WHERE row_id = %s
+                """,
+                (
+                    tanggal_produksi,
+                    nama_operator,
+                    no_mesin,
+                    nama_produk,
+                    order_kotak,
+                    waktu_awal,
+                    waktu_akhir,
+                    pakai_menit,
+                    target_per_menit,
+                    target_total,
+                    aktual_kotak,
+                    persentase,
+                    berat_per_kotak,
+                    berat_total,
+                    int(row_token),
+                ),
+            )
+        else:
+            cur.execute(
+                """
+                UPDATE production_gum_cord
+                SET
+                    tanggal_produksi = %s,
+                    nama_operator = %s,
+                    no_mesin = %s,
+                    nama_produk = %s,
+                    order_kotak = %s,
+                    waktu_awal = %s,
+                    waktu_akhir = %s,
+                    pakai_menit = %s,
+                    target_per_menit = %s,
+                    target_total = %s,
+                    aktual_kotak = %s,
+                    persentase = %s,
+                    berat_per_kotak = %s,
+                    berat_total = %s
+                WHERE ctid = %s::tid
+                """,
+                (
+                    tanggal_produksi,
+                    nama_operator,
+                    no_mesin,
+                    nama_produk,
+                    order_kotak,
+                    waktu_awal,
+                    waktu_akhir,
+                    pakai_menit,
+                    target_per_menit,
+                    target_total,
+                    aktual_kotak,
+                    persentase,
+                    berat_per_kotak,
+                    berat_total,
+                    row_token,
+                ),
+            )
         upsert_gum_cord_helper_by_date(conn, tanggal_produksi, plastik_gumcord, box_gumcord)
         if cur.rowcount == 0:
             conn.rollback()
@@ -2186,6 +2254,8 @@ def normalize_gum_cord_row_token(row_token):
     token = (row_token or "").strip()
     if not token:
         return ""
+    if token.isdigit():
+        return token
     if token.startswith("(,"):
         token = f"(0{token[1:]}"
     elif token.startswith(","):
@@ -2213,8 +2283,6 @@ def normalize_gum_cord_row_token(row_token):
         right = right.strip()
         if left.isdigit() and right.isdigit():
             return f"({left},{right})"
-    if token.isdigit():
-        return f"(0,{token})"
     return token
 
 
@@ -3103,7 +3171,7 @@ def fetch_latest_gum_cord_by_date(tanggal_produksi):
         cur.execute(
             """
             SELECT
-                ctid::text AS row_token,
+                row_id::text AS row_token,
                 tanggal_produksi,
                 nama_operator,
                 no_mesin,
@@ -3156,30 +3224,56 @@ def fetch_gum_cord_by_row_token(row_token):
         conn = get_db_conn()
         ensure_gum_cord_columns(conn)
         cur = conn.cursor()
-        cur.execute(
-            """
-            SELECT
-                ctid::text AS row_token,
-                tanggal_produksi,
-                nama_operator,
-                no_mesin,
-                nama_produk,
-                order_kotak,
-                waktu_awal,
-                waktu_akhir,
-                pakai_menit,
-                target_per_menit,
-                target_total,
-                aktual_kotak,
-                persentase,
-                berat_per_kotak,
-                berat_total
-            FROM production_gum_cord
-            WHERE ctid = %s::tid
-            LIMIT 1
-            """,
-            (row_token,),
-        )
+        if row_token.isdigit():
+            cur.execute(
+                """
+                SELECT
+                    row_id::text AS row_token,
+                    tanggal_produksi,
+                    nama_operator,
+                    no_mesin,
+                    nama_produk,
+                    order_kotak,
+                    waktu_awal,
+                    waktu_akhir,
+                    pakai_menit,
+                    target_per_menit,
+                    target_total,
+                    aktual_kotak,
+                    persentase,
+                    berat_per_kotak,
+                    berat_total
+                FROM production_gum_cord
+                WHERE row_id = %s
+                LIMIT 1
+                """,
+                (int(row_token),),
+            )
+        else:
+            cur.execute(
+                """
+                SELECT
+                    row_id::text AS row_token,
+                    tanggal_produksi,
+                    nama_operator,
+                    no_mesin,
+                    nama_produk,
+                    order_kotak,
+                    waktu_awal,
+                    waktu_akhir,
+                    pakai_menit,
+                    target_per_menit,
+                    target_total,
+                    aktual_kotak,
+                    persentase,
+                    berat_per_kotak,
+                    berat_total
+                FROM production_gum_cord
+                WHERE ctid = %s::tid
+                LIMIT 1
+                """,
+                (row_token,),
+            )
         row = cur.fetchone()
         if not row:
             return None
@@ -3742,11 +3836,16 @@ def laporan_delete():
                             (tanggal_produksi,),
                         )
         elif sumber == "gum-cord":
-            # production_gum_cord tidak punya kolom id, jadi pakai row token PostgreSQL (ctid).
-            cur.execute(
-                "DELETE FROM production_gum_cord WHERE ctid = %s::tid",
-                (data_key,),
-            )
+            if data_key.isdigit():
+                cur.execute(
+                    "DELETE FROM production_gum_cord WHERE row_id = %s",
+                    (int(data_key),),
+                )
+            else:
+                cur.execute(
+                    "DELETE FROM production_gum_cord WHERE ctid = %s::tid",
+                    (data_key,),
+                )
         elif sumber == "msc":
             data_id = parse_int(data_key)
             if data_id is None:
