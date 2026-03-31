@@ -1353,19 +1353,38 @@ document.addEventListener("DOMContentLoaded", function () {
         return obj;
     }
 
+    function makeSafeGcRowToken(rowToken) {
+        return String(rowToken || "").replace(/[()]/g, "").replace(",", "-");
+    }
+
+    async function parseJsonResponse(res, fallbackMessage) {
+        const text = await res.text();
+        try {
+            return JSON.parse(text);
+        } catch (error) {
+            throw new Error(fallbackMessage);
+        }
+    }
+
     async function loadGumCordRow(rowToken, mode) {
         if (!rowToken) {
             alert("Row token Gum Cord tidak tersedia.");
             return;
         }
         try {
-            const res = await fetch(`/laporan/gum-cord/read/${encodeURIComponent(rowToken)}`);
-            const json = await res.json();
+            const safeRowToken = makeSafeGcRowToken(rowToken);
+            const res = await fetch(`/laporan/gum-cord/read/${encodeURIComponent(safeRowToken)}`, {
+                headers: { "Accept": "application/json" },
+            });
+            const json = await parseJsonResponse(
+                res,
+                "Gagal mengambil data Gum Cord. Server mengembalikan respons yang tidak valid."
+            );
             if (!res.ok || !json.ok) {
                 throw new Error(json.message || "Gagal mengambil data Gum Cord.");
             }
             const data = json.data || {};
-            activeGcRowToken = rowToken;
+            activeGcRowToken = safeRowToken;
             gcNamaOperator.value = data.nama_operator || "";
             gcNoMesin.value = data.no_mesin || "";
             gcTanggal.value = data.tanggal_produksi || "";
@@ -1391,10 +1410,16 @@ document.addEventListener("DOMContentLoaded", function () {
         try {
             const res = await fetch(`/laporan/gum-cord/update/${encodeURIComponent(activeGcRowToken)}`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json",
+                },
                 body: JSON.stringify(payload),
             });
-            const json = await res.json();
+            const json = await parseJsonResponse(
+                res,
+                "Gagal update data Gum Cord. Server mengembalikan respons yang tidak valid."
+            );
             if (!res.ok || !json.ok) {
                 throw new Error(json.message || "Gagal update data Gum Cord.");
             }
