@@ -113,7 +113,7 @@
                                 <div class="aksi-wrap">
                                     <button type="button" class="aksi-btn aksi-read cg-read-btn" data-batch-uid="{{ row[6] or '' }}">Read</button>
                                     <button type="button" class="aksi-btn aksi-edit cg-edit-btn" data-batch-uid="{{ row[6] or '' }}">Edit</button>
-                                    <form method="POST" action="{{ url_for('laporan_delete') }}" onsubmit="return confirm('Yakin hapus data ini?');">
+                                    <form method="POST" action="{{ url_for('laporan_delete') }}" data-laporan-delete="1">
                                         <input type="hidden" name="id" value="{{ row[0] }}">
                                         <input type="hidden" name="sumber" value="cushion-gum">
                                         <input type="hidden" name="bulan" value="{{ selected_month }}">
@@ -169,7 +169,7 @@
                                     >
                                         Edit
                                     </button>
-                                    <form method="POST" action="{{ url_for('laporan_delete') }}" onsubmit="return confirm('Yakin hapus data ini?');">
+                                    <form method="POST" action="{{ url_for('laporan_delete') }}" data-laporan-delete="1">
                                         <input type="hidden" name="id" value="{{ row[0] }}">
                                         <input type="hidden" name="sumber" value="gum-cord">
                                         <input type="hidden" name="bulan" value="{{ selected_month }}">
@@ -233,7 +233,7 @@
                                     >
                                         Edit
                                     </button>
-                                    <form method="POST" action="{{ url_for('laporan_delete') }}" onsubmit="return confirm('Yakin hapus data ini?');">
+                                    <form method="POST" action="{{ url_for('laporan_delete') }}" data-laporan-delete="1">
                                         <input type="hidden" name="id" value="{{ row[0] }}">
                                         <input type="hidden" name="sumber" value="msc">
                                         <input type="hidden" name="bulan" value="{{ selected_month }}">
@@ -791,7 +791,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    document.querySelectorAll("form[action='{{ url_for(\"laporan_delete\") }}']").forEach((form) => {
+    document.querySelectorAll("form[data-laporan-delete='1']").forEach((form) => {
         form.setAttribute("data-skip-splash", "1");
         form.addEventListener("submit", async function (event) {
             event.preventDefault();
