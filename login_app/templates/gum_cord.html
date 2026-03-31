@@ -245,6 +245,10 @@
         }
     });
 
+    function truncateToOneDecimal(value) {
+        return Math.trunc(value * 10) / 10;
+    }
+
     function hitungPakaiMenitC(row) {
         const awal = row.querySelector(".awal-c")?.value;
         const akhir = row.querySelector(".akhir-c")?.value;
@@ -273,8 +277,8 @@
 
         const targetPerMenit = parseFloat(targetMenitInput.value);
         if (!isNaN(targetPerMenit)) {
-            const total = (pakai * targetPerMenit) / 10;
-            targetTotalInput.value = total.toFixed(1);
+            const total = pakai * targetPerMenit;
+            targetTotalInput.value = truncateToOneDecimal(total).toFixed(1);
             const aktualInput = row.querySelector(".aktual-c");
             if (aktualInput && aktualInput.value) {
                 hitungPersentaseC(aktualInput);
@@ -303,7 +307,7 @@
             persentaseInput.value = "100.0";
         } else {
             const persen = (aktual / totalTarget) * 100;
-            persentaseInput.value = persen.toFixed(1);
+            persentaseInput.value = truncateToOneDecimal(persen).toFixed(1);
         }
 
         if (totalBeratInput && perKotakInput) {
