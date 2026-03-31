@@ -272,6 +272,7 @@
                 <button type="button" class="cg-modal-close" data-close-cg="1">Tutup</button>
             </div>
         </div>
+        <div class="modal-fetching-banner" id="cg-modal-loading" hidden>Memuat data...</div>
         <div class="cg-modal-meta">
             <div>
                 <label>Nama Operator</label>
@@ -487,6 +488,7 @@
                 <button type="button" class="cg-modal-close" data-close-gc="1">Tutup</button>
             </div>
         </div>
+        <div class="modal-fetching-banner" id="gc-modal-loading" hidden>Memuat data...</div>
         <div class="cg-modal-meta">
             <div>
                 <label>Nama Operator</label>
@@ -573,6 +575,7 @@
                 <button type="button" class="msc-modal-close" data-close-modal="1">Tutup</button>
             </div>
         </div>
+        <div class="modal-fetching-banner" id="msc-modal-loading" hidden>Memuat data...</div>
         <div class="msc-modal-meta">
             <div>
                 <label>Nama Operator</label>
@@ -844,6 +847,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     const cgModal = document.getElementById("cg-modal");
+    const cgModalCard = cgModal?.querySelector(".cg-modal-card");
+    const cgModalLoading = document.getElementById("cg-modal-loading");
     const cgModalBody = document.getElementById("cg-modal-body");
     const cgUpdateBtn = document.getElementById("cg-modal-update-btn");
     const cgDeleteRowBtn = document.getElementById("cg-modal-delete-row-btn");
@@ -859,6 +864,30 @@ document.addEventListener("DOMContentLoaded", function () {
     const cgTungkulRoot = cgModal.querySelector(".cg-helper-block:nth-of-type(3)");
     let activeCgBatchUid = "";
     let cgDeleteMode = false;
+
+    function setCgModalLoading(loading) {
+        if (cgModalCard) {
+            cgModalCard.classList.toggle("is-fetching", !!loading);
+        }
+        if (cgModalLoading) {
+            cgModalLoading.hidden = !loading;
+        }
+    }
+
+    function clearCgModalContent() {
+        activeCgBatchUid = "";
+        cgNamaOperator.value = "";
+        cgNoMesin.value = "";
+        cgTanggal.value = "";
+        cgGrandTarget.value = "";
+        cgGrandAktual.value = "";
+        cgGrandPersen.value = "";
+        cgGrandBerat.value = "";
+        cgModalBody.innerHTML = "";
+        setHelperValues(cgPlastikRoot, {});
+        setHelperValues(cgKotakRoot, {});
+        setHelperValues(cgTungkulRoot, {});
+    }
 
     function setCgDeleteMode(active) {
         cgDeleteMode = !!active;
@@ -1125,6 +1154,10 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("Batch UID tidak tersedia.");
             return;
         }
+        clearCgModalContent();
+        setCgModalEditable(false);
+        setCgModalLoading(true);
+        openCgModal();
         try {
             const res = await fetch(`/laporan/cushion-gum/read/${encodeURIComponent(batchUid)}`);
             const json = await res.json();
@@ -1147,9 +1180,11 @@ document.addEventListener("DOMContentLoaded", function () {
             setCgModalEditable(mode === "edit");
             recalcAllCgRows();
             recalcCgHelperTotals();
-            openCgModal();
         } catch (err) {
+            closeCgModal();
             alert(err.message || "Gagal membuka data Cushion Gum.");
+        } finally {
+            setCgModalLoading(false);
         }
     }
 
@@ -1302,6 +1337,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     const gcModal = document.getElementById("gc-modal");
+    const gcModalCard = gcModal?.querySelector(".cg-modal-card");
+    const gcModalLoading = document.getElementById("gc-modal-loading");
     const gcUpdateBtn = document.getElementById("gc-modal-update-btn");
     const gcNamaOperator = document.getElementById("gc-modal-nama-operator");
     const gcNoMesin = document.getElementById("gc-modal-no-mesin");
@@ -1310,6 +1347,23 @@ document.addEventListener("DOMContentLoaded", function () {
     const gcPlastikGumcord = document.getElementById("gc-modal-plastik-gumcord");
     const gcBoxGumcord = document.getElementById("gc-modal-box-gumcord");
     let activeGcRowToken = "";
+
+    function setGcModalLoading(loading) {
+        if (gcModalCard) {
+            gcModalCard.classList.toggle("is-fetching", !!loading);
+        }
+        if (gcModalLoading) {
+            gcModalLoading.hidden = !loading;
+        }
+    }
+
+    function clearGcModalContent() {
+        activeGcRowToken = "";
+        gcNamaOperator.value = "";
+        gcNoMesin.value = "";
+        gcTanggal.value = "";
+        setGcRowValues({});
+    }
 
     function getGcField(field) {
         return gcRow?.querySelector(`[data-field='${field}']`) || null;
@@ -1502,6 +1556,10 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("Row token Gum Cord tidak tersedia.");
             return;
         }
+        clearGcModalContent();
+        setGcModalEditable(false);
+        setGcModalLoading(true);
+        openGcModal();
         try {
             const safeRowToken = makeSafeGcRowToken(rowToken);
             const res = await fetch(`/laporan/gum-cord/read/${encodeURIComponent(safeRowToken)}`, {
@@ -1522,9 +1580,11 @@ document.addEventListener("DOMContentLoaded", function () {
             setGcRowValues(data);
             setGcModalEditable(mode === "edit");
             recalcGcRow();
-            openGcModal();
         } catch (err) {
+            closeGcModal();
             alert(err.message || "Gagal membuka data Gum Cord.");
+        } finally {
+            setGcModalLoading(false);
         }
     }
 
@@ -1605,6 +1665,8 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     const mscModal = document.getElementById("msc-modal");
+    const mscModalCard = mscModal?.querySelector(".msc-modal-card");
+    const mscModalLoading = document.getElementById("msc-modal-loading");
     const mscModalBody = document.getElementById("msc-modal-body");
     const mscUpdateBtn = document.getElementById("msc-modal-update-btn");
     const mscDeleteRowBtn = document.getElementById("msc-modal-delete-row-btn");
@@ -1619,6 +1681,28 @@ document.addEventListener("DOMContentLoaded", function () {
     let activeBatchUid = "";
     let modalMode = "read";
     let mscDeleteMode = false;
+
+    function setMscModalLoading(loading) {
+        if (mscModalCard) {
+            mscModalCard.classList.toggle("is-fetching", !!loading);
+        }
+        if (mscModalLoading) {
+            mscModalLoading.hidden = !loading;
+        }
+    }
+
+    function clearMscModalContent() {
+        activeBatchUid = "";
+        mscNamaOperator.value = "";
+        mscNoMesin.value = "";
+        mscRegu.value = "";
+        mscTanggal.value = "";
+        mscGrandPakai.value = "";
+        mscGrandTarget.value = "";
+        mscGrandAktual.value = "";
+        mscGrandPersentase.value = "";
+        mscModalBody.innerHTML = "";
+    }
 
     function setMscDeleteMode(active) {
         mscDeleteMode = !!active;
@@ -1834,6 +1918,10 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("Batch UID tidak tersedia.");
             return;
         }
+        clearMscModalContent();
+        setModalEditable(false);
+        setMscModalLoading(true);
+        openModal();
         try {
             const res = await fetch(`/laporan/msc/read/${encodeURIComponent(batchUid)}`);
             const json = await res.json();
@@ -1856,9 +1944,11 @@ document.addEventListener("DOMContentLoaded", function () {
             mscModalBody.innerHTML = (data.rows || []).map((row, idx) => buildMscRow(idx, row)).join("");
             setModalEditable(mode === "edit");
             recalcAllMscRows();
-            openModal();
         } catch (err) {
+            closeModal();
             alert(err.message || "Gagal membuka data MSC.");
+        } finally {
+            setMscModalLoading(false);
         }
     }
 

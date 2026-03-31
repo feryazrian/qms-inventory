@@ -289,6 +289,47 @@ body.modal-open {
     overflow: hidden;
 }
 
+.modal-fetching-banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 0 14px;
+    padding: 10px 14px;
+    border: 1px solid #dbe4f0;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+    color: #334155;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.modal-fetching-banner::before {
+    content: "";
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    border: 2px solid #c7d2fe;
+    border-top-color: #3b82f6;
+    animation: laporan-modal-spin 0.8s linear infinite;
+}
+
+.cg-modal-card.is-fetching .cg-modal-meta,
+.cg-modal-card.is-fetching .cg-modal-table-wrap,
+.cg-modal-card.is-fetching .cg-modal-helper-wrap,
+.msc-modal-card.is-fetching .msc-modal-meta,
+.msc-modal-card.is-fetching .msc-modal-fixed-table-title,
+.msc-modal-card.is-fetching .msc-modal-table-wrap {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+@keyframes laporan-modal-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .msc-modal {
     position: fixed;
     inset: 0;
