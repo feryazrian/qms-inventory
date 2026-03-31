@@ -1125,6 +1125,16 @@ function confirmResetAB() {
 }
 
 function resetFormAB() {
+    const operatorInput = document.querySelector('input[name="nama_operator"]');
+    const noMesinInput = document.getElementById('no-mesin');
+
+    if (operatorInput) {
+        operatorInput.value = '';
+    }
+    if (noMesinInput) {
+        noMesinInput.value = '';
+    }
+
     const aTable = document.querySelector('.table-a-reset');
     if (!aTable) return;
 
