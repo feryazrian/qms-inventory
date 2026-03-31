@@ -266,23 +266,28 @@ def fetch_laporan_cushion_gum(selected_month=""):
             conn.close()
 
 
+def ensure_gum_cord_columns(conn):
+    cur = conn.cursor()
+    cur.execute(
+        """
+        ALTER TABLE production_gum_cord
+        ADD COLUMN IF NOT EXISTS nama_operator VARCHAR(150)
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE production_gum_cord
+        ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
+        """
+    )
+
+
 def fetch_laporan_gum_cord(selected_month=""):
     conn = None
     try:
         conn = get_db_conn()
         cur = conn.cursor()
-        cur.execute(
-            """
-            ALTER TABLE production_gum_cord
-            ADD COLUMN IF NOT EXISTS nama_operator VARCHAR(150)
-            """
-        )
-        cur.execute(
-            """
-            ALTER TABLE production_gum_cord
-            ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
-            """
-        )
+        ensure_gum_cord_columns(conn)
         query = """
             SELECT
                 ctid::text AS row_token,
@@ -3087,6 +3092,7 @@ def fetch_latest_gum_cord_by_date(tanggal_produksi):
     conn = None
     try:
         conn = get_db_conn()
+        ensure_gum_cord_columns(conn)
         cur = conn.cursor()
         cur.execute(
             """
@@ -3142,6 +3148,7 @@ def fetch_gum_cord_by_row_token(row_token):
     conn = None
     try:
         conn = get_db_conn()
+        ensure_gum_cord_columns(conn)
         cur = conn.cursor()
         cur.execute(
             """
