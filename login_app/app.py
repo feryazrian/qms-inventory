@@ -2830,18 +2830,12 @@ def build_msc_download_pdf(result, batch_uid):
         table.setStyle(TableStyle(style_commands))
         return table
 
-    def with_outer_border(table, width=0.8, color=colors.black):
-        table.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), width, color)]))
-        return table
-
-    logo_path = os.path.join(app.root_path, "static", "img", "kartindo-loading-logo.png")
-    logo_cell = p("KARTINDO", center_style)
-    if os.path.exists(logo_path):
-        logo = Image(logo_path)
-        logo.drawHeight = 16 * mm
-        logo.drawWidth = 28 * mm
-        logo.hAlign = "CENTER"
-        logo_cell = logo
+    logo_cell = Paragraph(
+        '<para align="center"><font color="#e1252a" size="24"><b>K</b></font>'
+        '<font color="#111111" size="12"><b>ARTINDO</b></font><br/>'
+        '<font color="#555555" size="5">R U B B E R</font></para>',
+        styles["BodyText"],
+    )
 
     meta_col_widths = [0.16 * inner_width, 0.47 * inner_width, 0.27 * inner_width, 0.10 * inner_width]
     meta_table = Table(
@@ -2850,13 +2844,13 @@ def build_msc_download_pdf(result, batch_uid):
             ["", "", p("SK-PROSBY-FM-02/00", center_style), p("4", center_style)],
         ],
         colWidths=meta_col_widths,
-        rowHeights=[11 * mm, 8 * mm],
+        rowHeights=[9 * mm, 6.5 * mm],
     )
     boxed(
         meta_table,
         [
-            ("BOX", (0, 0), (-1, -1), 2, colors.black),
-            ("INNERGRID", (0, 0), (-1, -1), 2, colors.black),
+            ("BOX", (0, 0), (-1, -1), 1.6, colors.black),
+            ("INNERGRID", (0, 0), (-1, -1), 1.6, colors.black),
             ("SPAN", (0, 0), (0, 1)),
             ("SPAN", (1, 0), (1, 1)),
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
@@ -2869,7 +2863,7 @@ def build_msc_download_pdf(result, batch_uid):
         ],
     )
     story.append(meta_table)
-    story.append(Spacer(1, 1.2 * mm))
+    story.append(Spacer(1, 0.8 * mm))
 
     info_left = Table(
         [
@@ -2877,7 +2871,7 @@ def build_msc_download_pdf(result, batch_uid):
             [p("Tanggal", label_style), p(":", center_style), p(context["hari_tanggal"] or context["tanggal"], label_style), p("Regu", label_style), p(":", center_style), p(context["regu"], label_style)],
         ],
         colWidths=[0.17 * inner_width, 0.03 * inner_width, 0.23 * inner_width, 0.12 * inner_width, 0.03 * inner_width, 0.08 * inner_width],
-        rowHeights=[11.5 * mm, 11.5 * mm],
+        rowHeights=[9.5 * mm, 9.5 * mm],
     )
     boxed(
         info_left,
@@ -2898,14 +2892,14 @@ def build_msc_download_pdf(result, batch_uid):
             ["", "", ""],
         ],
         colWidths=[0.123 * inner_width, 0.123 * inner_width, 0.124 * inner_width],
-        rowHeights=[11.5 * mm, 11.5 * mm],
+        rowHeights=[9.5 * mm, 9.5 * mm],
     )
     boxed(
         approval,
         [
             ("BOX", (0, 0), (-1, -1), 0.8, colors.black),
             ("INNERGRID", (0, 0), (-1, -1), 0.8, colors.black),
-            ("LINEBELOW", (0, 0), (-1, 0), 1.4, colors.black),
+            ("LINEBELOW", (0, 0), (-1, 0), 1.1, colors.black),
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ("ALIGN", (0, 0), (-1, -1), "CENTER"),
             ("FONTSIZE", (0, 0), (-1, -1), 8),
@@ -2924,7 +2918,7 @@ def build_msc_download_pdf(result, batch_uid):
         ],
     )
     story.append(info_wrap)
-    story.append(Spacer(1, 1.2 * mm))
+    story.append(Spacer(1, 0.8 * mm))
 
     main_widths = [
         0.038 * inner_width,
@@ -2981,7 +2975,7 @@ def build_msc_download_pdf(result, batch_uid):
     main_table = Table(
         [[p(cell, tiny_center_style if row_idx <= 2 else base_style) for cell in row] for row_idx, row in enumerate(main_rows)],
         colWidths=main_widths,
-        rowHeights=[8.5 * mm, 8.5 * mm, 8.5 * mm] + [8.2 * mm] * 12 + [10.5 * mm],
+        rowHeights=[6.8 * mm, 7.2 * mm, 7.2 * mm] + [5.9 * mm] * 12 + [7.2 * mm],
     )
     boxed(
         main_table,
@@ -3010,16 +3004,16 @@ def build_msc_download_pdf(result, batch_uid):
             ("ALIGN", (0, 3), (0, -1), "CENTER"),
             ("ALIGN", (2, 3), (10, -1), "CENTER"),
             ("ALIGN", (11, 3), (11, -1), "LEFT"),
-            ("LEFTPADDING", (0, 0), (-1, -1), 3),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 3),
-            ("TOPPADDING", (0, 0), (-1, -1), 1.5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5),
+            ("LEFTPADDING", (0, 0), (-1, -1), 2),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+            ("TOPPADDING", (0, 0), (-1, -1), 1),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
             ("FONTNAME", (0, 0), (-1, 2), "Times-Roman"),
             ("FONTNAME", (0, -1), (-1, -1), "Times-Bold"),
         ],
     )
     story.append(main_table)
-    story.append(Spacer(1, 3 * mm))
+    story.append(Spacer(1, 2 * mm))
 
     target_header = ["Gum Cord", "Cushion Gum", "1/8 MM", "1/8 Biasa", "DW", "65", "HQ 70", "SJ 800 (MB)", "SJ 800 (Belerang)", "AH Lembek"]
     target_values = ["0.14", "0.23", "0.11", "0.15", "0.042", "0.042", "0.04", "0.026", "0.07", "0.02"]
@@ -3030,7 +3024,7 @@ def build_msc_download_pdf(result, batch_uid):
             [p(cell, center_style) for cell in target_values],
         ],
         colWidths=[inner_width / 10.0] * 10,
-        rowHeights=[7.5 * mm, 8.5 * mm, 8.5 * mm],
+        rowHeights=[6.4 * mm, 6.8 * mm, 6.8 * mm],
     )
     boxed(
         target_table,
@@ -3046,7 +3040,7 @@ def build_msc_download_pdf(result, batch_uid):
         ],
     )
     story.append(target_table)
-    story.append(Spacer(1, 3 * mm))
+    story.append(Spacer(1, 2 * mm))
 
     target_table_2 = Table(
         [
@@ -3054,7 +3048,7 @@ def build_msc_download_pdf(result, batch_uid):
             [p(cell, center_style) for cell in ["0.028", "", "", "0.02", "0.025", "0.028", "", "", "", ""]],
         ],
         colWidths=[inner_width / 10.0] * 10,
-        rowHeights=[8.5 * mm, 8.5 * mm],
+        rowHeights=[6.8 * mm, 6.8 * mm],
     )
     boxed(
         target_table_2,
@@ -3068,7 +3062,7 @@ def build_msc_download_pdf(result, batch_uid):
         ],
     )
     story.append(target_table_2)
-    story.append(Spacer(1, 3 * mm))
+    story.append(Spacer(1, 2 * mm))
 
     control_widths = [0.37 * inner_width, 0.18 * inner_width, 0.12 * inner_width, 0.11 * inner_width, 0.11 * inner_width, 0.11 * inner_width]
     control_rows = [
@@ -3085,7 +3079,7 @@ def build_msc_download_pdf(result, batch_uid):
     control_table = Table(
         [[p(cell, small_center_style if col >= 2 or row_idx <= 2 else label_style) for col, cell in enumerate(row)] for row_idx, row in enumerate(control_rows)],
         colWidths=control_widths,
-        rowHeights=[7.5 * mm, 7.5 * mm, 7.5 * mm, 7.5 * mm, 7.5 * mm, 7.5 * mm, 7.5 * mm, 7.5 * mm, 7.5 * mm],
+        rowHeights=[6.4 * mm, 6.4 * mm, 6.4 * mm, 6.4 * mm, 6.4 * mm, 6.4 * mm, 6.4 * mm, 6.4 * mm, 6.4 * mm],
     )
     boxed(
         control_table,
@@ -3101,10 +3095,10 @@ def build_msc_download_pdf(result, batch_uid):
             ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
             ("ALIGN", (0, 0), (-1, 2), "CENTER"),
             ("ALIGN", (2, 3), (5, -1), "CENTER"),
-            ("LEFTPADDING", (0, 0), (-1, -1), 3),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 3),
-            ("TOPPADDING", (0, 0), (-1, -1), 1.5),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5),
+            ("LEFTPADDING", (0, 0), (-1, -1), 2),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+            ("TOPPADDING", (0, 0), (-1, -1), 1),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 1),
         ],
     )
     story.append(control_table)
@@ -3112,7 +3106,7 @@ def build_msc_download_pdf(result, batch_uid):
     catatan_table = Table(
         [[p("Catatan :", label_style)]],
         colWidths=[inner_width],
-        rowHeights=[24 * mm],
+        rowHeights=[16 * mm],
     )
     boxed(
         catatan_table,
@@ -3127,7 +3121,7 @@ def build_msc_download_pdf(result, batch_uid):
         ],
     )
     story.append(catatan_table)
-    story.append(Spacer(1, 1.2 * mm))
+    story.append(Spacer(1, 0.8 * mm))
     story.append(p("PT Sumatera Kartindo", center_style))
 
     doc.build(story)
