@@ -3887,8 +3887,7 @@ def laporan_cushion_download(batch_uid):
     header = result.get("header") or ()
     tanggal_produksi = header[1] if len(header) > 1 else None
     gum_cord_row = fetch_latest_gum_cord_by_date(tanggal_produksi) if tanggal_produksi else None
-    context = build_print_laporan_combined_context(result, gum_cord_row, batch_uid, "")
-    pdf_buffer = render_template_to_pdf_bytes("print_laporan.html", context, "print.css")
+    pdf_buffer = build_combined_laporan_download_pdf(result, gum_cord_row, batch_uid)
     return send_file(
         pdf_buffer,
         mimetype="application/pdf",
@@ -3917,8 +3916,7 @@ def laporan_gum_cord_download(row_token):
             cushion_result = fetch_cushion_batch(batch_uid_by_date)
             batch_uid = batch_uid_by_date
 
-    context = build_print_laporan_combined_context(cushion_result, gum_cord_row, batch_uid, "")
-    pdf_buffer = render_template_to_pdf_bytes("print_laporan.html", context, "print.css")
+    pdf_buffer = build_combined_laporan_download_pdf(cushion_result, gum_cord_row, batch_uid)
     safe_token = make_safe_gum_cord_row_token(row_token)
     return send_file(
         pdf_buffer,
@@ -3954,8 +3952,7 @@ def laporan_msc_download(batch_uid):
     if not result:
         return "Data batch MSC tidak ditemukan.", 404
 
-    context = build_print_laporan_msc_context(result, batch_uid, "")
-    pdf_buffer = render_template_to_pdf_bytes("print_laporan_msc.html", context, "print_msc.css")
+    pdf_buffer = build_msc_download_pdf(result, batch_uid)
     return send_file(
         pdf_buffer,
         mimetype="application/pdf",
