@@ -2754,53 +2754,385 @@ def build_combined_laporan_download_pdf(cushion_result, gum_cord_row, batch_uid_
 
 
 def build_msc_download_pdf(result, batch_uid):
-    header = result.get("header") or ()
-    details = result.get("details") or []
+    try:
+        from reportlab.lib import colors
+        from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+        from reportlab.lib.units import mm
+        from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+    except Exception as exc:
+        raise RuntimeError(
+            "Library PDF belum terpasang. Jalankan: pip install reportlab pypdf"
+        ) from exc
 
-    tanggal_obj = header[1] if len(header) > 1 and header[1] else None
-    tanggal = tanggal_obj.strftime("%d-%m-%Y") if tanggal_obj else "-"
+    context = build_print_laporan_msc_context(result, batch_uid, "")
+    page_width = 215.9 * mm
+    page_height = 330.2 * mm
+    margin = 6 * mm
 
-    metadata_rows = [
-        ("Batch UID", batch_uid or "-"),
-        ("Tanggal", tanggal),
-        ("Nama Operator", (header[2] or "-") if len(header) > 2 else "-"),
-        ("No. Mesin", (header[3] or "-") if len(header) > 3 else "-"),
-        ("Regu", (header[4] or "-") if len(header) > 4 else "-"),
-        ("Total Pakai Menit", format_number_display(header[5] if len(header) > 5 else None)),
-        ("Total Target", format_number_display(header[6] if len(header) > 6 else None)),
-        ("Total Aktual", format_number_display(header[7] if len(header) > 7 else None)),
-        ("Total Persentase", format_number_display(header[8] if len(header) > 8 else None)),
+    buffer = BytesIO()
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=(page_width, page_height),
+        leftMargin=margin,
+        rightMargin=margin,
+        topMargin=margin,
+        bottomMargin=margin,
+    )
+
+    styles = getSampleStyleSheet()
+    base_style = ParagraphStyle(
+        "MSCBase",
+        parent=styles["BodyText"],
+        fontName="Times-Roman",
+        fontSize=8.5,
+        leading=9.2,
+        alignment=0,
+    )
+    center_style = ParagraphStyle(
+        "MSCCenter",
+        parent=base_style,
+        alignment=1,
+    )
+    title_style = ParagraphStyle(
+        "MSCTitle",
+        parent=center_style,
+        fontName="Times-Bold",
+        fontSize=11.5,
+        leading=13,
+    )
+    small_center_style = ParagraphStyle(
+        "MSCSmallCenter",
+        parent=center_style,
+        fontSize=7.4,
+        leading=8,
+    )
+    tiny_center_style = ParagraphStyle(
+        "MSCTinyCenter",
+        parent=center_style,
+        fontSize=6.9,
+        leading=7.5,
+    )
+    label_style = ParagraphStyle(
+        "MSCLabel",
+        parent=base_style,
+        fontSize=8.3,
+        leading=9.2,
+    )
+
+    story = []
+    inner_width = doc.width
+
+    def p(text, style=base_style):
+        safe = "" if text is None else str(text)
+        return Paragraph(safe.replace("\n", "<br/>"), style)
+
+    def boxed(table, style_commands):
+        table.setStyle(TableStyle(style_commands))
+        return table
+
+    def with_outer_border(table, width=0.8, color=colors.black):
+        table.setStyle(TableStyle([("BOX", (0, 0), (-1, -1), width, color)]))
+        return table
+
+    logo_path = os.path.join(app.root_path, "static", "img", "kartindo-loading-logo.png")
+    logo_cell = p("KARTINDO", center_style)
+    if os.path.exists(logo_path):
+        logo = Image(logo_path)
+        logo.drawHeight = 16 * mm
+        logo.drawWidth = 28 * mm
+        logo.hAlign = "CENTER"
+        logo_cell = logo
+
+    meta_col_widths = [0.16 * inner_width, 0.47 * inner_width, 0.27 * inner_width, 0.10 * inner_width]
+    meta_table = Table(
+        [
+            [logo_cell, p("LAPORAN PRODUKSI HARIAN MSC", title_style), p("No.Dokumen/Revisi", center_style), p("Level", center_style)],
+            ["", "", p("SK-PROSBY-FM-02/00", center_style), p("4", center_style)],
+        ],
+        colWidths=meta_col_widths,
+        rowHeights=[11 * mm, 8 * mm],
+    )
+    boxed(
+        meta_table,
+        [
+            ("BOX", (0, 0), (-1, -1), 2, colors.black),
+            ("INNERGRID", (0, 0), (-1, -1), 2, colors.black),
+            ("SPAN", (0, 0), (0, 1)),
+            ("SPAN", (1, 0), (1, 1)),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 4),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("TOPPADDING", (0, 0), (-1, -1), 2),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+            ("FONTNAME", (2, 1), (3, 1), "Times-Bold"),
+        ],
+    )
+    story.append(meta_table)
+    story.append(Spacer(1, 1.2 * mm))
+
+    info_left = Table(
+        [
+            [p("Nama Operator", label_style), p(":", center_style), p(context["nama_operator"], label_style), p("No Mesin", label_style), p(":", center_style), p(context["no_mesin"], label_style)],
+            [p("Tanggal", label_style), p(":", center_style), p(context["hari_tanggal"] or context["tanggal"], label_style), p("Regu", label_style), p(":", center_style), p(context["regu"], label_style)],
+        ],
+        colWidths=[0.17 * inner_width, 0.03 * inner_width, 0.23 * inner_width, 0.12 * inner_width, 0.03 * inner_width, 0.08 * inner_width],
+        rowHeights=[11.5 * mm, 11.5 * mm],
+    )
+    boxed(
+        info_left,
+        [
+            ("BOX", (0, 0), (-1, -1), 0.8, colors.black),
+            ("INNERGRID", (0, 0), (-1, -1), 0, colors.white),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 5),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+            ("TOPPADDING", (0, 0), (-1, -1), 2),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 2),
+        ],
+    )
+
+    approval = Table(
+        [
+            [p("Disetujui", center_style), p("Diperiksa", center_style), p("Dilaporkan", center_style)],
+            ["", "", ""],
+        ],
+        colWidths=[0.123 * inner_width, 0.123 * inner_width, 0.124 * inner_width],
+        rowHeights=[11.5 * mm, 11.5 * mm],
+    )
+    boxed(
+        approval,
+        [
+            ("BOX", (0, 0), (-1, -1), 0.8, colors.black),
+            ("INNERGRID", (0, 0), (-1, -1), 0.8, colors.black),
+            ("LINEBELOW", (0, 0), (-1, 0), 1.4, colors.black),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("FONTSIZE", (0, 0), (-1, -1), 8),
+        ],
+    )
+
+    info_wrap = Table([[info_left, approval]], colWidths=[0.63 * inner_width, 0.37 * inner_width])
+    boxed(
+        info_wrap,
+        [
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 0),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 0),
+            ("TOPPADDING", (0, 0), (-1, -1), 0),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 0),
+        ],
+    )
+    story.append(info_wrap)
+    story.append(Spacer(1, 1.2 * mm))
+
+    main_widths = [
+        0.038 * inner_width,
+        0.145 * inner_width,
+        0.068 * inner_width,
+        0.068 * inner_width,
+        0.070 * inner_width,
+        0.065 * inner_width,
+        0.072 * inner_width,
+        0.072 * inner_width,
+        0.082 * inner_width,
+        0.066 * inner_width,
+        0.066 * inner_width,
+        0.174 * inner_width,
     ]
-
-    msc_rows = [[
-        "Nama Bahan", "Jam Awal", "Jam Akhir", "Pakai", "Target/mnt", "Target",
-        "Aktual", "%", "Obat Timbang", "Obat Sisa", "Keterangan",
-    ]]
-    for row in details:
-        msc_rows.append(
+    main_rows = [
+        ["Hasil Produksi"] + [""] * 11,
+        ["No", "Nama Bahan", "Jam", "", "", "Target<br/>( Bacth )", "", "Aktual<br/>( Bacth )", "Persentase<br/>( % )", "Obat<br/>( Bungkus )", "", "Keterangan"],
+        ["", "", "Awal", "Akhir", "Pakai<br/>( menit )", "Per mnt", "Total", "", "", "Timbang", "Sisa", ""],
+    ]
+    for index, row in enumerate(context["rows"], start=1):
+        main_rows.append(
             [
-                row[0] or "-",
-                row[1].strftime("%H:%M") if len(row) > 1 and row[1] else "-",
-                row[2].strftime("%H:%M") if len(row) > 2 and row[2] else "-",
-                format_number_display(row[3] if len(row) > 3 else None),
-                format_number_display(row[4] if len(row) > 4 else None),
-                format_number_display(row[5] if len(row) > 5 else None),
-                format_number_display(row[6] if len(row) > 6 else None),
-                format_number_display(row[7] if len(row) > 7 else None),
-                format_number_display(row[8] if len(row) > 8 else None),
-                format_number_display(row[9] if len(row) > 9 else None),
-                row[10] or "-",
+                str(index),
+                row["nama_bahan"],
+                row["jam_awal"],
+                row["jam_akhir"],
+                row["pakai_menit"],
+                row["target_per_menit"],
+                row["target_total"],
+                row["aktual_batch"],
+                row["persentase"],
+                row["obat_timbang"],
+                row["obat_sisa"],
+                row["keterangan"],
             ]
         )
-    if len(msc_rows) == 1:
-        msc_rows.append(["-"] * 11)
-
-    return build_download_pdf(
-        "Laporan Produksi Harian MSC",
-        metadata_rows,
-        [{"title": "Hasil Produksi MSC", "rows": msc_rows, "font_size": 7}],
-        page_size="landscape",
+    main_rows.append(
+        [
+            "Total",
+            "",
+            "Menit",
+            "",
+            context["total_pakai_menit"],
+            "",
+            context["total_target"],
+            context["total_aktual"],
+            context["total_persen"],
+            "",
+            "",
+            "",
+        ]
     )
+    main_table = Table(
+        [[p(cell, tiny_center_style if row_idx <= 2 else base_style) for cell in row] for row_idx, row in enumerate(main_rows)],
+        colWidths=main_widths,
+        rowHeights=[8.5 * mm, 8.5 * mm, 8.5 * mm] + [8.2 * mm] * 12 + [10.5 * mm],
+    )
+    boxed(
+        main_table,
+        [
+            ("BOX", (0, 0), (-1, -1), 0.8, colors.black),
+            ("INNERGRID", (0, 0), (-1, -1), 0.8, colors.black),
+            ("SPAN", (0, 0), (-1, 0)),
+            ("SPAN", (0, 1), (0, 2)),
+            ("SPAN", (1, 1), (1, 2)),
+            ("SPAN", (2, 1), (4, 1)),
+            ("SPAN", (5, 1), (6, 1)),
+            ("SPAN", (7, 1), (7, 2)),
+            ("SPAN", (8, 1), (8, 2)),
+            ("SPAN", (9, 1), (10, 1)),
+            ("SPAN", (11, 1), (11, 2)),
+            ("SPAN", (0, -1), (1, -1)),
+            ("SPAN", (2, -1), (3, -1)),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#d9d9d9")),
+            ("BACKGROUND", (6, 3), (6, -2), colors.HexColor("#c8d8a4")),
+            ("BACKGROUND", (7, 3), (7, -2), colors.HexColor("#ecc7a6")),
+            ("BACKGROUND", (6, -1), (6, -1), colors.HexColor("#c8d8a4")),
+            ("BACKGROUND", (7, -1), (7, -1), colors.HexColor("#ecc7a6")),
+            ("BACKGROUND", (8, -1), (8, -1), colors.HexColor("#bfd7ee")),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ALIGN", (0, 0), (-1, 2), "CENTER"),
+            ("ALIGN", (0, 3), (0, -1), "CENTER"),
+            ("ALIGN", (2, 3), (10, -1), "CENTER"),
+            ("ALIGN", (11, 3), (11, -1), "LEFT"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 3),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+            ("TOPPADDING", (0, 0), (-1, -1), 1.5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5),
+            ("FONTNAME", (0, 0), (-1, 2), "Times-Roman"),
+            ("FONTNAME", (0, -1), (-1, -1), "Times-Bold"),
+        ],
+    )
+    story.append(main_table)
+    story.append(Spacer(1, 3 * mm))
+
+    target_header = ["Gum Cord", "Cushion Gum", "1/8 MM", "1/8 Biasa", "DW", "65", "HQ 70", "SJ 800 (MB)", "SJ 800 (Belerang)", "AH Lembek"]
+    target_values = ["0.14", "0.23", "0.11", "0.15", "0.042", "0.042", "0.04", "0.026", "0.07", "0.02"]
+    target_table = Table(
+        [
+            [p("Target Per Menit (Batch)", center_style)] + [""] * 9,
+            [p(cell, small_center_style) for cell in target_header],
+            [p(cell, center_style) for cell in target_values],
+        ],
+        colWidths=[inner_width / 10.0] * 10,
+        rowHeights=[7.5 * mm, 8.5 * mm, 8.5 * mm],
+    )
+    boxed(
+        target_table,
+        [
+            ("BOX", (0, 0), (-1, -1), 0.8, colors.black),
+            ("INNERGRID", (0, 0), (-1, -1), 0.8, colors.black),
+            ("SPAN", (0, 0), (-1, 0)),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#d9d9d9")),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 2),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+        ],
+    )
+    story.append(target_table)
+    story.append(Spacer(1, 3 * mm))
+
+    target_table_2 = Table(
+        [
+            [p(cell, small_center_style) for cell in ["Lem Motor", "Karet Boss<br/>Brush", "Sill PTL", "Roll Keras", "Roll<br/>Menengah", "Bulu ayam", "", "", "", ""]],
+            [p(cell, center_style) for cell in ["0.028", "", "", "0.02", "0.025", "0.028", "", "", "", ""]],
+        ],
+        colWidths=[inner_width / 10.0] * 10,
+        rowHeights=[8.5 * mm, 8.5 * mm],
+    )
+    boxed(
+        target_table_2,
+        [
+            ("BOX", (0, 0), (-1, -1), 0.8, colors.black),
+            ("INNERGRID", (0, 0), (-1, -1), 0.8, colors.black),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 2),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 2),
+        ],
+    )
+    story.append(target_table_2)
+    story.append(Spacer(1, 3 * mm))
+
+    control_widths = [0.37 * inner_width, 0.18 * inner_width, 0.12 * inner_width, 0.11 * inner_width, 0.11 * inner_width, 0.11 * inner_width]
+    control_rows = [
+        ["Parameter Control Mutu Produksi MSC", "", "", "", "", ""],
+        ["Standart Proses", "", "Spek", "Waktu Pengambilan Data", "", ""],
+        ["", "", "", "09:00", "12:00", "15:00"],
+        ["Temperatur Bahan ( C )", "Kneader", "85 - 95", "", "", ""],
+        ["", "Gilingan", "76 - 86", "", "", ""],
+        ["", "Outlet dari Conveyor", "30 - 35", "", "", ""],
+        ["Temperatur Roll Gilingan ( C )", "Depan", "33 - 35", "", "", ""],
+        ["", "Belakang", "33 - 35", "", "", ""],
+        ["Tekanan Angin ( Bar )", "", "3 - 4", "", "", ""],
+    ]
+    control_table = Table(
+        [[p(cell, small_center_style if col >= 2 or row_idx <= 2 else label_style) for col, cell in enumerate(row)] for row_idx, row in enumerate(control_rows)],
+        colWidths=control_widths,
+        rowHeights=[7.5 * mm, 7.5 * mm, 7.5 * mm, 7.5 * mm, 7.5 * mm, 7.5 * mm, 7.5 * mm, 7.5 * mm, 7.5 * mm],
+    )
+    boxed(
+        control_table,
+        [
+            ("BOX", (0, 0), (-1, -1), 0.8, colors.black),
+            ("INNERGRID", (0, 0), (-1, -1), 0.8, colors.black),
+            ("SPAN", (0, 0), (-1, 0)),
+            ("SPAN", (0, 1), (1, 2)),
+            ("SPAN", (3, 1), (5, 1)),
+            ("SPAN", (0, 3), (0, 5)),
+            ("SPAN", (0, 6), (0, 7)),
+            ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#d9d9d9")),
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("ALIGN", (0, 0), (-1, 2), "CENTER"),
+            ("ALIGN", (2, 3), (5, -1), "CENTER"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 3),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 3),
+            ("TOPPADDING", (0, 0), (-1, -1), 1.5),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5),
+        ],
+    )
+    story.append(control_table)
+
+    catatan_table = Table(
+        [[p("Catatan :", label_style)]],
+        colWidths=[inner_width],
+        rowHeights=[24 * mm],
+    )
+    boxed(
+        catatan_table,
+        [
+            ("BOX", (0, 0), (-1, -1), 0.8, colors.black),
+            ("LINEABOVE", (0, 0), (-1, 0), 0, colors.white),
+            ("VALIGN", (0, 0), (-1, -1), "TOP"),
+            ("LEFTPADDING", (0, 0), (-1, -1), 6),
+            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
+            ("TOPPADDING", (0, 0), (-1, -1), 4),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+        ],
+    )
+    story.append(catatan_table)
+    story.append(Spacer(1, 1.2 * mm))
+    story.append(p("PT Sumatera Kartindo", center_style))
+
+    doc.build(story)
+    buffer.seek(0)
+    return buffer
 
 
 def load_static_css(filename):
