@@ -54,7 +54,7 @@
             }
 
             const anchor = event.target.closest("a[href]");
-            if (!anchor || !isInternalLink(anchor)) {
+            if (!anchor || !isInternalLink(anchor) || anchor.hasAttribute("data-skip-splash")) {
                 return;
             }
 

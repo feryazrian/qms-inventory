@@ -298,6 +298,10 @@ td {
     padding-left: 10px;
 }
 
+.helper-kotak .helper-kotak-nowrap {
+    white-space: nowrap;
+}
+
 .helper-tungkul tr:not(:first-child) > th:first-child {
     text-align: left;
     padding-left: 10px;

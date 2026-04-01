@@ -6,21 +6,8 @@
     <title>Laporan</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/laporan.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/splash.css') }}">
-    <script src="{{ url_for('static', filename='js/splash.js') }}" defer></script>
-    <noscript><style>.page-splash{display:none !important;}</style></noscript>
 </head>
-<body class="is-splash-visible">
-<div class="page-splash" id="page-splash" aria-hidden="true">
-    <div class="page-splash__panel">
-        <div class="page-splash__brand">
-            <img src="{{ url_for('static', filename='img/kartindo-loading-logo.png') }}" alt="Kartindo Logo">
-        </div>
-        <h1 class="page-splash__title">Laporan Produksi</h1>
-        <p class="page-splash__text">Mengambil histori produksi dan menyiapkan data laporan.</p>
-        <div class="page-splash__bar"></div>
-    </div>
-</div>
+<body>
 <div class="header">
     <div class="header-inner">
         <a href="/home" aria-label="Ke halaman Home">
@@ -398,7 +385,7 @@
                     <table class="cg-helper-table">
                         <thead>
                             <tr>
-                                <th colspan="11" class="cg-helper-title">Kotak</th>
+                                <th colspan="12" class="cg-helper-title">Kotak</th>
                             </tr>
                             <tr>
                                 <th class="cg-kotak-label-col">Tinggi</th>
@@ -409,6 +396,7 @@
                                 <th>310</th>
                                 <th>350</th>
                                 <th>Gum Cord</th>
+                                <th>Gum Strip</th>
                                 <th></th>
                                 <th class="cg-h-grey">Total</th>
                                 <th class="cg-h-pink">Terbuang</th>
@@ -424,6 +412,7 @@
                                 <td><input type="number" step="1" id="cg-kotak-310" data-helper-field="box_310" class="cg-kotak-item"></td>
                                 <td><input type="number" step="1" id="cg-kotak-350" data-helper-field="box_350" class="cg-kotak-item"></td>
                                 <td><input type="number" step="1" id="cg-kotak-gumcord" data-helper-field="box_gumcord" class="cg-kotak-item"></td>
+                                <td><input type="number" step="1" id="cg-kotak-gumstrip" data-helper-field="box_gumstrip" class="cg-kotak-item"></td>
                                 <td><input type="number" step="1" readonly tabindex="-1"></td>
                                 <td class="cg-h-grey"><input type="number" step="1" id="cg-kotak-total" data-helper-field="total" data-helper-fixed="1"></td>
                                 <td class="cg-h-pink"><input type="number" step="1" id="cg-kotak-terbuang" data-helper-field="terbuang"></td>
@@ -730,6 +719,10 @@ document.addEventListener("DOMContentLoaded", function () {
             const tabValue = targetId.replace("tab-", "");
             setActiveTab(tabValue);
             window.history.replaceState({}, "", buildLaporanUrl(tabValue));
+            const tabInput = monthFilterForm?.querySelector('input[name="tab"]');
+            if (tabInput) {
+                tabInput.value = tabValue;
+            }
         });
     });
 
@@ -1130,6 +1123,7 @@ document.addEventListener("DOMContentLoaded", function () {
             "cg-kotak-310",
             "cg-kotak-350",
             "cg-kotak-gumcord",
+            "cg-kotak-gumstrip",
         ].map((id) => parseIntSafe(document.getElementById(id)?.value));
         const kotakSum = kotakItems.reduce((acc, val) => acc + (val ?? 0), 0);
         if (kotakTotalInput) {

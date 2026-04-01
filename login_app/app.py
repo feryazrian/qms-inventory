@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from io import BytesIO
+from time import perf_counter
 import os
 import subprocess
 import tempfile
@@ -302,18 +303,6 @@ def fetch_laporan_cushion_gum(selected_month=""):
     try:
         conn = get_db_conn()
         cur = conn.cursor()
-        cur.execute(
-            """
-            ALTER TABLE production_gum_cord
-            ADD COLUMN IF NOT EXISTS nama_operator VARCHAR(150)
-            """
-        )
-        cur.execute(
-            """
-            ALTER TABLE production_gum_cord
-            ADD COLUMN IF NOT EXISTS no_mesin VARCHAR(100)
-            """
-        )
         query = """
             SELECT
                 id,
@@ -637,6 +626,7 @@ def ensure_pemakaian_kotak_table(conn):
             box_310 INTEGER,
             box_350 INTEGER,
             box_gumcord INTEGER,
+            box_gumstrip INTEGER,
             total INTEGER,
             terbuang INTEGER,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -695,6 +685,12 @@ def ensure_pemakaian_kotak_table(conn):
         """
         ALTER TABLE pemakaian_kotak
         ADD COLUMN IF NOT EXISTS box_gumcord INTEGER
+        """
+    )
+    cur.execute(
+        """
+        ALTER TABLE pemakaian_kotak
+        ADD COLUMN IF NOT EXISTS box_gumstrip INTEGER
         """
     )
     cur.execute(
@@ -1353,6 +1349,7 @@ def fetch_cushion_batch(batch_uid):
                 box_310,
                 box_350,
                 box_gumcord,
+                box_gumstrip,
                 total,
                 terbuang
             FROM pemakaian_kotak
@@ -1374,6 +1371,7 @@ def fetch_cushion_batch(batch_uid):
                     box_310,
                     box_350,
                     box_gumcord,
+                    box_gumstrip,
                     total,
                     terbuang
                 FROM pemakaian_kotak
@@ -1411,6 +1409,7 @@ def fetch_cushion_batch(batch_uid):
                     box_310,
                     box_350,
                     box_gumcord,
+                    box_gumstrip,
                     total,
                     terbuang
                 FROM pemakaian_kotak
@@ -1555,8 +1554,9 @@ def laporan_cushion_read(batch_uid):
                     "box_310": kotak[4] if kotak and kotak[4] is not None else None,
                     "box_350": kotak[5] if kotak and kotak[5] is not None else None,
                     "box_gumcord": kotak[6] if kotak and kotak[6] is not None else None,
-                    "total": kotak[7] if kotak and kotak[7] is not None else None,
-                    "terbuang": kotak[8] if kotak and kotak[8] is not None else None,
+                    "box_gumstrip": kotak[7] if kotak and kotak[7] is not None else None,
+                    "total": kotak[8] if kotak and kotak[8] is not None else None,
+                    "terbuang": kotak[9] if kotak and kotak[9] is not None else None,
                 },
                 "tungkul": {
                     "tp_165": tungkul[0] if tungkul and tungkul[0] is not None else None,
@@ -1613,6 +1613,7 @@ def laporan_cushion_update(batch_uid):
     box_310 = parse_int(str(kotak_payload.get("box_310") or ""))
     box_350 = parse_int(str(kotak_payload.get("box_350") or ""))
     box_gumcord = parse_int(str(kotak_payload.get("box_gumcord") or ""))
+    box_gumstrip = parse_int(str(kotak_payload.get("box_gumstrip") or ""))
     kotak_total = parse_int(str(kotak_payload.get("total") or ""))
     kotak_terbuang = parse_int(str(kotak_payload.get("terbuang") or ""))
 
@@ -1637,7 +1638,7 @@ def laporan_cushion_update(batch_uid):
     if total_plastik is None and any(value is not None for value in plastik_items):
         total_plastik = sum((value or Decimal("0")) for value in plastik_items)
 
-    kotak_items = [box_160, box_185, box_200, box_220, box_310, box_350, box_gumcord]
+    kotak_items = [box_160, box_185, box_200, box_220, box_310, box_350, box_gumcord, box_gumstrip]
     if kotak_total is None and any(value is not None for value in kotak_items):
         kotak_total = sum(value or 0 for value in kotak_items)
 
@@ -1838,6 +1839,7 @@ def laporan_cushion_update(batch_uid):
             box_310,
             box_350,
             box_gumcord,
+            box_gumstrip,
             kotak_total,
             kotak_terbuang,
         ]
@@ -1854,10 +1856,11 @@ def laporan_cushion_update(batch_uid):
                     box_310,
                     box_350,
                     box_gumcord,
+                    box_gumstrip,
                     total,
                     terbuang
                 ) VALUES (
-                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                 )
                 """,
                 (tanggal_produksi, batch_uid, *kotak_values),
@@ -2700,8 +2703,8 @@ def build_combined_laporan_download_pdf(cushion_result, gum_cord_row, batch_uid_
         ["Plastik Total", format_number_display(plastik[8] if plastik else None)],
         ["Plastik Terbuang", format_number_display(plastik[9] if plastik else None)],
         ["Plastik Rework CG Potong", format_number_display(plastik[10] if plastik else None)],
-        ["Kotak Total", format_number_display(kotak[7] if kotak else None)],
-        ["Kotak Terbuang", format_number_display(kotak[8] if kotak else None)],
+        ["Kotak Total", format_number_display(kotak[8] if kotak else None)],
+        ["Kotak Terbuang", format_number_display(kotak[9] if kotak else None)],
         ["Tungkul Total", format_number_display(tungkul[4] if tungkul else None)],
         ["Tungkul Terbuang", format_number_display(tungkul[5] if tungkul else None)],
         ["Lakban", format_number_display(tungkul[6] if tungkul else None)],
@@ -3334,22 +3337,58 @@ def laporan():
     if "user" not in session:
         return redirect(url_for("login"))
 
+    route_started_at = perf_counter()
     active_tab = request.args.get("tab", "cushion-gum")
     if active_tab not in ["cushion-gum", "gum-cord", "msc"]:
         active_tab = "cushion-gum"
 
+    month_options_started_at = perf_counter()
     month_options = fetch_laporan_month_options()
+    month_options_ms = (perf_counter() - month_options_started_at) * 1000
     selected_month = normalize_laporan_month(request.args.get("bulan"))
     available_months = {month["value"] for month in month_options if month.get("value")}
     if month_options:
         if not selected_month or selected_month not in available_months:
             selected_month = month_options[0]["value"]
 
+    cushion_started_at = perf_counter()
     laporan_cushion_gum = fetch_laporan_cushion_gum(selected_month)
+    cushion_ms = (perf_counter() - cushion_started_at) * 1000
+
+    gum_cord_started_at = perf_counter()
     laporan_gum_cord = fetch_laporan_gum_cord(selected_month)
+    gum_cord_ms = (perf_counter() - gum_cord_started_at) * 1000
+
+    msc_started_at = perf_counter()
     laporan_msc = fetch_laporan_msc(selected_month)
+    msc_ms = (perf_counter() - msc_started_at) * 1000
+
+    master_produk_started_at = perf_counter()
     master_produk = fetch_master_produk()
+    master_produk_ms = (perf_counter() - master_produk_started_at) * 1000
+
+    master_bahan_started_at = perf_counter()
     master_bahan_msc = fetch_master_bahan_msc()
+    master_bahan_ms = (perf_counter() - master_bahan_started_at) * 1000
+
+    total_ms = (perf_counter() - route_started_at) * 1000
+    app.logger.info(
+        (
+            "[laporan] total=%.1fms month_options=%.1fms cushion=%.1fms "
+            "gum_cord=%.1fms msc=%.1fms master_produk=%.1fms master_bahan_msc=%.1fms "
+            "tab=%s bulan=%s"
+        ),
+        total_ms,
+        month_options_ms,
+        cushion_ms,
+        gum_cord_ms,
+        msc_ms,
+        master_produk_ms,
+        master_bahan_ms,
+        active_tab,
+        selected_month or "-",
+    )
+
     return render_template(
         "laporan.html",
         user=session["user"],
@@ -3634,6 +3673,20 @@ def build_print_laporan_combined_context(cushion_result, gum_cord_row, batch_uid
         "berat_total": format_number_display((gum_cord_row or {}).get("berat_total")),
     }
 
+    plastik_total_value = plastik[8] if plastik else None
+    if plastik_total_value is None and plastik:
+        plastik_components = [plastik[i] if len(plastik) > i else None for i in range(8)]
+        if any(value is not None for value in plastik_components):
+            plastik_total_value = sum(
+                Decimal(str(value)) for value in plastik_components if value is not None
+            )
+
+    kotak_total_value = kotak[8] if kotak else None
+    if kotak_total_value is None and kotak:
+        kotak_components = [kotak[i] if len(kotak) > i else None for i in range(8)]
+        if any(value is not None for value in kotak_components):
+            kotak_total_value = sum(int(value) for value in kotak_components if value is not None)
+
     plastik_print = {
         "230_blue": format_number_display(plastik[0] if plastik else None),
         "210_green": format_number_display(plastik[1] if plastik else None),
@@ -3643,7 +3696,7 @@ def build_print_laporan_combined_context(cushion_result, gum_cord_row, batch_uid
         "270_red": format_number_display(plastik[5] if plastik else None),
         "240_red": format_number_display(plastik[6] if plastik else None),
         "plastik_gumcord": format_number_display(plastik[7] if plastik else None),
-        "total_plastik": format_number_display(plastik[8] if plastik else None),
+        "total_plastik": format_number_display(plastik_total_value),
         "plastik_terbuang": format_number_display(plastik[9] if plastik else None),
         "plastik_terbuang_cgpotong": format_number_display(plastik[10] if plastik else None),
     }
@@ -3655,8 +3708,9 @@ def build_print_laporan_combined_context(cushion_result, gum_cord_row, batch_uid
         "box_310": format_number_display(kotak[4] if kotak else None),
         "box_350": format_number_display(kotak[5] if kotak else None),
         "box_gumcord": format_number_display(kotak[6] if kotak else None),
-        "total": format_number_display(kotak[7] if kotak else None),
-        "terbuang": format_number_display(kotak[8] if kotak else None),
+        "box_gumstrip": format_number_display(kotak[7] if kotak else None),
+        "total": format_number_display(kotak_total_value),
+        "terbuang": format_number_display(kotak[9] if kotak else None),
     }
     tungkul_print = {
         "tp_165": format_number_display(tungkul[0] if tungkul else None),
@@ -4157,6 +4211,7 @@ def cushion_gum():
         box_310 = parse_int(request.form.get("box_310"))
         box_350 = parse_int(request.form.get("box_350"))
         box_gumcord = parse_int(request.form.get("box_gumcord"))
+        box_gumstrip = parse_int(request.form.get("box_gumstrip"))
         kotak_total = parse_int(request.form.get("total"))
         kotak_terbuang = parse_int(request.form.get("terbuang"))
         tp_165 = parse_int(request.form.get("tp_165"))
@@ -4166,6 +4221,9 @@ def cushion_gum():
         tungkul_total = parse_int(request.form.get("tungkul_total"))
         tungkul_terbuang = parse_int(request.form.get("tungkul_terbuang"))
         lakban = parse_int(request.form.get("lakban"))
+        kotak_items = [box_160, box_185, box_200, box_220, box_310, box_350, box_gumcord, box_gumstrip]
+        if kotak_total is None and any(value is not None for value in kotak_items):
+            kotak_total = sum(value or 0 for value in kotak_items)
         tungkul_items = [tp_165, tp_195, tp_210, tp_240]
         if any(value is not None for value in tungkul_items):
             tungkul_total = sum(value or 0 for value in tungkul_items)
@@ -4393,6 +4451,7 @@ def cushion_gum():
                 box_310,
                 box_350,
                 box_gumcord,
+                box_gumstrip,
                 kotak_total,
                 kotak_terbuang,
             ]
@@ -4409,10 +4468,11 @@ def cushion_gum():
                         box_310,
                         box_350,
                         box_gumcord,
+                        box_gumstrip,
                         total,
                         terbuang
                     ) VALUES (
-                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+                        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                     )
                     """,
                     (tanggal_produksi, batch_uid, *kotak_values),
