@@ -402,6 +402,21 @@ body.modal-open {
     cursor: pointer;
 }
 
+.msc-modal-add-btn {
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    color: #334155;
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.msc-modal-add-btn:hover {
+    background: #f8fafc;
+}
+
 .msc-modal-delete-btn:hover {
     background: #f8fafc;
 }
@@ -1445,6 +1460,7 @@ body.modal-open {
         -webkit-overflow-scrolling: touch;
     }
 
+    .msc-modal-head-actions .msc-modal-add-btn,
     .msc-modal-head-actions .msc-modal-delete-btn,
     .msc-modal-head-actions .msc-modal-close,
     .msc-modal-head-actions .aksi-btn {

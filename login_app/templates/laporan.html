@@ -559,6 +559,7 @@
         <div class="msc-modal-head">
             <h3 id="msc-modal-title">Detail Produksi MSC</h3>
             <div class="msc-modal-head-actions">
+                <button type="button" class="msc-modal-add-btn" id="msc-modal-add-row-btn" hidden>Tambah Baris</button>
                 <button type="button" class="msc-modal-delete-btn" id="msc-modal-delete-row-btn" hidden>Hapus Baris</button>
                 <button type="button" class="aksi-btn aksi-edit" id="msc-modal-update-btn" hidden>Update</button>
                 <button type="button" class="msc-modal-close" data-close-modal="1">Tutup</button>
@@ -1663,6 +1664,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const mscModalLoading = document.getElementById("msc-modal-loading");
     const mscModalBody = document.getElementById("msc-modal-body");
     const mscUpdateBtn = document.getElementById("msc-modal-update-btn");
+    const mscAddRowBtn = document.getElementById("msc-modal-add-row-btn");
     const mscDeleteRowBtn = document.getElementById("msc-modal-delete-row-btn");
     const mscNamaOperator = document.getElementById("msc-modal-nama-operator");
     const mscNoMesin = document.getElementById("msc-modal-no-mesin");
@@ -1721,6 +1723,9 @@ document.addEventListener("DOMContentLoaded", function () {
             el.disabled = false;
         });
         mscUpdateBtn.hidden = !editable;
+        if (mscAddRowBtn) {
+            mscAddRowBtn.hidden = !editable;
+        }
         if (mscDeleteRowBtn) {
             mscDeleteRowBtn.hidden = !editable;
         }
@@ -1781,6 +1786,41 @@ document.addEventListener("DOMContentLoaded", function () {
                 <td><input type="text" data-field="keterangan" value="${row.keterangan ?? ""}"></td>
             </tr>
         `;
+    }
+
+    function buildEmptyMscRow() {
+        return {
+            nama_bahan: "",
+            jam_awal: "",
+            jam_akhir: "",
+            pakai_menit: "",
+            target_per_menit: "",
+            target_total: "",
+            aktual_batch: "",
+            persentase: "",
+            obat_timbang: "",
+            obat_sisa: "",
+            keterangan: "",
+        };
+    }
+
+    function renumberMscRows() {
+        mscModalBody.querySelectorAll("tr").forEach((tr, index) => {
+            const numCell = tr.querySelector(".num-cell");
+            if (numCell) {
+                numCell.textContent = String(index + 1);
+            }
+        });
+    }
+
+    function appendMscRow(row = buildEmptyMscRow()) {
+        const nextIndex = mscModalBody.querySelectorAll("tr").length;
+        mscModalBody.insertAdjacentHTML("beforeend", buildMscRow(nextIndex, row));
+        const appendedRow = mscModalBody.querySelector("tr:last-child");
+        recalcMscRow(appendedRow);
+        recalcMscTotals();
+        renumberMscRows();
+        return appendedRow;
     }
 
     function openModal() {
@@ -1893,6 +1933,12 @@ document.addEventListener("DOMContentLoaded", function () {
         setMscDeleteMode(!mscDeleteMode);
     });
 
+    mscAddRowBtn?.addEventListener("click", function () {
+        if (mscAddRowBtn.hidden) return;
+        const appendedRow = appendMscRow();
+        appendedRow?.querySelector("select, input")?.focus();
+    });
+
     mscModalBody?.addEventListener("click", function (event) {
         if (!mscDeleteMode) return;
 
@@ -1903,6 +1949,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!isConfirmed) return;
 
         row.remove();
+        renumberMscRows();
         recalcMscTotals();
         setMscDeleteMode(false);
     });
@@ -1938,6 +1985,7 @@ document.addEventListener("DOMContentLoaded", function () {
             mscModalBody.innerHTML = (data.rows || []).map((row, idx) => buildMscRow(idx, row)).join("");
             setModalEditable(mode === "edit");
             recalcAllMscRows();
+            renumberMscRows();
         } catch (err) {
             closeModal();
             alert(err.message || "Gagal membuka data MSC.");
